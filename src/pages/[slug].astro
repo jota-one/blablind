@@ -1,0 +1,9 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro'
+import GameApp from '@game/App.vue'
+export const prerender = false
+---
+
+<BaseLayout>
+  <GameApp client:only />
+</BaseLayout>
