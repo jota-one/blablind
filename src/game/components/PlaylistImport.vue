@@ -78,8 +78,7 @@ interface PlaylistTrack {
 }
 
 const props = defineProps<{
-  addTrack: (data: { youtube_url: string; title?: string; artist?: string; added_by: string }) => Promise<void>
-  playerId: string
+  addTrack: (data: { video_id: string; title?: string; artist?: string; duration?: number }) => Promise<void>
 }>()
 
 const emit = defineEmits<{ done: [] }>()
@@ -137,10 +136,10 @@ const importSelected = async () => {
     const toImport = playlist.value.tracks.filter(t => selected.value.includes(t.videoId))
     for (const track of toImport) {
       await props.addTrack({
-        youtube_url: `https://www.youtube.com/watch?v=${track.videoId}`,
+        video_id: track.videoId,
         title: track.title,
         artist: track.artist || undefined,
-        added_by: props.playerId,
+        duration: track.duration,
       })
     }
     emit('done')
