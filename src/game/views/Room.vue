@@ -62,8 +62,8 @@
             </div>
             <p class="font-bold text-xl font-display text-center px-4">
               <template v-if="isCurrentTrackAdmin">
-                {{ currentTrack.title || '(sans titre)' }}
-                <span v-if="currentTrack.artist" class="block text-base font-normal text-base-content/60">{{ currentTrack.artist }}</span>
+              {{ currentTrack.expand?.video?.title || '(sans titre)' }}
+                <span v-if="currentTrack.expand?.video?.artist" class="block text-base font-normal text-base-content/60">{{ currentTrack.expand?.video?.artist }}</span>
               </template>
               <template v-else>
                 <span class="text-base-content/40">Morceau de {{ getPlayerName(currentTrack.added_by) }}</span>
@@ -238,7 +238,7 @@
                 Ajouter
               </button>
             </template>
-            <PlaylistImport v-else :add-track="addTrackFromPlaylist" :player-id="currentPlayer.id" />
+            <PlaylistImport v-else :add-track="addTrackFromPlaylist" />
           </div>
         </details>
 
@@ -260,13 +260,13 @@
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium truncate">
                   <template v-if="isMyTrack(track)">
-                    <span class="text-primary">{{ track.title || '(sans titre)' }}</span>
+                    <span class="text-primary">{{ track.expand?.video?.title || '(sans titre)' }}</span>
                     <span class="badge badge-xs badge-primary ml-1">moi</span>
                   </template>
-                  <template v-else-if="track.status === 'done'">{{ track.title || '(sans titre)' }}</template>
+                  <template v-else-if="track.status === 'done'">{{ track.expand?.video?.title || '(sans titre)' }}</template>
                   <template v-else>???</template>
                 </p>
-                <p v-if="(isMyTrack(track) || track.status === 'done') && track.artist" class="text-xs text-base-content/50">{{ track.artist }}</p>
+                <p v-if="(isMyTrack(track) || track.status === 'done') && track.expand?.video?.artist" class="text-xs text-base-content/50">{{ track.expand?.video?.artist }}</p>
                 <p class="text-xs text-base-content/40 mt-0.5">
                   <template v-if="track.status === 'done' && track.solved_by">
                     Trouvé par
@@ -335,7 +335,7 @@ const addMode = ref<'single' | 'playlist'>('single')
 const newTrack = ref({ youtube_url: '', start_seconds: 0, title: '', artist: '' })
 const audioUnlocked = ref(false)
 
-const videoId = computed(() => currentTrack.value ? getVideoId(currentTrack.value.youtube_url) : null)
+const videoId = computed(() => currentTrack.value?.expand?.video?.video_id ?? null)
 
 // Appelé quand l'utilisateur tap play dans l'iframe YouTube — déverrouille l'audio
 const onPlaying = () => { audioUnlocked.value = true }
@@ -419,7 +419,7 @@ const leaveSession = async () => {
     const nextHost = onlinePlayers.value.find(p => p.id !== props.currentPlayer.id)
     if (nextHost) await pb.collection('sessions').update(props.session.id, { host: nextHost.id })
   }
-  await pb.collection('players').delete(props.currentPlayer.id)
+  await pb.collection('players').delete(props.currentPlayer.id, { query: { secret: props.currentPlayer.secret } })
   localStorage.removeItem(`blablind_player_${props.session.id}`)
   emit('leave')
 }
@@ -440,11 +440,12 @@ const invalidateBuzz = async () => {
 }
 
 const handleAddTrack = async () => {
-  if (!newTrack.value.youtube_url.trim()) return
+  const vid = getVideoId(newTrack.value.youtube_url.trim())
+  if (!vid) return
   addingTrack.value = true
   try {
     await addTrack({
-      youtube_url: newTrack.value.youtube_url.trim(),
+      video_id: vid,
       start_seconds: newTrack.value.start_seconds || 0,
       title: newTrack.value.title.trim() || undefined,
       artist: newTrack.value.artist.trim() || undefined,
@@ -456,6 +457,6 @@ const handleAddTrack = async () => {
   }
 }
 
-const addTrackFromPlaylist = (data: { youtube_url: string; title?: string; artist?: string; added_by: string }) =>
-  addTrack({ ...data, start_seconds: 0 })
+const addTrackFromPlaylist = (data: { video_id: string; title?: string; artist?: string; duration?: number }) =>
+  addTrack({ ...data, start_seconds: 0, added_by: props.currentPlayer.id })
 </script>

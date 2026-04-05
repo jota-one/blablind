@@ -37,11 +37,12 @@ export const GET: APIRoute = async ({ request }) => {
       if (page === 1) name = data.title
       const videos: any[] = data.videos ?? []
       for (const v of videos) {
+        if (!v.lengthSeconds) continue
         tracks.push({
           videoId: v.videoId,
           title: v.title,
           artist: v.author ?? '',
-          duration: v.lengthSeconds ?? 0,
+          duration: v.lengthSeconds,
         })
       }
       if (videos.length < 100) break

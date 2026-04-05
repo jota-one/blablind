@@ -57,7 +57,8 @@ watch(
     const savedId = localStorage.getItem(`blablind_player_${s.id}`)
     if (!savedId) return
     try {
-      player.value = await pb.collection('players').getOne(savedId)
+      const secret = localStorage.getItem(`blablind_secret_${s.id}`) ?? ''
+      player.value = { ...await pb.collection('players').getOne(savedId), secret }
       startHeartbeat(player.value.id)
       saveLastSession()
     } catch {
@@ -69,13 +70,16 @@ watch(
 
 const onJoined = async (name: string) => {
   if (!session.value) return
+  const secret = crypto.randomUUID()
   const record = await pb.collection('players').create({
     session: session.value.id,
     name,
     score: 0,
+    secret,
   })
   localStorage.setItem(`blablind_player_${session.value.id}`, record.id)
-  player.value = record
+  localStorage.setItem(`blablind_secret_${session.value.id}`, secret)
+  player.value = { ...record, secret }
   startHeartbeat(record.id)
   saveLastSession()
   // Premier joueur à rejoindre = hôte
@@ -89,6 +93,10 @@ const onLeave = () => {
   stopHeartbeat = null
   player.value = null
   localStorage.removeItem('blablind_last_session')
+  if (session.value) {
+    localStorage.removeItem(`blablind_player_${session.value.id}`)
+    localStorage.removeItem(`blablind_secret_${session.value.id}`)
+  }
   window.location.href = '/'
 }
 </script>
