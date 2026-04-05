@@ -8,13 +8,13 @@
     </div>
     <template v-else-if="session">
       <Join v-if="!player" :session="session" @joined="onJoined" />
-      <Room v-else :session="session" :current-player="player" />
+      <Room v-else :session="session" :current-player="player" @leave="onLeave" />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, getCurrentInstance } from 'vue'
+import { ref, watch, onUnmounted, getCurrentInstance } from 'vue'
 import useSession from '@game/composables/useSession'
 import { pb } from '@game/pb'
 import Join from '@game/views/Join.vue'
@@ -28,6 +28,27 @@ const slug = window.location.pathname.split('/').filter(Boolean)[0]
 const { session, loading, error } = useSession(slug)
 
 const player = ref<any>(null)
+let stopHeartbeat: (() => void) | null = null
+
+const startHeartbeat = (playerId: string) => {
+  stopHeartbeat?.()
+  const tick = () =>
+    pb.collection('players').update(playerId, { last_seen: new Date().toISOString() }).catch(() => {})
+  tick()
+  const id = setInterval(tick, 15_000)
+  stopHeartbeat = () => clearInterval(id)
+}
+
+onUnmounted(() => stopHeartbeat?.())
+
+const saveLastSession = () => {
+  if (!session.value) return
+  localStorage.setItem('blablind_last_session', JSON.stringify({
+    slug,
+    name: session.value.name,
+    savedAt: Date.now(),
+  }))
+}
 
 watch(
   session,
@@ -37,6 +58,8 @@ watch(
     if (!savedId) return
     try {
       player.value = await pb.collection('players').getOne(savedId)
+      startHeartbeat(player.value.id)
+      saveLastSession()
     } catch {
       localStorage.removeItem(`blablind_player_${s.id}`)
     }
@@ -53,9 +76,19 @@ const onJoined = async (name: string) => {
   })
   localStorage.setItem(`blablind_player_${session.value.id}`, record.id)
   player.value = record
+  startHeartbeat(record.id)
+  saveLastSession()
   // Premier joueur à rejoindre = hôte
   if (!session.value.host) {
     await pb.collection('sessions').update(session.value.id, { host: record.id })
   }
+}
+
+const onLeave = () => {
+  stopHeartbeat?.()
+  stopHeartbeat = null
+  player.value = null
+  localStorage.removeItem('blablind_last_session')
+  window.location.href = '/'
 }
 </script>
