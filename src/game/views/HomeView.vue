@@ -7,6 +7,16 @@
       </p>
     </div>
 
+    <!-- Bannière restore session -->
+    <div v-if="lastSession" class="alert alert-info w-full max-w-2xl mb-6 flex items-center gap-4">
+      <span class="i-fa-solid-rotate-left text-xl shrink-0"></span>
+      <span class="flex-1 text-sm">
+        Tu étais dans <strong>{{ lastSession.name }}</strong>. Tu veux reprendre ?
+      </span>
+      <a :href="`/${lastSession.slug}`" class="btn btn-sm btn-primary shrink-0">Reprendre</a>
+      <button class="btn btn-sm btn-ghost shrink-0" @click="dismissLastSession">Ignorer</button>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
       <!-- Créer un blindtest -->
       <div class="card bg-base-200 shadow-xl p-6">
@@ -55,6 +65,30 @@
 import { ref } from 'vue'
 import { pb } from '@game/pb'
 import { generateSlug } from '@game/utils'
+
+const THREE_HOURS = 3 * 60 * 60 * 1000
+
+const getLastSession = () => {
+  try {
+    const raw = localStorage.getItem('blablind_last_session')
+    if (!raw) return null
+    const data = JSON.parse(raw)
+    if (Date.now() - data.savedAt > THREE_HOURS) {
+      localStorage.removeItem('blablind_last_session')
+      return null
+    }
+    return data
+  } catch {
+    return null
+  }
+}
+
+const lastSession = ref(getLastSession())
+
+const dismissLastSession = () => {
+  localStorage.removeItem('blablind_last_session')
+  lastSession.value = null
+}
 
 const createName = ref('')
 const creating = ref(false)

@@ -1,14 +1,5 @@
 <template>
   <div class="h-screen flex flex-col overflow-hidden">
-    <!-- YouTube player off-screen (audio seulement) -->
-    <div class="fixed" style="left: -9999px; top: 0; width: 1px; height: 1px; overflow: hidden;" aria-hidden="true">
-      <YoutubePlayer
-        v-if="currentTrack && videoId"
-        :video-id="videoId"
-        :start-seconds="currentTrack.start_seconds ?? 0"
-        :paused="!!activeBuzz"
-      />
-    </div>
 
     <!-- Header -->
     <header class="shrink-0 bg-base-100/90 backdrop-blur border-b border-base-300 px-4 py-3 flex items-center gap-3">
@@ -20,8 +11,11 @@
         :class="['badge badge-sm', session.status === 'playing' ? 'badge-success' : session.status === 'finished' ? 'badge-neutral' : 'badge-warning']"
       >{{ sessionStatusLabel }}</span>
       <span class="text-sm text-base-content/50">
-        <span class="i-fa-solid-users"></span> {{ players.length }}
+        <span class="i-fa-solid-users"></span> {{ onlinePlayers.length }}
       </span>
+      <button class="btn btn-xs btn-ghost text-error" title="Quitter" @click="leaveSession">
+        <span class="i-fa6-solid-right-from-bracket"></span>
+      </button>
     </header>
 
     <!-- Main -->
@@ -30,8 +24,38 @@
       <!-- Left column -->
       <div class="flex flex-col gap-4 p-4 min-w-0">
 
-        <!-- Now playing visual indicator -->
-        <div class="aspect-video bg-base-200 rounded-xl flex flex-col items-center justify-center gap-4">
+        <!--
+          Conteneur principal : toujours aspect-video.
+          Layer 1 : YoutubePlayer (jamais démonté).
+          Layer 2 : overlay warm-up (couvre la vidéo, taps passent au player).
+          Layer 3 : UI lobby/now-playing (par-dessus, bg-base-200 masque la vidéo).
+        -->
+        <div class="relative aspect-video rounded-xl overflow-hidden">
+
+          <!-- Layer 1 : player toujours monté -->
+          <div class="absolute inset-0" :class="{'opacity-0 pointer-events-none': audioUnlocked || !videoId}">
+            <YoutubePlayer
+              :video-id="videoId"
+              :start-seconds="currentTrack?.start_seconds ?? 0"
+              :paused="audioUnlocked && !!activeBuzz"
+              @playing="onPlaying"
+            />
+          </div>
+
+          <!-- Layer 2 : overlay warm-up (masque video, laisse passer les taps) -->
+          <div
+            v-if="!audioUnlocked && videoId"
+            class="absolute inset-0 bg-black/85 flex flex-col items-center justify-center gap-3 pointer-events-none"
+          >
+            <span class="text-4xl">🔊</span>
+            <p class="text-white/90 text-sm text-center px-4">Appuie sur ▶ pour activer le son</p>
+          </div>
+
+          <!-- Layer 3 : UI jeu/lobby (masque la vidéo après unlock, ou quand pas de piste) -->
+          <div
+            class="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6"
+            :class="(!audioUnlocked && videoId) ? 'bg-transparent pointer-events-none' : 'bg-base-200'"
+          >
           <template v-if="currentTrack">
             <div :class="['text-7xl transition-all', activeBuzz ? 'opacity-50' : 'animate-bounce']">
               🎵
@@ -54,7 +78,6 @@
             <!-- Phase d'attente : lobby -->
             <template v-if="session.status === 'waiting'">
               <span class="text-5xl">🎮</span>
-              <!-- Hôte -->
               <template v-if="isHost">
                 <p class="font-semibold text-center">Tu es l'hôte du blindtest</p>
                 <ul v-if="nonHostPlayers.length > 0" class="space-y-1 w-full max-w-xs text-sm">
@@ -72,7 +95,6 @@
                   Ajoute au moins un morceau avant de lancer
                 </p>
               </template>
-              <!-- Non-hôte -->
               <template v-else>
                 <p class="text-base-content/50 text-center text-sm">En attente que l'hôte lance le blindtest</p>
                 <button v-if="!isReady" class="btn btn-primary btn-lg" @click="markReady(true)">
@@ -100,12 +122,11 @@
               </template>
             </template>
           </template>
-        </div>
+          </div><!-- /Layer 3 -->
+        </div><!-- /aspect-video container -->
 
         <!-- Buzz zone (seulement pour les non-admin du morceau) -->
         <div v-if="currentTrack && !isCurrentTrackAdmin" class="w-full">
-
-          <!-- Active buzz: c'est moi qui ai buzzé -->
           <div v-if="activeBuzz && activeBuzz.player === currentPlayer.id" class="alert alert-info">
             <span class="i-fa-solid-bell text-xl"></span>
             <div>
@@ -114,16 +135,11 @@
               <p class="text-sm opacity-70 mt-1">En attente de validation...</p>
             </div>
           </div>
-
-          <!-- Active buzz: quelqu'un d'autre a buzzé -->
           <div v-else-if="activeBuzz" class="alert">
             <span class="i-fa-solid-bell text-xl animate-pulse"></span>
             <span><strong>{{ getPlayerName(activeBuzz.player) }}</strong> est en train de répondre...</span>
           </div>
-
-          <!-- Pas de buzz actif -->
           <template v-else>
-            <!-- Saisie de la réponse -->
             <div v-if="buzzing" class="card bg-base-200 p-4 space-y-3">
               <p class="font-bold text-center">Ta réponse :</p>
               <input
@@ -142,8 +158,6 @@
                 <button class="btn btn-ghost" @click="buzzing = false">Annuler</button>
               </div>
             </div>
-
-            <!-- Bouton BUZZ -->
             <button
               v-else-if="canBuzz"
               class="btn btn-error w-full h-20 text-2xl font-bold shadow-lg hover:scale-[1.02] transition-transform"
@@ -152,8 +166,6 @@
               <span class="i-fa-solid-bell text-3xl"></span>
               BUZZ !
             </button>
-
-            <!-- Bloqué -->
             <div v-else class="alert alert-warning alert-soft">
               <span class="i-fa-solid-ban"></span>
               Attends qu'un autre joueur tente sa chance avant de rebuzzer.
@@ -185,11 +197,7 @@
         <!-- Vote pour passer (non-admin seulement) -->
         <div v-if="currentTrack && !isCurrentTrackAdmin" class="flex items-center justify-between text-sm text-base-content/50">
           <span>Passer ce morceau ? ({{ skipVoteCount }}/{{ skipVotesNeeded }})</span>
-          <button
-            v-if="!hasVotedToSkip"
-            class="btn btn-xs btn-ghost"
-            @click="voteToSkip(currentTrack.id, currentPlayer.id)"
-          >
+          <button v-if="!hasVotedToSkip" class="btn btn-xs btn-ghost" @click="voteToSkip(currentTrack.id, currentPlayer.id)">
             <span class="i-fa-solid-forward-step"></span>
             Voter pour passer
           </button>
@@ -203,47 +211,34 @@
             Ajouter un morceau
           </summary>
           <div class="collapse-content pt-0 space-y-3">
-            <input
-              v-model="newTrack.youtube_url"
-              type="url"
-              placeholder="URL YouTube"
-              class="input input-bordered w-full"
-            />
-            <div class="flex gap-2">
-              <div class="flex-1">
-                <input
-                  v-model.number="newTrack.start_seconds"
-                  type="number"
-                  placeholder="Départ (secondes)"
-                  class="input input-bordered w-full"
-                  min="0"
-                />
-              </div>
-              <div class="flex-1">
-                <input
-                  v-model="newTrack.title"
-                  type="text"
-                  placeholder="Titre (optionnel)"
-                  class="input input-bordered w-full"
-                />
-              </div>
-              <div class="flex-1">
-                <input
-                  v-model="newTrack.artist"
-                  type="text"
-                  placeholder="Artiste (optionnel)"
-                  class="input input-bordered w-full"
-                />
-              </div>
+            <div class="tabs tabs-bordered">
+              <button :class="['tab', addMode === 'single' ? 'tab-active' : '']" @click="addMode = 'single'">
+                URL unique
+              </button>
+              <button :class="['tab', addMode === 'playlist' ? 'tab-active' : '']" @click="addMode = 'playlist'">
+                <span class="i-fa-solid-list mr-1"></span>
+                Playlist
+              </button>
             </div>
-            <button
-              class="btn btn-primary w-full"
-              :disabled="!newTrack.youtube_url.trim() || addingTrack"
-              @click="handleAddTrack"
-            >
-              <span v-if="addingTrack" class="loading loading-spinner loading-sm"></span>
-              Ajouter
-            </button>
+            <template v-if="addMode === 'single'">
+              <input v-model="newTrack.youtube_url" type="url" placeholder="URL YouTube" class="input input-bordered w-full" />
+              <div class="flex gap-2">
+                <div class="flex-1">
+                  <input v-model.number="newTrack.start_seconds" type="number" placeholder="Départ (secondes)" class="input input-bordered w-full" min="0" />
+                </div>
+                <div class="flex-1">
+                  <input v-model="newTrack.title" type="text" placeholder="Titre (optionnel)" class="input input-bordered w-full" />
+                </div>
+                <div class="flex-1">
+                  <input v-model="newTrack.artist" type="text" placeholder="Artiste (optionnel)" class="input input-bordered w-full" />
+                </div>
+              </div>
+              <button class="btn btn-primary w-full" :disabled="!newTrack.youtube_url.trim() || addingTrack" @click="handleAddTrack">
+                <span v-if="addingTrack" class="loading loading-spinner loading-sm"></span>
+                Ajouter
+              </button>
+            </template>
+            <PlaylistImport v-else :add-track="addTrackFromPlaylist" :player-id="currentPlayer.id" />
           </div>
         </details>
 
@@ -263,27 +258,19 @@
             >
               <span class="text-base w-6 text-center shrink-0">{{ trackStatusEmoji(track) }}</span>
               <div class="flex-1 min-w-0">
-                <!-- Titre : visible si c'est mon morceau OU si le morceau est terminé -->
                 <p class="text-sm font-medium truncate">
                   <template v-if="isMyTrack(track)">
                     <span class="text-primary">{{ track.title || '(sans titre)' }}</span>
                     <span class="badge badge-xs badge-primary ml-1">moi</span>
                   </template>
-                  <template v-else-if="track.status === 'done'">
-                    {{ track.title || '(sans titre)' }}
-                  </template>
+                  <template v-else-if="track.status === 'done'">{{ track.title || '(sans titre)' }}</template>
                   <template v-else>???</template>
                 </p>
-                <!-- Artiste : visible si c'est mon morceau OU si terminé -->
-                <p v-if="(isMyTrack(track) || track.status === 'done') && track.artist"
-                   class="text-xs text-base-content/50">{{ track.artist }}</p>
-                <!-- Méta : qui a ajouté / qui a trouvé / passé -->
+                <p v-if="(isMyTrack(track) || track.status === 'done') && track.artist" class="text-xs text-base-content/50">{{ track.artist }}</p>
                 <p class="text-xs text-base-content/40 mt-0.5">
                   <template v-if="track.status === 'done' && track.solved_by">
                     Trouvé par
-                    <strong :class="track.solved_by === currentPlayer.id ? 'text-success' : ''">
-                      {{ getPlayerName(track.solved_by) }}
-                    </strong>
+                    <strong :class="track.solved_by === currentPlayer.id ? 'text-success' : ''">{{ getPlayerName(track.solved_by) }}</strong>
                   </template>
                   <template v-else-if="track.status === 'done'">Passé sans réponse</template>
                   <template v-else-if="!isMyTrack(track)">Ajouté par {{ getPlayerName(track.added_by) }}</template>
@@ -303,12 +290,11 @@
             :key="p.id"
             :class="['flex items-center gap-3 rounded-lg px-3 py-2', p.id === currentPlayer.id ? 'bg-primary/10 border border-primary/30' : 'bg-base-200']"
           >
-            <span :class="['text-sm font-bold w-5 text-center', i === 0 ? 'text-warning' : 'text-base-content/40']">
-              {{ i + 1 }}
-            </span>
-            <span class="flex-1 text-sm font-medium truncate">{{ p.name }}</span>
-            <span class="font-mono font-bold text-primary">{{ p.score }}</span>
-            <span v-if="activeBuzz?.player === p.id" class="i-fa-solid-bell text-warning animate-bounce text-xs"></span>
+            <span :class="['text-sm font-bold w-5 text-center', i === 0 ? 'text-warning' : 'text-base-content/40']">{{ i + 1 }}</span>
+            <span class="flex-1 text-sm font-medium truncate" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.name }}</span>
+            <span class="font-mono font-bold text-primary" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.score }}</span>
+            <span v-if="!isOnline(p)" class="w-2 h-2 rounded-full bg-base-content/20 shrink-0" title="Hors ligne"></span>
+            <span v-else-if="activeBuzz?.player === p.id" class="i-fa-solid-bell text-warning animate-bounce text-xs"></span>
           </li>
         </ul>
         <p v-if="players.length === 0" class="text-base-content/40 text-sm text-center py-4">Aucun joueur</p>
@@ -323,15 +309,18 @@ import usePlayers from '@game/composables/usePlayers'
 import useTracks from '@game/composables/useTracks'
 import useBuzzes from '@game/composables/useBuzzes'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
+import PlaylistImport from '@game/components/PlaylistImport.vue'
 import { pb } from '@game/pb'
-import { getVideoId } from '@game/utils'
+import { getVideoId, isOnline } from '@game/utils'
 
 const props = defineProps<{
   session: any
   currentPlayer: any
 }>()
 
-const { players } = usePlayers(props.session.id)
+const emit = defineEmits<{ leave: [] }>()
+
+const { players, onlinePlayers } = usePlayers(props.session.id)
 const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip } = useTracks(props.session.id)
 const { activeBuzz, canBuzz, buzz } = useBuzzes(
   computed(() => currentTrack.value?.id),
@@ -342,20 +331,22 @@ const { activeBuzz, canBuzz, buzz } = useBuzzes(
 const buzzing = ref(false)
 const answer = ref('')
 const addingTrack = ref(false)
+const addMode = ref<'single' | 'playlist'>('single')
 const newTrack = ref({ youtube_url: '', start_seconds: 0, title: '', artist: '' })
+const audioUnlocked = ref(false)
+
+const videoId = computed(() => currentTrack.value ? getVideoId(currentTrack.value.youtube_url) : null)
+
+// Appelé quand l'utilisateur tap play dans l'iframe YouTube — déverrouille l'audio
+const onPlaying = () => { audioUnlocked.value = true }
 
 // Computed
-const videoId = computed(() => (currentTrack.value ? getVideoId(currentTrack.value.youtube_url) : null))
 const isCurrentTrackAdmin = computed(() => currentTrack.value?.added_by === props.currentPlayer.id)
 const sessionStatusLabel = computed(
-  () =>
-    ({ waiting: 'En attente', playing: 'En cours', finished: 'Terminée' })[
-      props.session.status as string
-    ] ?? props.session.status,
+  () => ({ waiting: 'En attente', playing: 'En cours', finished: 'Terminée' })[props.session.status as string] ?? props.session.status,
 )
-
 const isHost = computed(() => props.session.host === props.currentPlayer.id)
-const nonHostPlayers = computed(() => players.value.filter(p => p.id !== props.session.host))
+const nonHostPlayers = computed(() => onlinePlayers.value.filter(p => p.id !== props.session.host))
 const allNonHostPlayersReady = computed(() =>
   nonHostPlayers.value.length === 0 || nonHostPlayers.value.every(p => p.ready),
 )
@@ -367,22 +358,22 @@ const skipVoteArray = computed<string[]>(() => {
   return Array.isArray(v) ? v : []
 })
 const skipVoteCount = computed(() => skipVoteArray.value.length)
-const skipVotesNeeded = computed(() => Math.max(1, players.value.length - 1))
+const skipVotesNeeded = computed(() => {
+  if (!currentTrack.value) return 1
+  return Math.max(1, onlinePlayers.value.filter(p => p.id !== currentTrack.value.added_by).length)
+})
 const hasVotedToSkip = computed(() => skipVoteArray.value.includes(props.currentPlayer.id))
 
-// Auto-skip when all non-admin players have voted
 watch(skipVoteArray, async (votes) => {
   if (!currentTrack.value) return
-  if (players.value.length > 1 && votes.length >= skipVotesNeeded.value) {
+  if (onlinePlayers.value.length > 1 && votes.length >= skipVotesNeeded.value) {
     await finishTrack(currentTrack.value.id)
     const next = queuedTracks.value[0]
     if (next) await playTrack(next.id)
   }
 })
 
-const getPlayerName = (playerId: string) =>
-  players.value.find((p) => p.id === playerId)?.name ?? 'Inconnu'
-
+const getPlayerName = (playerId: string) => players.value.find(p => p.id === playerId)?.name ?? 'Inconnu'
 const isMyTrack = (track: any) => track.added_by === props.currentPlayer.id
 
 const trackStatusEmoji = (track: any) => {
@@ -413,7 +404,7 @@ const submitBuzz = async () => {
 
 const validateBuzz = async () => {
   if (!activeBuzz.value || !currentTrack.value) return
-  const buzzer = players.value.find((p) => p.id === activeBuzz.value.player)
+  const buzzer = players.value.find(p => p.id === activeBuzz.value.player)
   await Promise.all([
     pb.collection('buzzes').update(activeBuzz.value.id, { status: 'correct' }),
     buzzer && pb.collection('players').update(buzzer.id, { score: (buzzer.score || 0) + 1 }),
@@ -423,8 +414,17 @@ const validateBuzz = async () => {
   if (next) await playTrack(next.id)
 }
 
-const markReady = (value: boolean) =>
-  pb.collection('players').update(props.currentPlayer.id, { ready: value })
+const leaveSession = async () => {
+  if (isHost.value) {
+    const nextHost = onlinePlayers.value.find(p => p.id !== props.currentPlayer.id)
+    if (nextHost) await pb.collection('sessions').update(props.session.id, { host: nextHost.id })
+  }
+  await pb.collection('players').delete(props.currentPlayer.id)
+  localStorage.removeItem(`blablind_player_${props.session.id}`)
+  emit('leave')
+}
+
+const markReady = (value: boolean) => pb.collection('players').update(props.currentPlayer.id, { ready: value })
 
 const launchSession = async () => {
   if (!canLaunch.value) return
@@ -455,4 +455,7 @@ const handleAddTrack = async () => {
     addingTrack.value = false
   }
 }
+
+const addTrackFromPlaylist = (data: { youtube_url: string; title?: string; artist?: string; added_by: string }) =>
+  addTrack({ ...data, start_seconds: 0 })
 </script>
