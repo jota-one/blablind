@@ -118,7 +118,7 @@ const fetchPlaylist = async () => {
 
   fetching.value = true
   try {
-    const res = await fetch(`/api/playlist?id=${playlistId}`)
+    const res = await fetch(`/proxy/playlist?id=${playlistId}`)
     const data = await res.json()
     if (!res.ok) throw new Error(data.error)
     playlist.value = data
