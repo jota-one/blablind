@@ -211,6 +211,10 @@
           </summary>
           <div class="collapse-content pt-0 space-y-3">
             <div class="tabs tabs-bordered">
+              <button :class="['tab', addMode === 'search' ? 'tab-active' : '']" @click="addMode = 'search'">
+                <span class="i-fa-solid-magnifying-glass mr-1"></span>
+                Recherche
+              </button>
               <button :class="['tab', addMode === 'single' ? 'tab-active' : '']" @click="addMode = 'single'">
                 URL unique
               </button>
@@ -219,7 +223,8 @@
                 Playlist
               </button>
             </div>
-            <template v-if="addMode === 'single'">
+            <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromPlaylist" />
+            <template v-else-if="addMode === 'single'">
               <input v-model="newTrack.youtube_url" type="url" placeholder="URL YouTube" class="input input-bordered w-full" />
               <div class="flex gap-2">
                 <div class="flex-1">
@@ -309,6 +314,7 @@ import useTracks from '@game/composables/useTracks'
 import useBuzzes from '@game/composables/useBuzzes'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 import PlaylistImport from '@game/components/PlaylistImport.vue'
+import TrackSearch from '@game/components/TrackSearch.vue'
 import ShareQR from '@game/components/ShareQR.vue'
 import { pb } from '@game/pb'
 import { getVideoId, isOnline } from '@game/utils'
@@ -331,7 +337,7 @@ const { activeBuzz, canBuzz, buzz } = useBuzzes(
 const buzzing = ref(false)
 const answer = ref('')
 const addingTrack = ref(false)
-const addMode = ref<'single' | 'playlist'>('single')
+const addMode = ref<'search' | 'single' | 'playlist'>('search')
 const newTrack = ref({ youtube_url: '', start_seconds: 0, title: '', artist: '' })
 const audioUnlocked = ref(false)
 
