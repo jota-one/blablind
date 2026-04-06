@@ -24,15 +24,10 @@
       <!-- Left column -->
       <div class="flex flex-col gap-4 p-4 min-w-0">
 
-        <!--
-          Conteneur principal : toujours aspect-video.
-          Layer 1 : YoutubePlayer (jamais démonté).
-          Layer 2 : overlay warm-up (couvre la vidéo, taps passent au player).
-          Layer 3 : UI lobby/now-playing (par-dessus, bg-base-200 masque la vidéo).
-        -->
-        <div class="relative aspect-video rounded-xl overflow-hidden">
+        <!-- Conteneur principal : aspect-video seulement quand une vidéo est active -->
+        <div :class="['rounded-xl overflow-hidden', videoId ? 'relative aspect-video' : '']">
 
-          <!-- Layer 1 : player toujours monté -->
+          <!-- Layer 1 : player toujours monté (invisible hors vidéo) -->
           <div class="absolute inset-0" :class="{'opacity-0 pointer-events-none': audioUnlocked || !videoId}">
             <YoutubePlayer
               :video-id="videoId"
@@ -51,10 +46,13 @@
             <p class="text-white/90 text-sm text-center px-4">Appuie sur ▶ pour activer le son</p>
           </div>
 
-          <!-- Layer 3 : UI jeu/lobby (masque la vidéo après unlock, ou quand pas de piste) -->
+          <!-- Layer 3 : UI jeu/lobby -->
           <div
-            class="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6"
-            :class="(!audioUnlocked && videoId) ? 'bg-transparent pointer-events-none' : 'bg-base-200'"
+            :class="[
+              'flex flex-col items-center justify-center gap-4 p-6 bg-base-200 rounded-xl',
+              videoId ? 'absolute inset-0' : '',
+              (!audioUnlocked && videoId) ? 'bg-transparent pointer-events-none' : '',
+            ]"
           >
           <template v-if="currentTrack">
             <div :class="['text-7xl transition-all', activeBuzz ? 'opacity-50' : 'animate-bounce']">
