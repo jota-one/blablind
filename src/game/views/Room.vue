@@ -13,6 +13,7 @@
       <span class="text-sm text-base-content/50">
         <span class="i-fa-solid-users"></span> {{ onlinePlayers.length }}
       </span>
+      <ShareQR :slug="session.slug" />
       <button class="btn btn-xs btn-ghost text-error" title="Quitter" @click="leaveSession">
         <span class="i-fa6-solid-right-from-bracket"></span>
       </button>
@@ -308,6 +309,7 @@ import useTracks from '@game/composables/useTracks'
 import useBuzzes from '@game/composables/useBuzzes'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 import PlaylistImport from '@game/components/PlaylistImport.vue'
+import ShareQR from '@game/components/ShareQR.vue'
 import { pb } from '@game/pb'
 import { getVideoId, isOnline } from '@game/utils'
 
