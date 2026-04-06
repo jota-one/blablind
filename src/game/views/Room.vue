@@ -230,11 +230,13 @@
                 <div class="flex-1">
                   <input v-model.number="newTrack.start_seconds" type="number" placeholder="Départ (secondes)" class="input input-bordered w-full" min="0" />
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 relative">
                   <input v-model="newTrack.title" type="text" placeholder="Titre (optionnel)" class="input input-bordered w-full" />
+                  <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 relative">
                   <input v-model="newTrack.artist" type="text" placeholder="Artiste (optionnel)" class="input input-bordered w-full" />
+                  <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
                 </div>
               </div>
               <button class="btn btn-primary w-full" :disabled="!newTrack.youtube_url.trim() || addingTrack" @click="handleAddTrack">
@@ -345,7 +347,27 @@ const answer = ref('')
 const addingTrack = ref(false)
 const addMode = ref<'search' | 'single' | 'playlist'>('search')
 const newTrack = ref({ youtube_url: '', start_seconds: 0, title: '', artist: '' })
+const fetchingMeta = ref(false)
 const audioUnlocked = ref(false)
+
+let metaDebounce: ReturnType<typeof setTimeout> | null = null
+watch(() => newTrack.value.youtube_url, (url) => {
+  if (metaDebounce) clearTimeout(metaDebounce)
+  const vid = getVideoId(url)
+  if (!vid) return
+  metaDebounce = setTimeout(async () => {
+    fetchingMeta.value = true
+    try {
+      const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${vid}&format=json`)
+      if (!res.ok) return
+      const data = await res.json()
+      if (!newTrack.value.title) newTrack.value.title = data.title ?? ''
+      if (!newTrack.value.artist) newTrack.value.artist = data.author_name ?? ''
+    } finally {
+      fetchingMeta.value = false
+    }
+  }, 500)
+})
 
 const videoId = computed(() => currentTrack.value?.expand?.video?.video_id ?? null)
 
