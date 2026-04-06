@@ -23,13 +23,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, useTemplateRef } from 'vue'
 
 const props = defineProps<{ slug: string }>()
 
 const open = ref(false)
 const copied = ref(false)
-const qrContainer = ref<HTMLElement>()
+const qrContainer = useTemplateRef<HTMLElement>('qrContainer')
 const url = typeof window !== 'undefined' ? `${window.location.origin}/${props.slug}` : ''
 
 let qrRendered = false
