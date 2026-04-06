@@ -20,3 +20,7 @@ export function isOnline(player: any): boolean {
   if (!player?.last_seen) return true
   return Date.now() - new Date(player.last_seen).getTime() < 30_000
 }
+
+export function normalizeSearch(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+}
