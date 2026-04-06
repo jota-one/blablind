@@ -30,11 +30,11 @@ const { session, loading, error } = useSession(slug)
 const player = ref<any>(null)
 let stopHeartbeat: (() => void) | null = null
 
-const startHeartbeat = (playerId: string) => {
+const startHeartbeat = async (playerId: string) => {
   stopHeartbeat?.()
   const tick = () =>
     pb.collection('players').update(playerId, { last_seen: new Date().toISOString() }).catch(() => {})
-  tick()
+  await tick()
   const id = setInterval(tick, 15_000)
   stopHeartbeat = () => clearInterval(id)
 }
@@ -80,10 +80,14 @@ const onJoined = async (name: string) => {
   localStorage.setItem(`blablind_player_${session.value.id}`, record.id)
   localStorage.setItem(`blablind_secret_${session.value.id}`, secret)
   player.value = { ...record, secret }
-  startHeartbeat(record.id)
   saveLastSession()
-  // Premier joueur à rejoindre = hôte
-  if (!session.value.host) {
+  await startHeartbeat(record.id)
+  const threshold = new Date(Date.now() - 30_000).toISOString().replace('T', ' ')
+  const activeOthers = await pb.collection('players').getList(1, 1, {
+    filter: `session="${session.value.id}" && id != "${record.id}" && last_seen >= "${threshold}"`,
+    requestKey: null,
+  })
+  if (activeOthers.totalItems === 0) {
     await pb.collection('sessions').update(session.value.id, { host: record.id })
   }
 }
