@@ -231,7 +231,7 @@
             <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromPlaylist" />
             <template v-else-if="addMode === 'single'">
               <input v-model="newTrack.youtube_url" type="url" placeholder="URL YouTube" class="input input-bordered w-full" />
-              <div class="flex gap-2">
+              <div class="flex flex-col gap-2">
                 <div class="flex-1">
                   <input v-model.number="newTrack.start_seconds" type="number" placeholder="Départ (secondes)" class="input input-bordered w-full" min="0" />
                 </div>
