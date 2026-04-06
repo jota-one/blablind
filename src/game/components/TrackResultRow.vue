@@ -14,6 +14,13 @@
       </p>
     </div>
     <button
+      class="btn btn-xs btn-ghost shrink-0"
+      :class="previewing ? 'text-error' : 'text-base-content/50'"
+      @click="$emit('preview', video)"
+    >
+      <span :class="previewing ? 'i-fa-solid-stop' : 'i-fa-solid-play'"></span>
+    </button>
+    <button
       class="btn btn-xs shrink-0"
       :class="added ? 'btn-success btn-outline' : 'btn-primary'"
       :disabled="added"
@@ -27,8 +34,8 @@
 <script setup lang="ts">
 interface SearchVideo { videoId: string; title: string; artist: string; duration: number }
 
-defineProps<{ video: SearchVideo; added: boolean }>()
-defineEmits<{ add: [video: SearchVideo] }>()
+defineProps<{ video: SearchVideo; added: boolean; previewing: boolean }>()
+defineEmits<{ add: [video: SearchVideo]; preview: [video: SearchVideo] }>()
 
 const formatDuration = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 </script>

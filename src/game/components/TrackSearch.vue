@@ -15,12 +15,29 @@
       </button>
     </form>
 
+    <!-- Preview player -->
+    <div v-if="previewVideoId" class="rounded-lg overflow-hidden aspect-video">
+      <iframe
+        :key="previewVideoId"
+        :src="`https://www.youtube.com/embed/${previewVideoId}?autoplay=1&controls=1&rel=0&playsinline=1&modestbranding=1`"
+        allow="autoplay; encrypted-media"
+        allowfullscreen
+        class="w-full h-full"
+      ></iframe>
+    </div>
+
     <!-- Local results -->
     <template v-if="localResults.length > 0">
       <p class="text-xs text-base-content/50 uppercase tracking-wide font-semibold">Dans la bibliothèque</p>
       <ul class="space-y-1">
         <li v-for="v in localResults" :key="v.id">
-          <TrackResultRow :video="{ videoId: v.video_id, title: v.title, artist: v.artist, duration: v.duration }" :added="addedIds.has(v.video_id)" @add="addVideo" />
+          <TrackResultRow
+            :video="{ videoId: v.video_id, title: v.title, artist: v.artist, duration: v.duration }"
+            :added="addedIds.has(v.video_id)"
+            :previewing="previewVideoId === v.video_id"
+            @add="addVideo"
+            @preview="togglePreview"
+          />
         </li>
       </ul>
       <button class="btn btn-sm btn-ghost w-full mt-1" :disabled="searchingYt" @click="searchYoutube">
@@ -35,7 +52,13 @@
       <p class="text-xs text-base-content/50 uppercase tracking-wide font-semibold">YouTube</p>
       <ul class="space-y-1">
         <li v-for="v in ytResults" :key="v.videoId">
-          <TrackResultRow :video="v" :added="addedIds.has(v.videoId)" @add="addVideo" />
+          <TrackResultRow
+            :video="v"
+            :added="addedIds.has(v.videoId)"
+            :previewing="previewVideoId === v.videoId"
+            @add="addVideo"
+            @preview="togglePreview"
+          />
         </li>
       </ul>
     </template>
@@ -62,6 +85,7 @@ const query = ref('')
 const localResults = ref<any[]>([])
 const ytResults = ref<SearchVideo[]>([])
 const addedIds = ref(new Set<string>())
+const previewVideoId = ref<string | null>(null)
 const searching = ref(false)
 const searchingYt = ref(false)
 const searched = ref(false)
@@ -70,6 +94,10 @@ const noResults = computed(() =>
   searched.value && !searching.value && !searchingYt.value &&
   localResults.value.length === 0 && ytResults.value.length === 0
 )
+
+const togglePreview = (video: SearchVideo) => {
+  previewVideoId.value = previewVideoId.value === video.videoId ? null : video.videoId
+}
 
 const search = async () => {
   const q = query.value.trim()
