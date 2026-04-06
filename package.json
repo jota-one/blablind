@@ -10,8 +10,8 @@
     "astro": "astro",
     "lint": "oxlint --type-aware",
     "format": "oxfmt",
-    "db": "cd pb && ./pocketbase serve --http=127.0.0.1:8093",
-    "db:host": "cd pb && ./pocketbase serve --http=0.0.0.0:8093"
+    "db": "cd pb && ./pocketbase serve --http=127.0.0.1:8093 --origins=*",
+    "db:host": "cd pb && ./pocketbase serve --http=0.0.0.0:8093 --origins=*"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.6",
