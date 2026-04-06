@@ -13,6 +13,7 @@
       <span class="text-sm text-base-content/50">
         <span class="i-fa-solid-users"></span> {{ onlinePlayers.length }}
       </span>
+      <ShareQR :slug="session.slug" />
       <button class="btn btn-xs btn-ghost text-error" title="Quitter" @click="leaveSession">
         <span class="i-fa6-solid-right-from-bracket"></span>
       </button>
@@ -24,15 +25,10 @@
       <!-- Left column -->
       <div class="flex flex-col gap-4 p-4 min-w-0">
 
-        <!--
-          Conteneur principal : toujours aspect-video.
-          Layer 1 : YoutubePlayer (jamais démonté).
-          Layer 2 : overlay warm-up (couvre la vidéo, taps passent au player).
-          Layer 3 : UI lobby/now-playing (par-dessus, bg-base-200 masque la vidéo).
-        -->
-        <div class="relative aspect-video rounded-xl overflow-hidden">
+        <!-- Conteneur principal : aspect-video seulement quand une vidéo est active -->
+        <div :class="['rounded-xl overflow-hidden', videoId ? 'relative aspect-video' : '']">
 
-          <!-- Layer 1 : player toujours monté -->
+          <!-- Layer 1 : player toujours monté (invisible hors vidéo) -->
           <div class="absolute inset-0" :class="{'opacity-0 pointer-events-none': audioUnlocked || !videoId}">
             <YoutubePlayer
               :video-id="videoId"
@@ -45,16 +41,19 @@
           <!-- Layer 2 : overlay warm-up (masque video, laisse passer les taps) -->
           <div
             v-if="!audioUnlocked && videoId"
-            class="absolute inset-0 bg-black/85 flex flex-col items-center justify-center gap-3 pointer-events-none"
+            class="absolute inset-0 bg-black flex flex-col items-center justify-center gap-3 pointer-events-none"
           >
             <span class="text-4xl">🔊</span>
             <p class="text-white/90 text-sm text-center px-4">Appuie sur ▶ pour activer le son</p>
           </div>
 
-          <!-- Layer 3 : UI jeu/lobby (masque la vidéo après unlock, ou quand pas de piste) -->
+          <!-- Layer 3 : UI jeu/lobby -->
           <div
-            class="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6"
-            :class="(!audioUnlocked && videoId) ? 'bg-transparent pointer-events-none' : 'bg-base-200'"
+            :class="[
+              'flex flex-col items-center justify-center gap-4 p-6 bg-base-200 rounded-xl',
+              videoId ? 'absolute inset-0' : '',
+              (!audioUnlocked && videoId) ? 'bg-transparent pointer-events-none' : '',
+            ]"
           >
           <template v-if="currentTrack">
             <div :class="['text-7xl transition-all', activeBuzz ? 'opacity-50' : 'animate-bounce']">
@@ -212,6 +211,10 @@
           </summary>
           <div class="collapse-content pt-0 space-y-3">
             <div class="tabs tabs-bordered">
+              <button :class="['tab', addMode === 'search' ? 'tab-active' : '']" @click="addMode = 'search'">
+                <span class="i-fa-solid-magnifying-glass mr-1"></span>
+                Recherche
+              </button>
               <button :class="['tab', addMode === 'single' ? 'tab-active' : '']" @click="addMode = 'single'">
                 URL unique
               </button>
@@ -220,17 +223,20 @@
                 Playlist
               </button>
             </div>
-            <template v-if="addMode === 'single'">
+            <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromPlaylist" />
+            <template v-else-if="addMode === 'single'">
               <input v-model="newTrack.youtube_url" type="url" placeholder="URL YouTube" class="input input-bordered w-full" />
               <div class="flex gap-2">
                 <div class="flex-1">
                   <input v-model.number="newTrack.start_seconds" type="number" placeholder="Départ (secondes)" class="input input-bordered w-full" min="0" />
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 relative">
                   <input v-model="newTrack.title" type="text" placeholder="Titre (optionnel)" class="input input-bordered w-full" />
+                  <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 relative">
                   <input v-model="newTrack.artist" type="text" placeholder="Artiste (optionnel)" class="input input-bordered w-full" />
+                  <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
                 </div>
               </div>
               <button class="btn btn-primary w-full" :disabled="!newTrack.youtube_url.trim() || addingTrack" @click="handleAddTrack">
@@ -310,6 +316,8 @@ import useTracks from '@game/composables/useTracks'
 import useBuzzes from '@game/composables/useBuzzes'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 import PlaylistImport from '@game/components/PlaylistImport.vue'
+import TrackSearch from '@game/components/TrackSearch.vue'
+import ShareQR from '@game/components/ShareQR.vue'
 import { pb } from '@game/pb'
 import { getVideoId, isOnline } from '@game/utils'
 
@@ -322,18 +330,44 @@ const emit = defineEmits<{ leave: [] }>()
 
 const { players, onlinePlayers } = usePlayers(props.session.id)
 const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip } = useTracks(props.session.id)
+const otherEligibleCount = computed(() =>
+  onlinePlayers.value.filter(p =>
+    p.id !== props.currentPlayer.id && p.id !== currentTrack.value?.added_by
+  ).length
+)
 const { activeBuzz, canBuzz, buzz } = useBuzzes(
   computed(() => currentTrack.value?.id),
   props.currentPlayer.id,
+  otherEligibleCount,
 )
 
 // UI state
 const buzzing = ref(false)
 const answer = ref('')
 const addingTrack = ref(false)
-const addMode = ref<'single' | 'playlist'>('single')
+const addMode = ref<'search' | 'single' | 'playlist'>('search')
 const newTrack = ref({ youtube_url: '', start_seconds: 0, title: '', artist: '' })
+const fetchingMeta = ref(false)
 const audioUnlocked = ref(false)
+
+let metaDebounce: ReturnType<typeof setTimeout> | null = null
+watch(() => newTrack.value.youtube_url, (url) => {
+  if (metaDebounce) clearTimeout(metaDebounce)
+  const vid = getVideoId(url)
+  if (!vid) return
+  metaDebounce = setTimeout(async () => {
+    fetchingMeta.value = true
+    try {
+      const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${vid}&format=json`)
+      if (!res.ok) return
+      const data = await res.json()
+      if (!newTrack.value.title) newTrack.value.title = data.title ?? ''
+      if (!newTrack.value.artist) newTrack.value.artist = data.author_name ?? ''
+    } finally {
+      fetchingMeta.value = false
+    }
+  }, 500)
+})
 
 const videoId = computed(() => currentTrack.value?.expand?.video?.video_id ?? null)
 

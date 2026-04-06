@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { watch, onMounted, onUnmounted, useTemplateRef } from 'vue'
 
 const props = defineProps<{
   videoId: string | null
@@ -15,7 +15,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ playing: [] }>()
 
-const playerEl = ref<HTMLElement>()
+const playerEl = useTemplateRef<HTMLElement>('playerEl')
 let ytPlayer: any = null
 
 const ytReady = (): Promise<void> => {

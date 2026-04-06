@@ -1,5 +1,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { pb } from '@game/pb'
+import { normalizeSearch } from '@game/utils'
 
 export default function useTracks(sessionId: string) {
   const tracks = ref<any[]>([])
@@ -35,6 +36,7 @@ export default function useTracks(sessionId: string) {
         title: data.title,
         artist: data.artist,
         duration: data.duration,
+        search_text: normalizeSearch(`${data.title ?? ''} ${data.artist ?? ''}`),
       })
     } catch {
       // Race condition: another client created it first
