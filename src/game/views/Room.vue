@@ -41,7 +41,7 @@
           <!-- Layer 2 : overlay warm-up (masque video, laisse passer les taps) -->
           <div
             v-if="!audioUnlocked && videoId"
-            class="absolute inset-0 bg-black/85 flex flex-col items-center justify-center gap-3 pointer-events-none"
+            class="absolute inset-0 bg-black flex flex-col items-center justify-center gap-3 pointer-events-none"
           >
             <span class="text-4xl">🔊</span>
             <p class="text-white/90 text-sm text-center px-4">Appuie sur ▶ pour activer le son</p>
