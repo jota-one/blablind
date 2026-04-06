@@ -16,10 +16,10 @@
     </form>
 
     <!-- Preview player -->
-    <div v-if="previewVideoId" class="rounded-lg overflow-hidden aspect-video">
+    <div v-if="previewInfo" class="rounded-lg overflow-hidden aspect-video">
       <iframe
-        :key="previewVideoId"
-        :src="`https://www.youtube.com/embed/${previewVideoId}?autoplay=1&controls=1&rel=0&playsinline=1&modestbranding=1`"
+        :key="`${previewInfo.videoId}-${previewInfo.startSeconds}`"
+        :src="`https://www.youtube.com/embed/${previewInfo.videoId}?autoplay=1&controls=1&rel=0&playsinline=1&modestbranding=1&start=${previewInfo.startSeconds}`"
         allow="autoplay; encrypted-media"
         allowfullscreen
         class="w-full h-full"
@@ -34,7 +34,7 @@
           <TrackResultRow
             :video="{ videoId: v.video_id, title: v.title, artist: v.artist, duration: v.duration }"
             :added="addedIds.has(v.video_id)"
-            :previewing="previewVideoId === v.video_id"
+            :previewing="previewInfo?.videoId === v.video_id"
             @add="addVideo"
             @preview="togglePreview"
           />
@@ -55,7 +55,7 @@
           <TrackResultRow
             :video="v"
             :added="addedIds.has(v.videoId)"
-            :previewing="previewVideoId === v.videoId"
+            :previewing="previewInfo?.videoId === v.videoId"
             @add="addVideo"
             @preview="togglePreview"
           />
@@ -78,14 +78,14 @@ import TrackResultRow from '@game/components/TrackResultRow.vue'
 interface SearchVideo { videoId: string; title: string; artist: string; duration: number }
 
 const props = defineProps<{
-  addTrack: (data: { video_id: string; title?: string; artist?: string; duration?: number }) => Promise<void>
+  addTrack: (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) => Promise<void>
 }>()
 
 const query = ref('')
 const localResults = ref<any[]>([])
 const ytResults = ref<SearchVideo[]>([])
 const addedIds = ref(new Set<string>())
-const previewVideoId = ref<string | null>(null)
+const previewInfo = ref<{ videoId: string; startSeconds: number } | null>(null)
 const searching = ref(false)
 const searchingYt = ref(false)
 const searched = ref(false)
@@ -95,8 +95,12 @@ const noResults = computed(() =>
   localResults.value.length === 0 && ytResults.value.length === 0
 )
 
-const togglePreview = (video: SearchVideo) => {
-  previewVideoId.value = previewVideoId.value === video.videoId ? null : video.videoId
+const togglePreview = (video: SearchVideo, startSeconds: number) => {
+  if (previewInfo.value?.videoId === video.videoId && previewInfo.value?.startSeconds === startSeconds) {
+    previewInfo.value = null
+  } else {
+    previewInfo.value = { videoId: video.videoId, startSeconds }
+  }
 }
 
 const search = async () => {
@@ -141,13 +145,14 @@ const searchYoutube = async () => {
   }
 }
 
-const addVideo = async (video: SearchVideo) => {
+const addVideo = async (video: SearchVideo, startSeconds: number) => {
   addedIds.value = new Set([...addedIds.value, video.videoId])
   await props.addTrack({
     video_id: video.videoId,
     title: video.title,
     artist: video.artist,
     duration: video.duration,
+    start_seconds: startSeconds || undefined,
   })
 }
 </script>
