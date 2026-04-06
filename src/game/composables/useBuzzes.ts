@@ -5,6 +5,7 @@ import { pb } from '@game/pb'
 export default function useBuzzes(
   currentTrackId: ComputedRef<string | undefined>,
   currentPlayerId: string | undefined,
+  otherEligibleCount: ComputedRef<number>,
 ) {
   const buzzes = ref<any[]>([])
 
@@ -16,6 +17,7 @@ export default function useBuzzes(
 
     const myWrong = buzzes.value.filter(b => b.status === 'wrong' && b.player === currentPlayerId)
     if (myWrong.length === 0) return true
+    if (otherEligibleCount.value === 0) return true
 
     const lastWrong = myWrong[myWrong.length - 1]
     const othersAfter = buzzes.value.filter(

@@ -328,9 +328,15 @@ const emit = defineEmits<{ leave: [] }>()
 
 const { players, onlinePlayers } = usePlayers(props.session.id)
 const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip } = useTracks(props.session.id)
+const otherEligibleCount = computed(() =>
+  onlinePlayers.value.filter(p =>
+    p.id !== props.currentPlayer.id && p.id !== currentTrack.value?.added_by
+  ).length
+)
 const { activeBuzz, canBuzz, buzz } = useBuzzes(
   computed(() => currentTrack.value?.id),
   props.currentPlayer.id,
+  otherEligibleCount,
 )
 
 // UI state
