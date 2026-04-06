@@ -22,8 +22,13 @@
     <!-- Main -->
     <div class="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-0">
 
+      <!-- Game over -->
+      <template v-if="session.status === 'finished'">
+        <GameOver :players="players" :current-player="currentPlayer" class="lg:col-span-2" />
+      </template>
+
       <!-- Left column -->
-      <div class="flex flex-col gap-4 p-4 min-w-0">
+      <div v-else class="flex flex-col gap-4 p-4 min-w-0">
 
         <!-- Conteneur principal : aspect-video seulement quand une vidéo est active -->
         <div :class="['rounded-xl overflow-hidden', videoId ? 'relative aspect-video' : '']">
@@ -288,7 +293,7 @@
       </div>
 
       <!-- Classement -->
-      <aside class="lg:border-l border-base-300 p-4">
+      <aside v-if="session.status !== 'finished'" class="lg:border-l border-base-300 p-4">
         <h2 class="text-sm font-semibold text-base-content/50 uppercase tracking-wide mb-3">Classement</h2>
         <ul class="space-y-2">
           <li
@@ -318,6 +323,7 @@ import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 import PlaylistImport from '@game/components/PlaylistImport.vue'
 import TrackSearch from '@game/components/TrackSearch.vue'
 import ShareQR from '@game/components/ShareQR.vue'
+import GameOver from '@game/components/GameOver.vue'
 import { pb } from '@game/pb'
 import { getVideoId, isOnline } from '@game/utils'
 
@@ -330,9 +336,15 @@ const emit = defineEmits<{ leave: [] }>()
 
 const { players, onlinePlayers } = usePlayers(props.session.id)
 const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip } = useTracks(props.session.id)
+const trackValidatorId = computed(() => {
+  if (!currentTrack.value) return null
+  const owner = players.value.find(p => p.id === currentTrack.value.added_by)
+  if (owner && isOnline(owner)) return owner.id
+  return props.session.host
+})
 const otherEligibleCount = computed(() =>
   onlinePlayers.value.filter(p =>
-    p.id !== props.currentPlayer.id && p.id !== currentTrack.value?.added_by
+    p.id !== props.currentPlayer.id && p.id !== trackValidatorId.value
   ).length
 )
 const { activeBuzz, canBuzz, buzz } = useBuzzes(
@@ -375,7 +387,9 @@ const videoId = computed(() => currentTrack.value?.expand?.video?.video_id ?? nu
 const onPlaying = () => { audioUnlocked.value = true }
 
 // Computed
-const isCurrentTrackAdmin = computed(() => currentTrack.value?.added_by === props.currentPlayer.id)
+const isCurrentTrackAdmin = computed(() =>
+  !!trackValidatorId.value && trackValidatorId.value === props.currentPlayer.id
+)
 const sessionStatusLabel = computed(
   () => ({ waiting: 'En attente', playing: 'En cours', finished: 'Terminée' })[props.session.status as string] ?? props.session.status,
 )
@@ -394,7 +408,7 @@ const skipVoteArray = computed<string[]>(() => {
 const skipVoteCount = computed(() => skipVoteArray.value.length)
 const skipVotesNeeded = computed(() => {
   if (!currentTrack.value) return 1
-  return Math.max(1, onlinePlayers.value.filter(p => p.id !== currentTrack.value.added_by).length)
+  return Math.max(1, onlinePlayers.value.filter(p => p.id !== trackValidatorId.value).length)
 })
 const hasVotedToSkip = computed(() => skipVoteArray.value.includes(props.currentPlayer.id))
 
@@ -404,6 +418,7 @@ watch(skipVoteArray, async (votes) => {
     await finishTrack(currentTrack.value.id)
     const next = queuedTracks.value[0]
     if (next) await playTrack(next.id)
+    else await pb.collection('sessions').update(props.session.id, { status: 'finished' })
   }
 })
 
@@ -446,6 +461,7 @@ const validateBuzz = async () => {
   ])
   const next = queuedTracks.value[0]
   if (next) await playTrack(next.id)
+  else await pb.collection('sessions').update(props.session.id, { status: 'finished' })
 }
 
 const leaveSession = async () => {
@@ -491,6 +507,6 @@ const handleAddTrack = async () => {
   }
 }
 
-const addTrackFromPlaylist = (data: { video_id: string; title?: string; artist?: string; duration?: number }) =>
-  addTrack({ ...data, start_seconds: 0, added_by: props.currentPlayer.id })
+const addTrackFromPlaylist = (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) =>
+  addTrack({ ...data, start_seconds: data.start_seconds ?? 0, added_by: props.currentPlayer.id })
 </script>
