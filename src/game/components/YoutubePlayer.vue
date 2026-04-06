@@ -17,6 +17,8 @@ const emit = defineEmits<{ playing: [] }>()
 
 const playerEl = useTemplateRef<HTMLElement>('playerEl')
 let ytPlayer: any = null
+let playerReadyPromise: Promise<void> = Promise.resolve()
+let playerReadyResolve: (() => void) | null = null
 
 const ytReady = (): Promise<void> => {
   const w = window as any
@@ -37,10 +39,12 @@ const createPlayer = (videoId: string) => {
   playerEl.value.innerHTML = ''
   const container = document.createElement('div')
   playerEl.value.appendChild(container)
+  playerReadyPromise = new Promise((resolve) => { playerReadyResolve = resolve })
   ytPlayer = new (window as any).YT.Player(container, {
     videoId,
     playerVars: { start: props.startSeconds, autoplay: 0, controls: 1, rel: 0, modestbranding: 1, playsinline: 1 },
     events: {
+      onReady: () => { playerReadyResolve?.() },
       onStateChange: (e: any) => {
         if (e.data === 1) emit('playing')
       },
@@ -55,8 +59,8 @@ onMounted(async () => {
 
 watch(() => props.videoId, async (newId) => {
   await ytReady()
-  if (!newId) { ytPlayer?.stopVideo(); return }
-  if (ytPlayer) ytPlayer.loadVideoById({ videoId: newId, startSeconds: props.startSeconds })
+  if (!newId) { await playerReadyPromise; ytPlayer?.stopVideo(); return }
+  if (ytPlayer) { await playerReadyPromise; ytPlayer.loadVideoById({ videoId: newId, startSeconds: props.startSeconds }) }
   else createPlayer(newId)
 })
 
