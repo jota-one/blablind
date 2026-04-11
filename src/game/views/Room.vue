@@ -23,11 +23,11 @@
     </header>
 
     <!-- Main -->
-    <div class="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-0">
+    <div class="flex-1 overflow-y-auto">
 
       <!-- Game over -->
       <template v-if="session.status === 'finished'">
-        <GameOver :players="players" :current-player="currentPlayer" class="lg:col-span-2" />
+        <GameOver :players="players" :current-player="currentPlayer" />
       </template>
 
       <!-- Left column -->
@@ -211,108 +211,154 @@
           <span v-else class="text-xs opacity-60">Tu as voté ✓</span>
         </div>
 
-        <!-- Add track form -->
-        <details class="collapse collapse-arrow bg-base-200 rounded-lg">
-          <summary class="collapse-title font-semibold">
-            <span class="i-fa-solid-plus mr-2"></span>
-            Ajouter un morceau
-          </summary>
-          <div class="collapse-content pt-0 space-y-3">
-            <div class="tabs tabs-bordered">
-              <button :class="['tab', addMode === 'search' ? 'tab-active' : '']" @click="addMode = 'search'">
-                <span class="i-fa-solid-magnifying-glass mr-1"></span>
-                Recherche
-              </button>
-              <button :class="['tab', addMode === 'single' ? 'tab-active' : '']" @click="addMode = 'single'">
-                URL unique
-              </button>
-              <button :class="['tab', addMode === 'playlist' ? 'tab-active' : '']" @click="addMode = 'playlist'">
-                <span class="i-fa-solid-list mr-1"></span>
-                Playlist
-              </button>
-            </div>
-            <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromPlaylist" />
-            <template v-else-if="addMode === 'single'">
-              <input v-model="newTrack.youtube_url" type="url" placeholder="URL YouTube" class="input input-bordered w-full" />
-              <div class="flex flex-col gap-2">
-                <div class="flex-1">
-                  <input v-model.number="newTrack.start_seconds" type="number" placeholder="Départ (secondes)" class="input input-bordered w-full" min="0" />
-                </div>
-                <div class="flex-1 relative">
-                  <input v-model="newTrack.title" type="text" placeholder="Titre (optionnel)" class="input input-bordered w-full" />
-                  <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
-                </div>
-                <div class="flex-1 relative">
-                  <input v-model="newTrack.artist" type="text" placeholder="Artiste (optionnel)" class="input input-bordered w-full" />
-                  <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
-                </div>
-              </div>
-              <button class="btn btn-primary w-full" :disabled="!newTrack.youtube_url.trim() || addingTrack" @click="handleAddTrack">
-                <span v-if="addingTrack" class="loading loading-spinner loading-sm"></span>
-                Ajouter
-              </button>
-            </template>
-            <PlaylistImport v-else :add-track="addTrackFromPlaylist" />
+        <!-- Onglets : À venir / Passés / Classement -->
+        <div>
+          <div class="tabs tabs-bordered w-full">
+            <button :class="['tab flex-1', activeTab === 'upcoming' ? 'tab-active' : '']" @click="activeTab = 'upcoming'">
+              À venir
+              <span v-if="upcomingTracks.length" class="badge badge-xs ml-1.5">{{ upcomingTracks.length }}</span>
+            </button>
+            <button :class="['tab flex-1', activeTab === 'done' ? 'tab-active' : '']" @click="activeTab = 'done'">
+              Passés
+              <span v-if="doneTracks.length" class="badge badge-xs ml-1.5">{{ doneTracks.length }}</span>
+            </button>
+            <button :class="['tab flex-1', activeTab === 'scores' ? 'tab-active' : '']" @click="activeTab = 'scores'">
+              Classement
+            </button>
           </div>
-        </details>
 
-        <!-- Liste complète des morceaux -->
-        <div v-if="allTracks.length > 0" class="space-y-2">
-          <h3 class="text-sm font-semibold text-base-content/50 uppercase tracking-wide">Morceaux</h3>
-          <ul class="space-y-1 max-h-80 overflow-y-auto pr-1">
-            <li
-              v-for="track in allTracks"
-              :key="track.id"
-              :class="[
-                'flex items-center gap-3 rounded-lg px-3 py-2 transition-colors',
-                track.status === 'playing' ? 'bg-primary/10 border border-primary/30' :
-                track.status === 'done' ? 'bg-base-100 opacity-70' : 'bg-base-200',
-                isMyTrack(track) ? 'border-l-2 border-l-primary' : '',
-              ]"
+          <div ref="tabs-outer" class="overflow-hidden touch-pan-y">
+            <div
+              ref="tabs-slider"
+              :class="['flex', !isSwiping ? 'transition-transform duration-200 ease-in-out' : '']"
+              :style="{ transform: tabsTransform }"
             >
-              <span class="text-base w-6 text-center shrink-0">{{ trackStatusEmoji(track) }}</span>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium truncate">
-                  <template v-if="isMyTrack(track)">
-                    <span class="text-primary">{{ track.expand?.video?.title || '(sans titre)' }}</span>
-                    <span class="badge badge-xs badge-primary ml-1">moi</span>
-                  </template>
-                  <template v-else-if="track.status === 'done'">{{ track.expand?.video?.title || '(sans titre)' }}</template>
-                  <template v-else>???</template>
-                </p>
-                <p v-if="(isMyTrack(track) || track.status === 'done') && track.expand?.video?.artist" class="text-xs text-base-content/50">{{ track.expand?.video?.artist }}</p>
-                <p class="text-xs text-base-content/40 mt-0.5">
-                  <template v-if="track.status === 'done' && track.solved_by">
-                    Trouvé par
-                    <strong :class="track.solved_by === currentPlayer.id ? 'text-success' : ''">{{ getPlayerName(track.solved_by) }}</strong>
-                  </template>
-                  <template v-else-if="track.status === 'done'">Passé sans réponse</template>
-                  <template v-else-if="!isMyTrack(track)">Ajouté par {{ getPlayerName(track.added_by) }}</template>
-                </p>
+
+              <!-- À venir -->
+              <div class="w-full shrink-0 pt-3 space-y-3">
+                <details class="collapse collapse-arrow bg-base-200 rounded-lg">
+                  <summary class="collapse-title font-semibold">
+                    <span class="i-fa-solid-plus mr-2"></span>
+                    Ajouter un morceau
+                  </summary>
+                  <div class="collapse-content pt-0 space-y-3">
+                    <div class="tabs tabs-bordered">
+                      <button :class="['tab', addMode === 'search' ? 'tab-active' : '']" @click="addMode = 'search'">
+                        <span class="i-fa-solid-magnifying-glass mr-1"></span>
+                        Recherche
+                      </button>
+                      <button :class="['tab', addMode === 'single' ? 'tab-active' : '']" @click="addMode = 'single'">
+                        URL unique
+                      </button>
+                      <button :class="['tab', addMode === 'playlist' ? 'tab-active' : '']" @click="addMode = 'playlist'">
+                        <span class="i-fa-solid-list mr-1"></span>
+                        Playlist
+                      </button>
+                    </div>
+                    <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromPlaylist" />
+                    <template v-else-if="addMode === 'single'">
+                      <input v-model="newTrack.youtube_url" type="url" placeholder="URL YouTube" class="input input-bordered w-full" />
+                      <div class="flex flex-col gap-2">
+                        <div class="flex-1">
+                          <input v-model.number="newTrack.start_seconds" type="number" placeholder="Départ (secondes)" class="input input-bordered w-full" min="0" />
+                        </div>
+                        <div class="flex-1 relative">
+                          <input v-model="newTrack.title" type="text" placeholder="Titre (optionnel)" class="input input-bordered w-full" />
+                          <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
+                        </div>
+                        <div class="flex-1 relative">
+                          <input v-model="newTrack.artist" type="text" placeholder="Artiste (optionnel)" class="input input-bordered w-full" />
+                          <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
+                        </div>
+                      </div>
+                      <button class="btn btn-primary w-full" :disabled="!newTrack.youtube_url.trim() || addingTrack" @click="handleAddTrack">
+                        <span v-if="addingTrack" class="loading loading-spinner loading-sm"></span>
+                        Ajouter
+                      </button>
+                    </template>
+                    <PlaylistImport v-else :add-track="addTrackFromPlaylist" />
+                  </div>
+                </details>
+                <ul v-if="upcomingTracks.length > 0" class="space-y-1">
+                  <li
+                    v-for="track in upcomingTracks"
+                    :key="track.id"
+                    :class="[
+                      'flex items-center gap-3 rounded-lg px-3 py-2 transition-colors',
+                      track.status === 'playing' ? 'bg-primary/10 border border-primary/30' : 'bg-base-200',
+                      isMyTrack(track) ? 'border-l-2 border-l-primary' : '',
+                    ]"
+                  >
+                    <span class="text-base w-6 text-center shrink-0">{{ trackStatusEmoji(track) }}</span>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium truncate">
+                        <template v-if="isMyTrack(track)">
+                          <span class="text-primary">{{ track.expand?.video?.title || '(sans titre)' }}</span>
+                          <span class="badge badge-xs badge-primary ml-1">moi</span>
+                        </template>
+                        <template v-else>???</template>
+                      </p>
+                      <p v-if="isMyTrack(track) && track.expand?.video?.artist" class="text-xs text-base-content/50">{{ track.expand?.video?.artist }}</p>
+                      <p v-if="!isMyTrack(track)" class="text-xs text-base-content/40 mt-0.5">Ajouté par {{ getPlayerName(track.added_by) }}</p>
+                    </div>
+                  </li>
+                </ul>
+                <p v-else class="text-sm text-center text-base-content/40 py-4">Aucun morceau à venir</p>
               </div>
-            </li>
-          </ul>
+
+              <!-- Passés -->
+              <div class="w-full shrink-0 pt-3">
+                <ul v-if="doneTracks.length > 0" class="space-y-1">
+                  <li
+                    v-for="track in doneTracks"
+                    :key="track.id"
+                    :class="[
+                      'flex items-center gap-3 rounded-lg px-3 py-2 transition-colors bg-base-100 opacity-70',
+                      isMyTrack(track) ? 'border-l-2 border-l-primary' : '',
+                    ]"
+                  >
+                    <span class="text-base w-6 text-center shrink-0">{{ trackStatusEmoji(track) }}</span>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium truncate">
+                        {{ track.expand?.video?.title || '(sans titre)' }}
+                        <span v-if="isMyTrack(track)" class="badge badge-xs badge-primary ml-1">moi</span>
+                      </p>
+                      <p v-if="track.expand?.video?.artist" class="text-xs text-base-content/50">{{ track.expand?.video?.artist }}</p>
+                      <p class="text-xs text-base-content/40 mt-0.5">
+                        <template v-if="track.solved_by">
+                          Trouvé par
+                          <strong :class="track.solved_by === currentPlayer.id ? 'text-success' : ''">{{ getPlayerName(track.solved_by) }}</strong>
+                        </template>
+                        <template v-else>Passé sans réponse</template>
+                      </p>
+                    </div>
+                  </li>
+                </ul>
+                <p v-else class="text-sm text-center text-base-content/40 py-4">Aucun morceau passé</p>
+              </div>
+
+              <!-- Classement -->
+              <div class="w-full shrink-0 pt-3">
+                <ul class="space-y-2">
+                  <li
+                    v-for="(p, i) in players"
+                    :key="p.id"
+                    :class="['flex items-center gap-3 rounded-lg px-3 py-2', p.id === currentPlayer.id ? 'bg-primary/10 border border-primary/30' : 'bg-base-200']"
+                  >
+                    <span :class="['text-sm font-bold w-5 text-center', i === 0 ? 'text-warning' : 'text-base-content/40']">{{ i + 1 }}</span>
+                    <span class="flex-1 text-sm font-medium truncate" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.name }}</span>
+                    <span class="font-mono font-bold text-primary" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.score }}</span>
+                    <span v-if="!isOnline(p)" class="w-2 h-2 rounded-full bg-base-content/20 shrink-0" title="Hors ligne"></span>
+                    <span v-else-if="activeBuzz?.player === p.id" class="i-fa-solid-bell text-warning animate-bounce text-xs"></span>
+                  </li>
+                </ul>
+                <p v-if="players.length === 0" class="text-base-content/40 text-sm text-center py-4">Aucun joueur</p>
+              </div>
+
+            </div>
+          </div>
         </div>
       </div>
-
-      <!-- Classement -->
-      <aside v-if="session.status !== 'finished'" class="lg:border-l border-base-300 p-4">
-        <h2 class="text-sm font-semibold text-base-content/50 uppercase tracking-wide mb-3">Classement</h2>
-        <ul class="space-y-2">
-          <li
-            v-for="(p, i) in players"
-            :key="p.id"
-            :class="['flex items-center gap-3 rounded-lg px-3 py-2', p.id === currentPlayer.id ? 'bg-primary/10 border border-primary/30' : 'bg-base-200']"
-          >
-            <span :class="['text-sm font-bold w-5 text-center', i === 0 ? 'text-warning' : 'text-base-content/40']">{{ i + 1 }}</span>
-            <span class="flex-1 text-sm font-medium truncate" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.name }}</span>
-            <span class="font-mono font-bold text-primary" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.score }}</span>
-            <span v-if="!isOnline(p)" class="w-2 h-2 rounded-full bg-base-content/20 shrink-0" title="Hors ligne"></span>
-            <span v-else-if="activeBuzz?.player === p.id" class="i-fa-solid-bell text-warning animate-bounce text-xs"></span>
-          </li>
-        </ul>
-        <p v-if="players.length === 0" class="text-base-content/40 text-sm text-center py-4">Aucun joueur</p>
-      </aside>
     </div>
 
     <SolvedOverlay
@@ -343,7 +389,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, useTemplateRef } from 'vue'
+import { useSwipe } from '@vueuse/core'
 import usePlayers from '@game/composables/usePlayers'
 import useTracks from '@game/composables/useTracks'
 import useBuzzes from '@game/composables/useBuzzes'
@@ -393,6 +440,40 @@ const audioUnlocked = ref(false)
 const animationState = ref<{ playerName: string; title: string; artist: string } | null>(null)
 const showResetModal = ref(false)
 const resetting = ref(false)
+
+const activeTab = ref<'upcoming' | 'done' | 'scores'>('upcoming')
+const tabOrder = ['upcoming', 'done', 'scores'] as const
+const activeTabIndex = computed(() => tabOrder.indexOf(activeTab.value))
+
+const tabsOuter = useTemplateRef<HTMLElement>('tabs-outer')
+const tabsSlider = useTemplateRef<HTMLElement>('tabs-slider')
+let lastLengthX = 0
+const { isSwiping, lengthX } = useSwipe(tabsSlider, {
+  passive: false,
+  onSwipe() {
+    lastLengthX = lengthX.value
+  },
+  onSwipeEnd(_e, direction) {
+    const width = tabsOuter.value?.offsetWidth ?? 300
+    const i = activeTabIndex.value
+    if (direction === 'left' && i < tabOrder.length - 1 && Math.abs(lastLengthX) / width >= 0.3) {
+      activeTab.value = tabOrder[i + 1]
+    } else if (direction === 'right' && i > 0 && Math.abs(lastLengthX) / width >= 0.3) {
+      activeTab.value = tabOrder[i - 1]
+    }
+  },
+})
+const tabsTransform = computed(() => {
+  const base = -activeTabIndex.value * 100
+  if (isSwiping.value && tabsOuter.value) {
+    const drag = Math.max(
+      -(tabOrder.length - 1 - activeTabIndex.value) * (tabsOuter.value.offsetWidth),
+      Math.min(activeTabIndex.value * tabsOuter.value.offsetWidth, -lengthX.value)
+    )
+    return `translateX(calc(${base}% + ${drag}px))`
+  }
+  return `translateX(${base}%)`
+})
 
 watch(solvedBuzz, (buzz) => {
   if (!buzz) return
@@ -478,14 +559,13 @@ const trackStatusEmoji = (track: any) => {
   return '😅'
 }
 
-const allTracks = computed(() => {
-  const order: Record<string, number> = { playing: 0, queued: 1, done: 2 }
-  return [...tracks.value].sort((a, b) => {
-    const diff = (order[a.status] ?? 3) - (order[b.status] ?? 3)
-    if (diff !== 0) return diff
-    return a.status === 'done' ? b.order - a.order : a.order - b.order
-  })
-})
+const upcomingTracks = computed(() => [
+  ...(currentTrack.value ? [currentTrack.value] : []),
+  ...queuedTracks.value,
+])
+const doneTracks = computed(() =>
+  tracks.value.filter((t: any) => t.status === 'done').sort((a: any, b: any) => b.order - a.order)
+)
 
 // Actions
 const submitBuzz = async () => {
