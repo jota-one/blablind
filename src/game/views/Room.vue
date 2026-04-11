@@ -223,7 +223,7 @@
         </div>
 
         <!-- Actions sous le BUZZ : ajouter + passer -->
-        <div v-if="session.status === 'playing'" class="flex items-center gap-2">
+        <div v-if="session.status !== 'finished'" class="flex items-center gap-2">
           <button class="btn btn-sm btn-ghost flex-1 border border-base-300" @click="showAddTrackModal = true">
             <span class="i-fa-solid-plus"></span>
             Ajouter un morceau
