@@ -231,20 +231,39 @@
 
         <!-- Onglets : À venir / Passés / Classement -->
         <div>
-          <div class="tabs tabs-bordered w-full">
-            <button :class="['tab flex-1', activeTab === 'upcoming' ? 'tab-active' : '']" @click="activeTab = 'upcoming'">
+          <div class="flex items-end gap-0.5 border-b border-base-300">
+            <button
+              :class="['flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-t-lg border select-none transition-colors',
+                       activeTab === 'upcoming'
+                         ? 'relative bg-base-100 border-base-300 border-b-transparent z-10 -mb-px pb-[9px]'
+                         : 'bg-base-200 border-base-200 text-base-content/50 hover:text-base-content']"
+              @click="activeTab = 'upcoming'"
+            >
               À venir
-              <span v-if="upcomingTracks.length" class="badge badge-xs ml-1.5">{{ upcomingTracks.length }}</span>
+              <span v-if="upcomingTracks.length" class="badge badge-xs">{{ upcomingTracks.length }}</span>
             </button>
-            <button :class="['tab flex-1', activeTab === 'done' ? 'tab-active' : '']" @click="activeTab = 'done'">
+            <button
+              :class="['flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-t-lg border select-none transition-colors',
+                       activeTab === 'done'
+                         ? 'relative bg-base-100 border-base-300 border-b-transparent z-10 -mb-px pb-[9px]'
+                         : 'bg-base-200 border-base-200 text-base-content/50 hover:text-base-content']"
+              @click="activeTab = 'done'"
+            >
               Passés
-              <span v-if="doneTracks.length" class="badge badge-xs ml-1.5">{{ doneTracks.length }}</span>
+              <span v-if="doneTracks.length" class="badge badge-xs">{{ doneTracks.length }}</span>
             </button>
-            <button :class="['tab flex-1', activeTab === 'scores' ? 'tab-active' : '']" @click="activeTab = 'scores'">
+            <button
+              :class="['flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-t-lg border select-none transition-colors',
+                       activeTab === 'scores'
+                         ? 'relative bg-base-100 border-base-300 border-b-transparent z-10 -mb-px pb-[9px]'
+                         : 'bg-base-200 border-base-200 text-base-content/50 hover:text-base-content']"
+              @click="activeTab = 'scores'"
+            >
               Classement
             </button>
           </div>
 
+          <div class="border border-base-300 border-t-0 rounded-b-xl bg-base-100 px-3 pb-3">
           <div ref="tabs-outer" class="overflow-hidden touch-pan-y">
             <!-- DJ candidate notification (host only) -->
             <div v-if="isIrlMode && isHost && djCandidate" class="alert alert-info mt-3 flex items-center justify-between gap-2">
@@ -399,6 +418,7 @@
               </div>
 
             </div>
+          </div>
           </div>
         </div>
       </div>
