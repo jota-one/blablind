@@ -305,17 +305,23 @@
                     <PlaylistImport v-else :add-track="addTrackFromPlaylist" />
                   </div>
                 </details>
-                <ul v-if="upcomingTracks.length > 0" class="space-y-1">
+                <ul v-if="upcomingTracks.length > 0" class="space-y-1" ref="trackList">
                   <li
                     v-for="track in upcomingTracks"
                     :key="track.id"
+                    :data-id="track.id"
                     :class="[
                       'flex items-center gap-3 rounded-lg px-3 py-2 transition-colors',
                       track.status === 'playing' ? 'bg-primary/10 border border-primary/30' : 'bg-base-200',
                       isMyTrack(track) ? 'border-l-2 border-l-primary' : '',
+                      isMyTrack(track) && track.status === 'queued' ? 'draggable-track' : '',
                     ]"
                   >
-                    <span class="text-base w-6 text-center shrink-0">{{ trackStatusEmoji(track) }}</span>
+                    <span
+                      v-if="isMyTrack(track) && track.status === 'queued'"
+                      class="drag-handle cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/50 w-6 text-center shrink-0 touch-none"
+                    ><span class="i-fa6-solid-grip-vertical"></span></span>
+                    <span v-else class="text-base w-6 text-center shrink-0">{{ trackStatusEmoji(track) }}</span>
                     <div class="flex-1 min-w-0">
                       <p class="text-sm font-medium truncate">
                         <template v-if="isMyTrack(track)">
@@ -427,7 +433,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, useTemplateRef } from 'vue'
+import { ref, computed, watch, onUnmounted, useTemplateRef } from 'vue'
+import Sortable from 'sortablejs'
 import { useSwipe } from '@vueuse/core'
 import usePlayers from '@game/composables/usePlayers'
 import useTracks from '@game/composables/useTracks'
@@ -485,6 +492,7 @@ const activeTabIndex = computed(() => tabOrder.indexOf(activeTab.value))
 
 const tabsOuter = useTemplateRef<HTMLElement>('tabs-outer')
 const tabsSlider = useTemplateRef<HTMLElement>('tabs-slider')
+const trackListEl = useTemplateRef<HTMLUListElement>('trackList')
 let lastLengthX = 0
 const { isSwiping, lengthX } = useSwipe(tabsSlider, {
   passive: false,
@@ -732,4 +740,56 @@ const handleAddTrack = async () => {
 
 const addTrackFromPlaylist = (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) =>
   addTrack({ ...data, start_seconds: data.start_seconds ?? 0, added_by: props.currentPlayer.id })
+
+// Drag & drop — own queued tracks only
+let sortableInstance: Sortable | null = null
+
+watch(trackListEl, (el) => {
+  if (el) {
+    sortableInstance = Sortable.create(el, {
+      draggable: '.draggable-track',
+      handle: '.drag-handle',
+      animation: 150,
+      onEnd() {
+        // Player's queued tracks sorted by their current order (= the "slots" they own)
+        const myQueued = queuedTracks.value
+          .filter(t => t.added_by === props.currentPlayer.id)
+          .sort((a, b) => a.order - b.order)
+        if (myQueued.length < 2) return
+
+        const slots = myQueued.map(t => t.order)
+
+        // Read DOM order after drop
+        const myInNewOrder = Array.from(el.querySelectorAll('[data-id]'))
+          .map(node => node.getAttribute('data-id'))
+          .map(id => queuedTracks.value.find(t => t.id === id))
+          .filter((t): t is any => !!t && t.added_by === props.currentPlayer.id)
+
+        if (myInNewOrder.length !== slots.length) return
+
+        const updates = myInNewOrder
+          .map((track, i) => ({ track, newOrder: slots[i] }))
+          .filter(({ track, newOrder }) => track.order !== newOrder)
+
+        if (updates.length === 0) return
+
+        // Optimistic local update so Vue re-renders immediately in the right order
+        updates.forEach(({ track, newOrder }) => {
+          const idx = tracks.value.findIndex(t => t.id === track.id)
+          if (idx >= 0) tracks.value[idx] = { ...tracks.value[idx], order: newOrder }
+        })
+
+        // Persist
+        updates.forEach(({ track, newOrder }) =>
+          pb.collection('tracks').update(track.id, { order: newOrder }, { requestKey: null }),
+        )
+      },
+    })
+  } else {
+    sortableInstance?.destroy()
+    sortableInstance = null
+  }
+})
+
+onUnmounted(() => sortableInstance?.destroy())
 </script>
