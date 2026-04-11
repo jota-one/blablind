@@ -400,6 +400,7 @@
 
     <SolvedOverlay
       v-if="animationState"
+      :type="animationState.type"
       :player-name="animationState.playerName"
       :title="animationState.title"
       :artist="animationState.artist"
@@ -474,7 +475,7 @@ const addMode = ref<'search' | 'single' | 'playlist'>('search')
 const newTrack = ref({ youtube_url: '', start_seconds: 0, title: '', artist: '' })
 const fetchingMeta = ref(false)
 const audioUnlocked = ref(false)
-const animationState = ref<{ playerName: string; title: string; artist: string } | null>(null)
+const animationState = ref<{ type?: 'solved' | 'skipped'; playerName: string; title: string; artist: string } | null>(null)
 const showResetModal = ref(false)
 const resetting = ref(false)
 
@@ -584,10 +585,20 @@ const hasVotedToSkip = computed(() => skipVoteArray.value.includes(props.current
 watch(skipVoteArray, async (votes) => {
   if (!currentTrack.value) return
   if (onlinePlayers.value.length > 1 && votes.length >= skipVotesNeeded.value) {
-    await finishTrack(currentTrack.value.id)
-    const next = queuedTracks.value[0]
-    if (next) await playTrack(next.id)
-    else await pb.collection('sessions').update(props.session.id, { status: 'finished' })
+    animationState.value = {
+      type: 'skipped',
+      playerName: '',
+      title: currentTrack.value.expand?.video?.title ?? '',
+      artist: currentTrack.value.expand?.video?.artist ?? '',
+    }
+    const trackId = currentTrack.value.id
+    setTimeout(async () => {
+      animationState.value = null
+      await finishTrack(trackId)
+      const next = queuedTracks.value[0]
+      if (next) await playTrack(next.id)
+      else await pb.collection('sessions').update(props.session.id, { status: 'finished' })
+    }, 3000)
   }
 })
 
