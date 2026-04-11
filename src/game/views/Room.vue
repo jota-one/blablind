@@ -2,24 +2,37 @@
   <div class="h-screen flex flex-col overflow-hidden">
 
     <!-- Header -->
-    <header class="shrink-0 bg-base-100/90 backdrop-blur border-b border-base-300 px-4 py-3 flex items-center gap-3">
-      <a href="/" class="text-base-content/40 hover:text-base-content transition-colors">
-        <span class="i-fa-solid-home text-lg"></span>
-      </a>
-      <h1 class="font-bold text-lg font-display flex-1">{{ session.name }}</h1>
-      <span
-        :class="['badge badge-sm', session.status === 'playing' ? 'badge-success' : session.status === 'finished' ? 'badge-neutral' : 'badge-warning']"
-      >{{ sessionStatusLabel }}</span>
-      <span class="text-sm text-base-content/50">
-        <span class="i-fa-solid-users"></span> {{ onlinePlayers.length }}
-      </span>
-      <ShareQR :slug="session.slug" />
-      <button v-if="isHost" class="btn btn-xs btn-ghost text-warning" title="Réinitialiser" @click="showResetModal = true">
-        <span class="i-fa6-solid-rotate-left"></span>
-      </button>
-      <button class="btn btn-xs btn-ghost text-error" title="Quitter" @click="leaveSession">
-        <span class="i-fa6-solid-right-from-bracket"></span>
-      </button>
+    <header class="shrink-0 bg-base-100/90 backdrop-blur border-b border-base-300">
+      <!-- Ligne 1 : identité + navigation -->
+      <div class="px-4 py-3 flex items-center gap-3">
+        <a href="/" class="text-base-content/40 hover:text-base-content transition-colors">
+          <span class="i-fa-solid-home text-lg"></span>
+        </a>
+        <h1 class="font-bold text-lg font-display flex-1 truncate">{{ session.name }}</h1>
+        <span
+          :class="['badge badge-sm', session.status === 'playing' ? 'badge-success' : session.status === 'finished' ? 'badge-neutral' : 'badge-warning']"
+        >{{ sessionStatusLabel }}</span>
+        <button class="btn btn-xs btn-ghost text-error" title="Quitter" @click="leaveSession">
+          <span class="i-fa6-solid-right-from-bracket"></span>
+        </button>
+      </div>
+      <!-- Ligne 2 : contexte + actions -->
+      <div class="px-4 py-1.5 flex items-center gap-3 border-t border-base-200 text-sm">
+        <div class="flex items-center gap-2 flex-1 min-w-0">
+          <span v-if="isIrlMode" class="badge badge-xs badge-accent shrink-0">IRL</span>
+          <span v-if="isIrlMode && djPlayer" class="text-xs text-base-content/50 truncate">🎵 {{ djPlayer.name }}</span>
+        </div>
+        <span class="text-base-content/50 shrink-0">
+          <span class="i-fa-solid-users text-xs"></span> {{ onlinePlayers.length }}
+        </span>
+        <ShareQR :slug="session.slug" />
+        <button v-if="isHost" class="btn btn-xs btn-ghost text-warning" title="Réinitialiser" @click="showResetModal = true">
+          <span class="i-fa6-solid-rotate-left"></span>
+        </button>
+        <button v-if="isHost" :class="['btn btn-xs btn-ghost', isIrlMode ? 'text-accent' : 'text-base-content/40']" title="Mode IRL" @click="toggleIrlMode">
+          <span class="i-fa6-solid-people-group"></span>
+        </button>
+      </div>
     </header>
 
     <!-- Main -->
@@ -79,7 +92,12 @@
             <p v-if="activeBuzz" class="text-sm text-warning font-semibold animate-pulse">
               ⏸ En pause
             </p>
-            <p v-else class="text-xs text-base-content/40">♫ En cours de lecture</p>
+            <template v-else>
+              <p class="text-xs text-base-content/40">♫ En cours de lecture</p>
+              <p v-if="isIrlMode && !isDJ && djPlayer" class="text-xs text-base-content/50 text-center">
+                Musique sur l'appareil de <strong>{{ djPlayer.name }}</strong>
+              </p>
+            </template>
           </template>
           <template v-else>
             <!-- Phase d'attente : lobby -->
@@ -137,8 +155,8 @@
           <div v-if="activeBuzz && activeBuzz.player === currentPlayer.id" class="alert alert-info">
             <span class="i-fa-solid-bell text-xl"></span>
             <div>
-              <p class="font-bold">Ta réponse a été soumise !</p>
-              <p class="text-sm opacity-80">{{ activeBuzz.answer }}</p>
+              <p class="font-bold">{{ isIrlMode ? 'Tu as buzzé !' : 'Ta réponse a été soumise !' }}</p>
+              <p v-if="!isIrlMode" class="text-sm opacity-80">{{ activeBuzz.answer }}</p>
               <p class="text-sm opacity-70 mt-1">En attente de validation...</p>
             </div>
           </div>
@@ -168,7 +186,7 @@
             <button
               v-else-if="canBuzz"
               class="btn btn-error w-full h-20 text-2xl font-bold shadow-lg hover:scale-[1.02] transition-transform"
-              @click="buzzing = true"
+              @click="isIrlMode ? submitBuzz() : (buzzing = true)"
             >
               <span class="i-fa-solid-bell text-3xl"></span>
               BUZZ !
@@ -186,7 +204,7 @@
             <span class="i-fa-solid-bell text-warning animate-bounce"></span>
             {{ getPlayerName(activeBuzz.player) }} a buzzé !
           </p>
-          <p class="text-lg">
+          <p v-if="!isIrlMode" class="text-lg">
             <span class="font-mono bg-base-300 px-3 py-1 rounded">{{ activeBuzz.answer }}</span>
           </p>
           <div class="flex gap-2">
@@ -228,6 +246,14 @@
           </div>
 
           <div ref="tabs-outer" class="overflow-hidden touch-pan-y">
+            <!-- DJ candidate notification (host only) -->
+            <div v-if="isIrlMode && isHost && djCandidate" class="alert alert-info mt-3 flex items-center justify-between gap-2">
+              <span class="text-sm"><strong>{{ djCandidate.name }}</strong> veut être DJ 🎵</span>
+              <div class="flex gap-2 shrink-0">
+                <button class="btn btn-xs btn-success" @click="approveDJ">Accepter</button>
+                <button class="btn btn-xs btn-ghost" @click="rejectDJ">Refuser</button>
+              </div>
+            </div>
             <div
               ref="tabs-slider"
               :class="['flex', !isSwiping ? 'transition-transform duration-200 ease-in-out' : '']"
@@ -347,9 +373,20 @@
                   >
                     <span :class="['text-sm font-bold w-5 text-center', i === 0 ? 'text-warning' : 'text-base-content/40']">{{ i + 1 }}</span>
                     <span class="flex-1 text-sm font-medium truncate" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.name }}</span>
+                    <span v-if="isIrlMode && p.id === session.dj_player" title="DJ" class="text-base">🎵</span>
                     <span class="font-mono font-bold text-primary" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.score }}</span>
                     <span v-if="!isOnline(p)" class="w-2 h-2 rounded-full bg-base-content/20 shrink-0" title="Hors ligne"></span>
                     <span v-else-if="activeBuzz?.player === p.id" class="i-fa-solid-bell text-warning animate-bounce text-xs"></span>
+                    <button
+                      v-if="isIrlMode && p.id === currentPlayer.id && p.id !== session.dj_player && session.dj_candidate !== currentPlayer.id"
+                      class="btn btn-xs btn-ghost text-accent"
+                      @click="proposeDJ"
+                    >
+                      Devenir DJ
+                    </button>
+                    <span v-else-if="isIrlMode && p.id === currentPlayer.id && session.dj_candidate === currentPlayer.id" class="text-xs text-base-content/40">
+                      En attente...
+                    </span>
                   </li>
                 </ul>
                 <p v-if="players.length === 0" class="text-base-content/40 text-sm text-center py-4">Aucun joueur</p>
@@ -506,7 +543,10 @@ watch(() => newTrack.value.youtube_url, (url) => {
   }, 500)
 })
 
-const videoId = computed(() => currentTrack.value?.expand?.video?.video_id ?? null)
+const videoId = computed(() => {
+  if (isIrlMode.value && !isDJ.value) return null
+  return currentTrack.value?.expand?.video?.video_id ?? null
+})
 
 // Appelé quand l'utilisateur tap play dans l'iframe YouTube — déverrouille l'audio
 const onPlaying = () => { audioUnlocked.value = true }
@@ -519,6 +559,10 @@ const sessionStatusLabel = computed(
   () => ({ waiting: 'En attente', playing: 'En cours', finished: 'Terminée' })[props.session.status as string] ?? props.session.status,
 )
 const isHost = computed(() => props.session.host === props.currentPlayer.id)
+const isIrlMode = computed(() => !!props.session.irl_mode)
+const isDJ = computed(() => props.session.dj_player === props.currentPlayer.id)
+const djPlayer = computed(() => players.value.find((p: any) => p.id === props.session.dj_player))
+const djCandidate = computed(() => players.value.find((p: any) => p.id === props.session.dj_candidate))
 const nonHostPlayers = computed(() => onlinePlayers.value.filter(p => p.id !== props.session.host))
 const allNonHostPlayersReady = computed(() =>
   nonHostPlayers.value.length === 0 || nonHostPlayers.value.every(p => p.ready),
@@ -569,7 +613,8 @@ const doneTracks = computed(() =>
 
 // Actions
 const submitBuzz = async () => {
-  if (!answer.value.trim() || !currentTrack.value) return
+  if (!isIrlMode.value && !answer.value.trim()) return
+  if (!currentTrack.value) return
   await buzz(props.currentPlayer.id, answer.value.trim())
   buzzing.value = false
   answer.value = ''
@@ -621,6 +666,21 @@ const invalidateBuzz = async () => {
   if (!activeBuzz.value) return
   await pb.collection('buzzes').update(activeBuzz.value.id, { status: 'wrong' })
 }
+
+const toggleIrlMode = async () => {
+  const enabling = !props.session.irl_mode
+  await pb.collection('sessions').update(props.session.id, {
+    irl_mode: enabling,
+    dj_player: enabling ? props.currentPlayer.id : null,
+    dj_candidate: null,
+  })
+}
+const proposeDJ = () =>
+  pb.collection('sessions').update(props.session.id, { dj_candidate: props.currentPlayer.id })
+const approveDJ = () =>
+  pb.collection('sessions').update(props.session.id, { dj_player: props.session.dj_candidate, dj_candidate: null })
+const rejectDJ = () =>
+  pb.collection('sessions').update(props.session.id, { dj_candidate: null })
 
 const resetSession = async () => {
   resetting.value = true

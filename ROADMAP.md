@@ -14,6 +14,10 @@ List of small potential improvements and refactors.
 
 ## History (done)
 
+- [2026-04-11] 2-row room header — session name + status + quit on row 1; IRL context + player count + host actions on a compact row 2. Prevents overflow on mobile and separates navigation from game controls.
+
+- [2026-04-11] IRL mode — host-only toggle that switches the session to in-person play: buzz is direct (no text input, verbal answer), only one player's device plays music (the DJ). Host becomes DJ by default; any player can request the DJ role from the Classement tab, host approves or rejects. Non-DJ devices stop playing the blindtest track but keep their YouTube player for personal track previews.
+
 - [2026-04-11] Swipeable tab navigation — track list split into 3 swipeable tabs ("À venir", "Passés", "Classement") replacing the old dual-column layout. Panels slide horizontally following the finger in real time (VueUse `useSwipe`, `passive: false`); snaps to the next tab if swipe exceeds 30% of panel width, otherwise springs back. Tab buttons still work via click.
 
 - [2026-04-11] Reset blindtest — host-only button in the header opens a confirmation modal and resets the session: all scores back to 0, all tracks back to queued (solved_by and skip_votes cleared), session back to waiting so the host can relaunch.
