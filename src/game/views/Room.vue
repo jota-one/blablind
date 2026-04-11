@@ -584,12 +584,17 @@ const hasVotedToSkip = computed(() => skipVoteArray.value.includes(props.current
 
 watch(skipVoteArray, async (votes) => {
   if (!currentTrack.value) return
+  if (animationState.value?.type === 'skipped') return
   if (onlinePlayers.value.length > 1 && votes.length >= skipVotesNeeded.value) {
     animationState.value = {
       type: 'skipped',
       playerName: '',
       title: currentTrack.value.expand?.video?.title ?? '',
       artist: currentTrack.value.expand?.video?.artist ?? '',
+    }
+    if (!isHost.value) {
+      setTimeout(() => { animationState.value = null }, 3000)
+      return
     }
     const trackId = currentTrack.value.id
     setTimeout(async () => {
