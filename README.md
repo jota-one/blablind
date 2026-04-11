@@ -1,43 +1,45 @@
-# Astro Starter Kit: Minimal
+# blablind
 
-```sh
-pnpm create astro@latest -- --template minimal
-```
+A real-time multiplayer music blindtest game with a buzzer system, powered by YouTube and PocketBase.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Features
 
-## 🚀 Project Structure
+- **Create or join a session** via a unique slug URL — no account required
+- **Anonymous players** — just pick a username, stored locally in `localStorage`
+- **YouTube-based tracks** — the host queues songs by YouTube URL with an optional start time
+- **Buzz to answer** — players race to buzz in; YouTube pauses automatically on a pending buzz
+- **Track validation** — the player who added a track validates or rejects buzz answers
+- **Wrong answer penalty** — a player who buzzes wrong is locked out until another player buzzes
+- **Skip voting** — players can vote to skip a track
+- **Real-time sync** — all game state is synced live via PocketBase subscriptions
+- **Score tracking** — correct answers award points, displayed on a live leaderboard
 
-Inside of your Astro project, you'll see the following folders and files:
+## Tech Stack
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+| Layer | Technology |
+|---|---|
+| Framework | Astro 6 |
+| UI | Vue 3 |
+| Backend | PocketBase 0.36.6 |
+| Styling | Tailwind v4 + DaisyUI (themes: `blind` / `darkblind`) |
+| Components | PrimeVue (orange preset) |
+| Video | YouTube IFrame API |
+| Package manager | pnpm |
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## PocketBase Collections
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+- **sessions** — name, slug, status (`waiting` / `playing` / `finished`), host
+- **players** — session, name, score, ready flag
+- **tracks** — session, youtube_url, start_seconds, title, artist, status (`queued` / `playing` / `done`), order, skip_votes, solved_by
+- **buzzes** — track, player, answer, status (`pending` / `correct` / `wrong`)
 
-Any static assets, like images, can be placed in the `public/` directory.
+## Commands
 
-## 🧞 Commands
+| Command | Action |
+|---|---|
+| `pnpm install` | Install dependencies |
+| `pnpm dev` | Start dev server at `localhost:4321` |
+| `pnpm build` | Build for production to `./dist/` |
+| `pnpm preview` | Preview the production build locally |
 
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+PocketBase runs separately on port **8093** in local development.
