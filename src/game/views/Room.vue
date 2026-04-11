@@ -14,6 +14,9 @@
         <span class="i-fa-solid-users"></span> {{ onlinePlayers.length }}
       </span>
       <ShareQR :slug="session.slug" />
+      <button v-if="isHost" class="btn btn-xs btn-ghost text-warning" title="Réinitialiser" @click="showResetModal = true">
+        <span class="i-fa6-solid-rotate-left"></span>
+      </button>
       <button class="btn btn-xs btn-ghost text-error" title="Quitter" @click="leaveSession">
         <span class="i-fa6-solid-right-from-bracket"></span>
       </button>
@@ -318,6 +321,24 @@
       :title="animationState.title"
       :artist="animationState.artist"
     />
+
+    <!-- Modal réinitialisation -->
+    <div :class="['modal', showResetModal ? 'modal-open' : '']">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Réinitialiser le blindtest ?</h3>
+        <p class="py-4 text-base-content/70">
+          Tous les scores seront remis à zéro et les morceaux rejoueront depuis le début, comme si la session venait de commencer.
+        </p>
+        <div class="modal-action">
+          <button class="btn btn-ghost" :disabled="resetting" @click="showResetModal = false">Annuler</button>
+          <button class="btn btn-warning" :disabled="resetting" @click="resetSession">
+            <span v-if="resetting" class="loading loading-spinner loading-sm"></span>
+            Réinitialiser
+          </button>
+        </div>
+      </div>
+      <div class="modal-backdrop" @click="showResetModal = false"></div>
+    </div>
   </div>
 </template>
 
@@ -370,6 +391,8 @@ const newTrack = ref({ youtube_url: '', start_seconds: 0, title: '', artist: '' 
 const fetchingMeta = ref(false)
 const audioUnlocked = ref(false)
 const animationState = ref<{ playerName: string; title: string; artist: string } | null>(null)
+const showResetModal = ref(false)
+const resetting = ref(false)
 
 watch(solvedBuzz, (buzz) => {
   if (!buzz) return
@@ -517,6 +540,20 @@ const launchSession = async () => {
 const invalidateBuzz = async () => {
   if (!activeBuzz.value) return
   await pb.collection('buzzes').update(activeBuzz.value.id, { status: 'wrong' })
+}
+
+const resetSession = async () => {
+  resetting.value = true
+  try {
+    await Promise.all([
+      ...players.value.map(p => pb.collection('players').update(p.id, { score: 0 })),
+      ...tracks.value.map(t => pb.collection('tracks').update(t.id, { status: 'queued', solved_by: null, skip_votes: [] })),
+      pb.collection('sessions').update(props.session.id, { status: 'waiting' }),
+    ])
+    showResetModal.value = false
+  } finally {
+    resetting.value = false
+  }
 }
 
 const handleAddTrack = async () => {

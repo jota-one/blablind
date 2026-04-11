@@ -14,6 +14,8 @@ List of small potential improvements and refactors.
 
 ## History (done)
 
+- [2026-04-11] Reset blindtest — host-only button in the header opens a confirmation modal and resets the session: all scores back to 0, all tracks back to queued (solved_by and skip_votes cleared), session back to waiting so the host can relaunch.
+
 - [2026-04-11] Solved animation overlay — when a buzz is validated correct, an animated overlay appears on all players' screens for 3 seconds showing the trophy icon, track title & artist, and the winner's name. The track keeps playing during the animation; the game advances only after it completes.
 
 - [2026-04-11] Minimum 2 players to launch — the "Launch blindtest" button is disabled when only one player is in the session, preventing the host from getting stuck in a solo game with no one to validate buzzes.
