@@ -420,7 +420,7 @@ const allNonHostPlayersReady = computed(() =>
   nonHostPlayers.value.length === 0 || nonHostPlayers.value.every(p => p.ready),
 )
 const isReady = computed(() => players.value.find(p => p.id === props.currentPlayer.id)?.ready ?? false)
-const canLaunch = computed(() => allNonHostPlayersReady.value && queuedTracks.value.length > 0)
+const canLaunch = computed(() => allNonHostPlayersReady.value && queuedTracks.value.length > 0 && onlinePlayers.value.length >= 2)
 
 const skipVoteArray = computed<string[]>(() => {
   const v = currentTrack.value?.skip_votes
