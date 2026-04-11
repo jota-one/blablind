@@ -8,6 +8,7 @@ export default function useBuzzes(
   otherEligibleCount: ComputedRef<number>,
 ) {
   const buzzes = ref<any[]>([])
+  const solvedBuzz = ref<any>(null)
 
   const activeBuzz = computed(() => buzzes.value.find(b => b.status === 'pending') ?? null)
 
@@ -39,14 +40,19 @@ export default function useBuzzes(
     })
     buzzes.value = result
 
-    unsubscribe = await pb.collection('buzzes').subscribe('*', e => {
-      if (e.action === 'create') {
-        buzzes.value.push(e.record)
-      } else if (e.action === 'update') {
-        const idx = buzzes.value.findIndex(b => b.id === e.record.id)
-        if (idx >= 0) buzzes.value[idx] = e.record
-      }
-    }, { filter: `track="${trackId}"` })
+    unsubscribe = await pb.collection('buzzes').subscribe(
+      '*',
+      e => {
+        if (e.action === 'create') {
+          buzzes.value.push(e.record)
+        } else if (e.action === 'update') {
+          const idx = buzzes.value.findIndex(b => b.id === e.record.id)
+          if (idx >= 0) buzzes.value[idx] = e.record
+          if (e.record.status === 'correct') solvedBuzz.value = e.record
+        }
+      },
+      { filter: `track="${trackId}"` },
+    )
   }
 
   watch(
@@ -57,6 +63,7 @@ export default function useBuzzes(
       } else {
         unsubscribe?.()
         buzzes.value = []
+        solvedBuzz.value = null
       }
     },
     { immediate: true },
@@ -72,5 +79,5 @@ export default function useBuzzes(
       status: 'pending',
     })
 
-  return { buzzes, activeBuzz, canBuzz, buzz }
+  return { buzzes, activeBuzz, canBuzz, buzz, solvedBuzz }
 }
