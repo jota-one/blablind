@@ -311,6 +311,13 @@
         <p v-if="players.length === 0" class="text-base-content/40 text-sm text-center py-4">Aucun joueur</p>
       </aside>
     </div>
+
+    <SolvedOverlay
+      v-if="animationState"
+      :player-name="animationState.playerName"
+      :title="animationState.title"
+      :artist="animationState.artist"
+    />
   </div>
 </template>
 
@@ -324,6 +331,7 @@ import PlaylistImport from '@game/components/PlaylistImport.vue'
 import TrackSearch from '@game/components/TrackSearch.vue'
 import ShareQR from '@game/components/ShareQR.vue'
 import GameOver from '@game/components/GameOver.vue'
+import SolvedOverlay from '@game/components/SolvedOverlay.vue'
 import { pb } from '@game/pb'
 import { getVideoId, isOnline } from '@game/utils'
 
@@ -347,7 +355,7 @@ const otherEligibleCount = computed(() =>
     p.id !== props.currentPlayer.id && p.id !== trackValidatorId.value
   ).length
 )
-const { activeBuzz, canBuzz, buzz } = useBuzzes(
+const { activeBuzz, canBuzz, buzz, solvedBuzz } = useBuzzes(
   computed(() => currentTrack.value?.id),
   props.currentPlayer.id,
   otherEligibleCount,
@@ -361,6 +369,19 @@ const addMode = ref<'search' | 'single' | 'playlist'>('search')
 const newTrack = ref({ youtube_url: '', start_seconds: 0, title: '', artist: '' })
 const fetchingMeta = ref(false)
 const audioUnlocked = ref(false)
+const animationState = ref<{ playerName: string; title: string; artist: string } | null>(null)
+
+watch(solvedBuzz, (buzz) => {
+  if (!buzz) return
+  const track = tracks.value.find((t: any) => t.id === buzz.track)
+  const player = players.value.find((p: any) => p.id === buzz.player)
+  animationState.value = {
+    playerName: player?.name ?? 'Inconnu',
+    title: track?.expand?.video?.title ?? '',
+    artist: track?.expand?.video?.artist ?? '',
+  }
+  setTimeout(() => { animationState.value = null }, 3000)
+})
 
 let metaDebounce: ReturnType<typeof setTimeout> | null = null
 watch(() => newTrack.value.youtube_url, (url) => {
@@ -453,15 +474,24 @@ const submitBuzz = async () => {
 
 const validateBuzz = async () => {
   if (!activeBuzz.value || !currentTrack.value) return
-  const buzzer = players.value.find(p => p.id === activeBuzz.value.player)
-  await Promise.all([
-    pb.collection('buzzes').update(activeBuzz.value.id, { status: 'correct' }),
-    buzzer && pb.collection('players').update(buzzer.id, { score: (buzzer.score || 0) + 1 }),
-    pb.collection('tracks').update(currentTrack.value.id, { status: 'done', solved_by: activeBuzz.value.player }),
-  ])
+  const trackId = currentTrack.value.id
+  const buzzId = activeBuzz.value.id
+  const buzzPlayerId = activeBuzz.value.player
+  const buzzer = players.value.find(p => p.id === buzzPlayerId)
   const next = queuedTracks.value[0]
-  if (next) await playTrack(next.id)
-  else await pb.collection('sessions').update(props.session.id, { status: 'finished' })
+
+  // Step 1: mark buzz correct + increment score (triggers animation on all clients via realtime)
+  await Promise.all([
+    pb.collection('buzzes').update(buzzId, { status: 'correct' }),
+    buzzer && pb.collection('players').update(buzzer.id, { score: (buzzer.score || 0) + 1 }),
+  ])
+
+  // Step 2: after animation, mark track done and advance
+  setTimeout(async () => {
+    await pb.collection('tracks').update(trackId, { status: 'done', solved_by: buzzPlayerId })
+    if (next) await playTrack(next.id)
+    else await pb.collection('sessions').update(props.session.id, { status: 'finished' })
+  }, 3000)
 }
 
 const leaveSession = async () => {
