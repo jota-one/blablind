@@ -14,6 +14,10 @@ List of small potential improvements and refactors.
 
 ## History (done)
 
+- [2026-04-11] Solved animation overlay — when a buzz is validated correct, an animated overlay appears on all players' screens for 3 seconds showing the trophy icon, track title & artist, and the winner's name. The track keeps playing during the animation; the game advances only after it completes.
+
+- [2026-04-11] Minimum 2 players to launch — the "Launch blindtest" button is disabled when only one player is in the session, preventing the host from getting stuck in a solo game with no one to validate buzzes.
+
 - [2026-04-06] Marketing homepage — one-pager with hero, animated logo in nav, "How it works" section (4 steps), live stats from DB (sessions, players, tracks), and a feedback form. Vite proxy (`/api`, `/_`) added to avoid mixed-content errors in dev.
 
 - [2026-04-06] End-of-game podium screen — podium with medals and full leaderboard displayed automatically when the last track is done. Session transitions to "finished" on both correct buzz validation and skip vote. Host role is inherited by the next online player if the track owner disconnects.
