@@ -222,14 +222,19 @@
           </div>
         </div>
 
-        <!-- Vote pour passer (non-admin seulement) -->
-        <div v-if="currentTrack && !isCurrentTrackAdmin" class="flex items-center justify-between text-sm text-base-content/50">
-          <span>Passer ce morceau ? ({{ skipVoteCount }}/{{ skipVotesNeeded }})</span>
-          <button v-if="!hasVotedToSkip" class="btn btn-sm btn-neutral" @click="voteToSkip(currentTrack.id, currentPlayer.id)">
-            <span class="i-fa-solid-forward-step"></span>
-            Je passe
+        <!-- Actions sous le BUZZ : ajouter + passer -->
+        <div v-if="session.status === 'playing'" class="flex items-center gap-2">
+          <button class="btn btn-sm btn-ghost flex-1 border border-base-300" @click="showAddTrackModal = true">
+            <span class="i-fa-solid-plus"></span>
+            Ajouter un morceau
           </button>
-          <span v-else class="text-xs opacity-60">Tu as passé ✓</span>
+          <template v-if="currentTrack && !isCurrentTrackAdmin">
+            <button v-if="!hasVotedToSkip" class="btn btn-sm btn-neutral shrink-0" @click="voteToSkip(currentTrack.id, currentPlayer.id)">
+              <span class="i-fa-solid-forward-step"></span>
+              Je passe ({{ skipVoteCount }}/{{ skipVotesNeeded }})
+            </button>
+            <span v-else class="text-xs opacity-60 shrink-0">Tu as passé ✓</span>
+          </template>
         </div>
 
         <!-- Onglets : À venir / Passés / Classement -->
@@ -284,49 +289,6 @@
 
               <!-- À venir -->
               <div class="w-full shrink-0 pt-3 space-y-3">
-                <details class="collapse collapse-arrow bg-base-200 rounded-lg">
-                  <summary class="collapse-title font-semibold">
-                    <span class="i-fa-solid-plus mr-2"></span>
-                    Ajouter un morceau
-                  </summary>
-                  <div class="collapse-content pt-0 space-y-3">
-                    <div class="tabs tabs-bordered">
-                      <button :class="['tab', addMode === 'search' ? 'tab-active' : '']" @click="addMode = 'search'">
-                        <span class="i-fa-solid-magnifying-glass mr-1"></span>
-                        Recherche
-                      </button>
-                      <button :class="['tab', addMode === 'single' ? 'tab-active' : '']" @click="addMode = 'single'">
-                        URL unique
-                      </button>
-                      <button :class="['tab', addMode === 'playlist' ? 'tab-active' : '']" @click="addMode = 'playlist'">
-                        <span class="i-fa-solid-list mr-1"></span>
-                        Playlist
-                      </button>
-                    </div>
-                    <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromPlaylist" />
-                    <template v-else-if="addMode === 'single'">
-                      <input v-model="newTrack.youtube_url" type="url" placeholder="URL YouTube" class="input input-bordered w-full" />
-                      <div class="flex flex-col gap-2">
-                        <div class="flex-1">
-                          <input v-model.number="newTrack.start_seconds" type="number" placeholder="Départ (secondes)" class="input input-bordered w-full" min="0" />
-                        </div>
-                        <div class="flex-1 relative">
-                          <input v-model="newTrack.title" type="text" placeholder="Titre (optionnel)" class="input input-bordered w-full" />
-                          <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
-                        </div>
-                        <div class="flex-1 relative">
-                          <input v-model="newTrack.artist" type="text" placeholder="Artiste (optionnel)" class="input input-bordered w-full" />
-                          <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
-                        </div>
-                      </div>
-                      <button class="btn btn-primary w-full" :disabled="!newTrack.youtube_url.trim() || addingTrack" @click="handleAddTrack">
-                        <span v-if="addingTrack" class="loading loading-spinner loading-sm"></span>
-                        Ajouter
-                      </button>
-                    </template>
-                    <PlaylistImport v-else :add-track="addTrackFromPlaylist" />
-                  </div>
-                </details>
                 <ul v-if="upcomingTracks.length > 0" class="space-y-1" ref="trackList">
                   <li
                     v-for="track in upcomingTracks"
@@ -452,6 +414,53 @@
       </div>
       <div class="modal-backdrop" @click="showResetModal = false"></div>
     </div>
+
+    <!-- Modale ajout de morceau (full screen) -->
+    <div v-if="showAddTrackModal" class="fixed inset-0 z-50 bg-base-100 flex flex-col">
+      <header class="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-base-300">
+        <h2 class="font-bold text-lg flex-1">Ajouter un morceau</h2>
+        <button class="btn btn-ghost btn-sm" @click="showAddTrackModal = false">
+          <span class="i-fa6-solid-xmark text-lg"></span>
+        </button>
+      </header>
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div class="tabs tabs-bordered">
+          <button :class="['tab', addMode === 'search' ? 'tab-active' : '']" @click="addMode = 'search'">
+            <span class="i-fa-solid-magnifying-glass mr-1"></span>
+            Recherche
+          </button>
+          <button :class="['tab', addMode === 'single' ? 'tab-active' : '']" @click="addMode = 'single'">
+            URL unique
+          </button>
+          <button :class="['tab', addMode === 'playlist' ? 'tab-active' : '']" @click="addMode = 'playlist'">
+            <span class="i-fa-solid-list mr-1"></span>
+            Playlist
+          </button>
+        </div>
+        <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromPlaylist" />
+        <template v-else-if="addMode === 'single'">
+          <input v-model="newTrack.youtube_url" type="url" placeholder="URL YouTube" class="input input-bordered w-full" />
+          <div class="flex flex-col gap-2">
+            <div class="flex-1">
+              <input v-model.number="newTrack.start_seconds" type="number" placeholder="Départ (secondes)" class="input input-bordered w-full" min="0" />
+            </div>
+            <div class="flex-1 relative">
+              <input v-model="newTrack.title" type="text" placeholder="Titre (optionnel)" class="input input-bordered w-full" />
+              <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
+            </div>
+            <div class="flex-1 relative">
+              <input v-model="newTrack.artist" type="text" placeholder="Artiste (optionnel)" class="input input-bordered w-full" />
+              <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
+            </div>
+          </div>
+          <button class="btn btn-primary w-full" :disabled="!newTrack.youtube_url.trim() || addingTrack" @click="handleAddTrack">
+            <span v-if="addingTrack" class="loading loading-spinner loading-sm"></span>
+            Ajouter
+          </button>
+        </template>
+        <PlaylistImport v-else :add-track="addTrackFromPlaylist" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -507,6 +516,7 @@ const fetchingMeta = ref(false)
 const audioUnlocked = ref(false)
 const animationState = ref<{ type?: 'solved' | 'skipped'; playerName: string; title: string; artist: string } | null>(null)
 const showResetModal = ref(false)
+const showAddTrackModal = ref(false)
 const resetting = ref(false)
 
 const activeTab = ref<'upcoming' | 'done' | 'scores'>('upcoming')
@@ -756,6 +766,7 @@ const handleAddTrack = async () => {
       added_by: props.currentPlayer.id,
     })
     newTrack.value = { youtube_url: '', start_seconds: 0, title: '', artist: '' }
+    showAddTrackModal.value = false
   } finally {
     addingTrack.value = false
   }

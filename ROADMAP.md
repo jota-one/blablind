@@ -14,6 +14,8 @@ List of small potential improvements and refactors.
 
 ## History (done)
 
+- [2026-04-11] Add track modal — "Ajouter un morceau" moved out of the À venir tab into a full-screen modal triggered by a button in the action bar below BUZZ. Skip vote integrated in the same bar.
+
 - [2026-04-11] Compact guesser view — for non-track-owners, the playing area shrinks to a single compact row (emoji + "Morceau de X" + status), freeing space for the BUZZ button. Track owners keep the full aspect-ratio view.
 - [2026-04-11] Skip button renamed to "Je passe" with solid neutral style.
 
