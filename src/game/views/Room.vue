@@ -47,7 +47,7 @@
       <div v-else class="flex flex-col gap-4 p-4 min-w-0">
 
         <!-- Conteneur principal : aspect-video seulement quand une vidéo est active -->
-        <div :class="['rounded-xl overflow-hidden', videoId ? 'relative aspect-video' : '']">
+        <div :class="['rounded-xl overflow-hidden', videoId ? ('relative ' + (isCurrentTrackAdmin ? 'aspect-video' : 'h-20')) : '']">
 
           <!-- Layer 1 : player toujours monté (invisible hors vidéo) -->
           <div class="absolute inset-0" :class="{'opacity-0 pointer-events-none': audioUnlocked || !videoId}">
@@ -71,16 +71,18 @@
           <!-- Layer 3 : UI jeu/lobby -->
           <div
             :class="[
-              'flex flex-col items-center justify-center gap-4 p-6 bg-base-200 rounded-xl',
+              'flex items-center justify-center bg-base-200 rounded-xl',
               videoId ? 'absolute inset-0' : '',
+              isCurrentTrackAdmin ? 'flex-col gap-4 p-6' : 'flex-row gap-3 p-4',
               (!audioUnlocked && videoId) ? 'bg-transparent pointer-events-none' : '',
             ]"
           >
           <template v-if="currentTrack">
-            <div :class="['text-7xl transition-all', activeBuzz ? 'opacity-50' : 'animate-bounce']">
+            <div :class="['transition-all', activeBuzz ? 'opacity-50' : (isCurrentTrackAdmin ? 'animate-bounce' : ''), isCurrentTrackAdmin ? 'text-7xl' : 'text-3xl shrink-0']">
               🎵
             </div>
-            <p class="font-bold text-xl font-display text-center px-4">
+            <div :class="isCurrentTrackAdmin ? 'text-center' : 'min-w-0'">
+            <p :class="['font-bold font-display', isCurrentTrackAdmin ? 'text-xl px-4' : 'text-sm truncate']">
               <template v-if="isCurrentTrackAdmin">
               {{ currentTrack.expand?.video?.title || '(sans titre)' }}
                 <span v-if="currentTrack.expand?.video?.artist" class="block text-base font-normal text-base-content/60">{{ currentTrack.expand?.video?.artist }}</span>
@@ -89,15 +91,16 @@
                 <span class="text-base-content/40">Morceau de {{ getPlayerName(currentTrack.added_by) }}</span>
               </template>
             </p>
-            <p v-if="activeBuzz" class="text-sm text-warning font-semibold animate-pulse">
+            <p v-if="activeBuzz" :class="['text-warning font-semibold animate-pulse', isCurrentTrackAdmin ? 'text-sm' : 'text-xs']">
               ⏸ En pause
             </p>
             <template v-else>
-              <p class="text-xs text-base-content/40">♫ En cours de lecture</p>
-              <p v-if="isIrlMode && !isDJ && djPlayer" class="text-xs text-base-content/50 text-center">
+              <p :class="['text-base-content/40', isCurrentTrackAdmin ? 'text-xs' : 'text-xs']">♫ En cours de lecture</p>
+              <p v-if="isIrlMode && !isDJ && djPlayer" class="text-xs text-base-content/50">
                 Musique sur l'appareil de <strong>{{ djPlayer.name }}</strong>
               </p>
             </template>
+            </div>
           </template>
           <template v-else>
             <!-- Phase d'attente : lobby -->
@@ -222,11 +225,11 @@
         <!-- Vote pour passer (non-admin seulement) -->
         <div v-if="currentTrack && !isCurrentTrackAdmin" class="flex items-center justify-between text-sm text-base-content/50">
           <span>Passer ce morceau ? ({{ skipVoteCount }}/{{ skipVotesNeeded }})</span>
-          <button v-if="!hasVotedToSkip" class="btn btn-xs btn-ghost" @click="voteToSkip(currentTrack.id, currentPlayer.id)">
+          <button v-if="!hasVotedToSkip" class="btn btn-sm btn-neutral" @click="voteToSkip(currentTrack.id, currentPlayer.id)">
             <span class="i-fa-solid-forward-step"></span>
-            Voter pour passer
+            Je passe
           </button>
-          <span v-else class="text-xs opacity-60">Tu as voté ✓</span>
+          <span v-else class="text-xs opacity-60">Tu as passé ✓</span>
         </div>
 
         <!-- Onglets : À venir / Passés / Classement -->

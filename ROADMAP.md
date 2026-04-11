@@ -14,6 +14,9 @@ List of small potential improvements and refactors.
 
 ## History (done)
 
+- [2026-04-11] Compact guesser view — for non-track-owners, the playing area shrinks to a single compact row (emoji + "Morceau de X" + status), freeing space for the BUZZ button. Track owners keep the full aspect-ratio view.
+- [2026-04-11] Skip button renamed to "Je passe" with solid neutral style.
+
 - [2026-04-11] Classic folder-tab styling — "À venir / Passés / Classement" tabs restyled as raised folder tabs with border, active tab merges visually into the bordered panel below.
 
 - [2026-04-11] Drag & drop track reordering — each player can reorder their own queued tracks via a grip handle in the "À venir" tab. Only their own `order` slots are permuted; other players' tracks are unaffected.
