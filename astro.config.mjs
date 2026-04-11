@@ -10,13 +10,7 @@ import node from '@astrojs/node'
 export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
-    server: {
-      allowedHosts: true,
-      proxy: {
-        '/api': { target: 'http://127.0.0.1:8093', changeOrigin: true },
-        '/_': { target: 'http://127.0.0.1:8093', changeOrigin: true },
-      },
-    },
+    server: { allowedHosts: true },
     ...(process.env.NODE_ENV === 'production'
       ? {
           ssr: {
