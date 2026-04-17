@@ -23,6 +23,12 @@
           </RouterLink>
         </li>
         <li>
+          <RouterLink to="/roles" class="flex items-center gap-3" active-class="menu-active">
+            <span class="i-fa-solid-user-shield text-xl"></span>
+            Roles
+          </RouterLink>
+        </li>
+        <li>
           <div class="flex items-center gap-3 cursor-pointer" @click="goOut">
             <span class="i-fa-solid-sign-out-alt text-xl"></span>
             {{ t('admin.nav_back') }}
