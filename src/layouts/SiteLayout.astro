@@ -3,6 +3,7 @@ import BaseLayout from '@layouts/BaseLayout.astro'
 import UserAuth from '@components/UserAuth.vue'
 import AdminLink from '@components/AdminLink.vue'
 import NavLogo from '@components/NavLogo.vue'
+import LangSwitch from '@components/LangSwitch.vue'
 const isHome = Astro.url.pathname === '/';
 const { navBg = 'bg-transparent' } = Astro.props;
 
@@ -24,7 +25,8 @@ const logoContainerClasses = isHome ? 'mr-5 flex-1' : 'mr-5';
           <AdminLink client:only />
         </ul>
       </div>
-      <div class="hidden lg:flex gap-5">
+      <div class="hidden lg:flex gap-5 items-center">
+        <LangSwitch client:only />
         <UserAuth client:only />
       </div>
     </div>

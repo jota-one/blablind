@@ -6,7 +6,7 @@
       <input
         v-model="query"
         type="text"
-        placeholder="Titre, artiste..."
+        :placeholder="t('search.placeholder')"
         class="input input-bordered flex-1"
       />
       <button type="submit" class="btn btn-primary" :disabled="!query.trim() || searching">
@@ -28,7 +28,7 @@
 
     <!-- Local results -->
     <template v-if="localResults.length > 0">
-      <p class="text-xs text-base-content/50 uppercase tracking-wide font-semibold">Dans la bibliothèque</p>
+      <p class="text-xs text-base-content/50 uppercase tracking-wide font-semibold">{{ t('search.library_label') }}</p>
       <ul class="space-y-1">
         <li v-for="v in localResults" :key="v.id">
           <TrackResultRow
@@ -43,13 +43,13 @@
       <button class="btn btn-sm btn-ghost w-full mt-1" :disabled="searchingYt" @click="searchYoutube">
         <span v-if="searchingYt" class="loading loading-spinner loading-xs"></span>
         <span v-else class="i-fa-brands-youtube text-error"></span>
-        Chercher sur YouTube aussi
+        {{ t('search.youtube_button') }}
       </button>
     </template>
 
     <!-- YouTube results -->
     <template v-if="ytResults.length > 0">
-      <p class="text-xs text-base-content/50 uppercase tracking-wide font-semibold">YouTube</p>
+      <p class="text-xs text-base-content/50 uppercase tracking-wide font-semibold">{{ t('search.youtube_label') }}</p>
       <ul class="space-y-1">
         <li v-for="v in ytResults" :key="v.videoId">
           <TrackResultRow
@@ -64,16 +64,19 @@
     </template>
 
     <!-- No results -->
-    <p v-if="noResults" class="text-sm text-base-content/40 text-center py-2">Aucun résultat trouvé</p>
+    <p v-if="noResults" class="text-sm text-base-content/40 text-center py-2">{{ t('search.no_results') }}</p>
 
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI36n } from '@jota-one/i36n'
 import { pb } from '@game/pb'
 import { normalizeSearch } from '@game/utils'
 import TrackResultRow from '@game/components/TrackResultRow.vue'
+
+const { t } = useI36n()
 
 interface SearchVideo { videoId: string; title: string; artist: string; duration: number }
 

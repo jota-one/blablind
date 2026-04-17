@@ -4,17 +4,17 @@
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
       </form>
-      <h3 class="font-bold text-lg mb-4">Connexion</h3>
+      <h3 class="font-bold text-lg mb-4">{{ t('login.title') }}</h3>
 
       <form @submit.prevent="handleLogin" class="space-y-4">
         <div>
           <label class="label">
-            <span class="label-text">Email</span>
+            <span class="label-text">{{ t('login.email_label') }}</span>
           </label>
           <input
             v-model="email"
             type="email"
-            placeholder="votre@email.com"
+            :placeholder="t('login.email_placeholder')"
             class="input input-bordered w-full"
             required
           />
@@ -22,7 +22,7 @@
 
         <div>
           <label class="label">
-            <span class="label-text">Mot de passe</span>
+            <span class="label-text">{{ t('login.password_label') }}</span>
           </label>
           <input
             v-model="password"
@@ -40,7 +40,7 @@
         <div class="modal-action">
           <button type="submit" class="btn btn-primary" :disabled="loading">
             <span v-if="loading" class="loading loading-spinner"></span>
-            {{ loading ? 'Connexion...' : 'Connexion' }}
+            {{ loading ? t('login.button_loading') : t('login.button') }}
           </button>
         </div>
       </form>
@@ -53,8 +53,10 @@
 
 <script setup lang="ts">
 import { ref, useTemplateRef } from 'vue'
+import { useI36n } from '@jota-one/i36n'
 import useAuth from '@admin/composables/useAuth'
 
+const { t } = useI36n()
 const emit = defineEmits<{
   loginSuccess: []
 }>()
@@ -101,7 +103,7 @@ const handleLogin = async () => {
       window.location.reload()
     }
   } else if (result.error) {
-    errorMessage.value = result.message || 'Erreur lors de la connexion'
+    errorMessage.value = result.message || t('login.error')
   }
 }
 

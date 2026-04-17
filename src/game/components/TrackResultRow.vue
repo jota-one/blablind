@@ -19,7 +19,7 @@
       min="0"
       placeholder="0s"
       class="input input-xs w-16 text-center shrink-0"
-      title="Départ (secondes)"
+      :title="t('track.start_title')"
     />
     <button
       class="btn btn-xs btn-ghost shrink-0"
@@ -41,6 +41,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI36n } from '@jota-one/i36n'
+
+const { t } = useI36n()
 
 interface SearchVideo { videoId: string; title: string; artist: string; duration: number }
 

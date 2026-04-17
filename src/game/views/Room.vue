@@ -12,9 +12,6 @@
         <span
           :class="['badge badge-sm', session.status === 'playing' ? 'badge-success' : session.status === 'finished' ? 'badge-neutral' : 'badge-warning']"
         >{{ sessionStatusLabel }}</span>
-        <button class="btn btn-xs btn-ghost text-error" title="Quitter" @click="leaveSession">
-          <span class="i-fa6-solid-right-from-bracket"></span>
-        </button>
       </div>
       <!-- Ligne 2 : contexte + actions -->
       <div class="px-4 py-1.5 flex items-center gap-3 border-t border-base-200 text-sm">
@@ -26,10 +23,10 @@
           <span class="i-fa-solid-users text-xs"></span> {{ onlinePlayers.length }}
         </span>
         <ShareQR :slug="session.slug" />
-        <button v-if="isHost" class="btn btn-xs btn-ghost text-warning" title="Réinitialiser" @click="showResetModal = true">
+        <button v-if="isHost" class="btn btn-xs btn-ghost text-warning" :title="t('room.reset')" @click="showResetModal = true">
           <span class="i-fa6-solid-rotate-left"></span>
         </button>
-        <button v-if="isHost" :class="['btn btn-xs btn-ghost', isIrlMode ? 'text-accent' : 'text-base-content/40']" title="Mode IRL" @click="toggleIrlMode">
+        <button v-if="isHost" :class="['btn btn-xs btn-ghost', isIrlMode ? 'text-accent' : 'text-base-content/40']" :title="t('room.irl_mode')" @click="toggleIrlMode">
           <span class="i-fa6-solid-people-group"></span>
         </button>
       </div>
@@ -65,7 +62,7 @@
             class="absolute inset-0 bg-black flex flex-col items-center justify-center gap-3 pointer-events-none"
           >
             <span class="text-4xl">🔊</span>
-            <p class="text-white/90 text-sm text-center px-4">Appuie sur ▶ pour activer le son</p>
+            <p class="text-white/90 text-sm text-center px-4">{{ t('room.unlock_audio') }}</p>
           </div>
 
           <!-- Layer 3 : UI jeu/lobby -->
@@ -84,20 +81,20 @@
             <div :class="isCurrentTrackAdmin ? 'text-center' : 'min-w-0'">
             <p :class="['font-bold font-display', isCurrentTrackAdmin ? 'text-xl px-4' : 'text-sm truncate']">
               <template v-if="isCurrentTrackAdmin">
-              {{ currentTrack.expand?.video?.title || '(sans titre)' }}
+              {{ currentTrack.expand?.video?.title || t('room.no_title') }}
                 <span v-if="currentTrack.expand?.video?.artist" class="block text-base font-normal text-base-content/60">{{ currentTrack.expand?.video?.artist }}</span>
               </template>
               <template v-else>
-                <span class="text-base-content/40">Morceau de {{ getPlayerName(currentTrack.added_by) }}</span>
+                <span class="text-base-content/40">{{ t('room.track_by', { player: getPlayerName(currentTrack.added_by) }) }}</span>
               </template>
             </p>
             <p v-if="activeBuzz" :class="['text-warning font-semibold animate-pulse', isCurrentTrackAdmin ? 'text-sm' : 'text-xs']">
-              ⏸ En pause
+              {{ t('room.in_pause') }}
             </p>
             <template v-else>
-              <p :class="['text-base-content/40', isCurrentTrackAdmin ? 'text-xs' : 'text-xs']">♫ En cours de lecture</p>
+              <p :class="['text-base-content/40', isCurrentTrackAdmin ? 'text-xs' : 'text-xs']">{{ t('room.playing') }}</p>
               <p v-if="isIrlMode && !isDJ && djPlayer" class="text-xs text-base-content/50">
-                Musique sur l'appareil de <strong>{{ djPlayer.name }}</strong>
+                {{ t('room.irl_music_on', { player: djPlayer.name }) }}
               </p>
             </template>
             </div>
@@ -107,46 +104,46 @@
             <template v-if="session.status === 'waiting'">
               <span class="text-5xl">🎮</span>
               <template v-if="isHost">
-                <p class="font-semibold text-center">Tu es l'hôte du blindtest</p>
+                <p class="font-semibold text-center">{{ t('room.host_title') }}</p>
                 <ul v-if="nonHostPlayers.length > 0" class="space-y-1 w-full max-w-xs text-sm">
                   <li v-for="p in nonHostPlayers" :key="p.id" class="flex items-center gap-2">
                     <span :class="p.ready ? 'text-success' : 'text-base-content/30'">{{ p.ready ? '✓' : '○' }}</span>
                     <span>{{ p.name }}</span>
                   </li>
                 </ul>
-                <p v-else class="text-sm text-base-content/40">En attente de joueurs...</p>
+                <p v-else class="text-sm text-base-content/40">{{ t('room.waiting_players') }}</p>
                 <button class="btn btn-primary btn-lg" :disabled="!canLaunch" @click="launchSession">
                   <span class="i-fa-solid-play"></span>
-                  Lancer le blindtest !
+                  {{ t('room.launch_button') }}
                 </button>
                 <p v-if="queuedTracks.length === 0" class="text-xs text-base-content/40 -mt-2">
-                  Ajoute au moins un morceau avant de lancer
+                  {{ t('room.add_track_hint') }}
                 </p>
               </template>
               <template v-else>
-                <p class="text-base-content/50 text-center text-sm">En attente que l'hôte lance le blindtest</p>
+                <p class="text-base-content/50 text-center text-sm">{{ t('room.waiting_host') }}</p>
                 <button v-if="!isReady" class="btn btn-primary btn-lg" @click="markReady(true)">
-                  Je suis prêt à démarrer !
+                  {{ t('room.ready_button') }}
                 </button>
                 <div v-else class="flex items-center gap-3">
                   <div class="badge badge-success badge-lg gap-2">
                     <span class="i-fa-solid-check"></span>
-                    Prêt !
+                    {{ t('room.ready_badge') }}
                   </div>
-                  <button class="btn btn-xs btn-ghost" @click="markReady(false)">Annuler</button>
+                  <button class="btn btn-xs btn-ghost" @click="markReady(false)">{{ t('room.ready_cancel') }}</button>
                 </div>
               </template>
             </template>
             <!-- Session en cours, entre deux morceaux -->
             <template v-else>
               <span class="text-6xl opacity-20">🎶</span>
-              <p class="text-base-content/50">Aucun morceau en cours</p>
+              <p class="text-base-content/50">{{ t('room.no_track') }}</p>
               <template v-if="isHost">
                 <button v-if="queuedTracks.length > 0" class="btn btn-primary" @click="playTrack(queuedTracks[0].id)">
                   <span class="i-fa-solid-play"></span>
-                  Lancer le morceau suivant
+                  {{ t('room.play_next') }}
                 </button>
-                <p v-else class="text-sm text-base-content/40">Ajoutez des morceaux pour continuer</p>
+                <p v-else class="text-sm text-base-content/40">{{ t('room.add_tracks_hint') }}</p>
               </template>
             </template>
           </template>
@@ -158,32 +155,32 @@
           <div v-if="activeBuzz && activeBuzz.player === currentPlayer.id" class="alert alert-info">
             <span class="i-fa-solid-bell text-xl"></span>
             <div>
-              <p class="font-bold">{{ isIrlMode ? 'Tu as buzzé !' : 'Ta réponse a été soumise !' }}</p>
+              <p class="font-bold">{{ isIrlMode ? t('room.buzz_irl') : t('room.buzz_submitted') }}</p>
               <p v-if="!isIrlMode" class="text-sm opacity-80">{{ activeBuzz.answer }}</p>
-              <p class="text-sm opacity-70 mt-1">En attente de validation...</p>
+              <p class="text-sm opacity-70 mt-1">{{ t('room.buzz_waiting_validation') }}</p>
             </div>
           </div>
           <div v-else-if="activeBuzz" class="alert">
             <span class="i-fa-solid-bell text-xl animate-pulse"></span>
-            <span><strong>{{ getPlayerName(activeBuzz.player) }}</strong> est en train de répondre...</span>
+            <span>{{ t('room.buzz_answering', { player: getPlayerName(activeBuzz.player) }) }}</span>
           </div>
           <template v-else>
             <div v-if="buzzing" class="card bg-base-200 p-4 space-y-3">
-              <p class="font-bold text-center">Ta réponse :</p>
+              <p class="font-bold text-center">{{ t('room.buzz_answer_label') }}</p>
               <input
                 v-model="answer"
                 v-focus
                 type="text"
-                placeholder="Titre, artiste..."
+                :placeholder="t('room.buzz_placeholder')"
                 class="input input-bordered w-full"
                 @keyup.enter="submitBuzz"
               />
               <div class="flex gap-2">
                 <button class="btn btn-primary flex-1" :disabled="!answer.trim()" @click="submitBuzz">
                   <span class="i-fa-solid-paper-plane"></span>
-                  Envoyer
+                  {{ t('room.buzz_send') }}
                 </button>
-                <button class="btn btn-ghost" @click="buzzing = false">Annuler</button>
+                <button class="btn btn-ghost" @click="buzzing = false">{{ t('room.buzz_cancel') }}</button>
               </div>
             </div>
             <button
@@ -192,11 +189,11 @@
               @click="isIrlMode ? submitBuzz() : (buzzing = true)"
             >
               <span class="i-fa-solid-bell text-3xl"></span>
-              BUZZ !
+              {{ t('room.buzz_button') }}
             </button>
             <div v-else class="alert alert-warning alert-soft">
               <span class="i-fa-solid-ban"></span>
-              Attends qu'un autre joueur tente sa chance avant de rebuzzer.
+              {{ t('room.buzz_wait') }}
             </div>
           </template>
         </div>
@@ -205,7 +202,7 @@
         <div v-if="currentTrack && isCurrentTrackAdmin && activeBuzz" class="card bg-base-200 p-4 space-y-3">
           <p class="font-bold flex items-center gap-2">
             <span class="i-fa-solid-bell text-warning animate-bounce"></span>
-            {{ getPlayerName(activeBuzz.player) }} a buzzé !
+            {{ t('room.validate_buzz', { player: getPlayerName(activeBuzz.player) }) }}
           </p>
           <p v-if="!isIrlMode" class="text-lg">
             <span class="font-mono bg-base-300 px-3 py-1 rounded">{{ activeBuzz.answer }}</span>
@@ -213,11 +210,11 @@
           <div class="flex gap-2">
             <button class="btn btn-success flex-1" @click="validateBuzz">
               <span class="i-fa-solid-check"></span>
-              Correct ! (+1 pt)
+              {{ t('room.validate_correct') }}
             </button>
             <button class="btn btn-error flex-1" @click="invalidateBuzz">
               <span class="i-fa-solid-times"></span>
-              Faux
+              {{ t('room.validate_wrong') }}
             </button>
           </div>
         </div>
@@ -226,14 +223,14 @@
         <div v-if="session.status !== 'finished'" class="flex items-center gap-2">
           <button class="btn btn-sm btn-ghost flex-1 border border-base-300" @click="showAddTrackModal = true">
             <span class="i-fa-solid-plus"></span>
-            Ajouter un morceau
+            {{ t('room.add_track_button') }}
           </button>
           <template v-if="currentTrack && !isCurrentTrackAdmin">
             <button v-if="!hasVotedToSkip" class="btn btn-sm btn-neutral shrink-0" @click="voteToSkip(currentTrack.id, currentPlayer.id)">
               <span class="i-fa-solid-forward-step"></span>
-              Je passe ({{ skipVoteCount }}/{{ skipVotesNeeded }})
+              {{ t('room.skip_button', { votes: skipVoteCount, needed: skipVotesNeeded }) }}
             </button>
-            <span v-else class="text-xs opacity-60 shrink-0">Tu as passé ✓</span>
+            <span v-else class="text-xs opacity-60 shrink-0">{{ t('room.skip_voted') }}</span>
           </template>
         </div>
 
@@ -247,7 +244,7 @@
                          : 'bg-base-200 border-base-200 text-base-content/50 hover:text-base-content']"
               @click="activeTab = 'upcoming'"
             >
-              À venir
+              {{ t('room.tab_upcoming') }}
               <span v-if="upcomingTracks.length" class="badge badge-xs">{{ upcomingTracks.length }}</span>
             </button>
             <button
@@ -257,7 +254,7 @@
                          : 'bg-base-200 border-base-200 text-base-content/50 hover:text-base-content']"
               @click="activeTab = 'done'"
             >
-              Passés
+              {{ t('room.tab_done') }}
               <span v-if="doneTracks.length" class="badge badge-xs">{{ doneTracks.length }}</span>
             </button>
             <button
@@ -267,7 +264,7 @@
                          : 'bg-base-200 border-base-200 text-base-content/50 hover:text-base-content']"
               @click="activeTab = 'scores'"
             >
-              Classement
+              {{ t('room.tab_scores') }}
             </button>
           </div>
 
@@ -275,10 +272,10 @@
           <div ref="tabs-outer" class="overflow-hidden touch-pan-y">
             <!-- DJ candidate notification (host only) -->
             <div v-if="isIrlMode && isHost && djCandidate" class="alert alert-info mt-3 flex items-center justify-between gap-2">
-              <span class="text-sm"><strong>{{ djCandidate.name }}</strong> veut être DJ 🎵</span>
+              <span class="text-sm">{{ t('room.dj_candidate_banner', { name: djCandidate.name }) }}</span>
               <div class="flex gap-2 shrink-0">
-                <button class="btn btn-xs btn-success" @click="approveDJ">Accepter</button>
-                <button class="btn btn-xs btn-ghost" @click="rejectDJ">Refuser</button>
+                <button class="btn btn-xs btn-success" @click="approveDJ">{{ t('room.dj_accept') }}</button>
+                <button class="btn btn-xs btn-ghost" @click="rejectDJ">{{ t('room.dj_reject') }}</button>
               </div>
             </div>
             <div
@@ -309,17 +306,17 @@
                     <div class="flex-1 min-w-0">
                       <p class="text-sm font-medium truncate">
                         <template v-if="isMyTrack(track)">
-                          <span class="text-primary">{{ track.expand?.video?.title || '(sans titre)' }}</span>
-                          <span class="badge badge-xs badge-primary ml-1">moi</span>
+                          <span class="text-primary">{{ track.expand?.video?.title || t('room.no_title') }}</span>
+                          <span class="badge badge-xs badge-primary ml-1">{{ t('room.my_badge') }}</span>
                         </template>
                         <template v-else>???</template>
                       </p>
                       <p v-if="isMyTrack(track) && track.expand?.video?.artist" class="text-xs text-base-content/50">{{ track.expand?.video?.artist }}</p>
-                      <p v-if="!isMyTrack(track)" class="text-xs text-base-content/40 mt-0.5">Ajouté par {{ getPlayerName(track.added_by) }}</p>
+                      <p v-if="!isMyTrack(track)" class="text-xs text-base-content/40 mt-0.5">{{ t('room.added_by', { player: getPlayerName(track.added_by) }) }}</p>
                     </div>
                   </li>
                 </ul>
-                <p v-else class="text-sm text-center text-base-content/40 py-4">Aucun morceau à venir</p>
+                <p v-else class="text-sm text-center text-base-content/40 py-4">{{ t('room.no_upcoming') }}</p>
               </div>
 
               <!-- Passés -->
@@ -336,21 +333,20 @@
                     <span class="text-base w-6 text-center shrink-0">{{ trackStatusEmoji(track) }}</span>
                     <div class="flex-1 min-w-0">
                       <p class="text-sm font-medium truncate">
-                        {{ track.expand?.video?.title || '(sans titre)' }}
-                        <span v-if="isMyTrack(track)" class="badge badge-xs badge-primary ml-1">moi</span>
+                        {{ track.expand?.video?.title || t('room.no_title') }}
+                        <span v-if="isMyTrack(track)" class="badge badge-xs badge-primary ml-1">{{ t('room.my_badge') }}</span>
                       </p>
                       <p v-if="track.expand?.video?.artist" class="text-xs text-base-content/50">{{ track.expand?.video?.artist }}</p>
                       <p class="text-xs text-base-content/40 mt-0.5">
                         <template v-if="track.solved_by">
-                          Trouvé par
-                          <strong :class="track.solved_by === currentPlayer.id ? 'text-success' : ''">{{ getPlayerName(track.solved_by) }}</strong>
+                          {{ t('room.solved_by', { player: getPlayerName(track.solved_by) }) }}
                         </template>
-                        <template v-else>Passé sans réponse</template>
+                        <template v-else>{{ t('room.skipped') }}</template>
                       </p>
                     </div>
                   </li>
                 </ul>
-                <p v-else class="text-sm text-center text-base-content/40 py-4">Aucun morceau passé</p>
+                <p v-else class="text-sm text-center text-base-content/40 py-4">{{ t('room.no_done') }}</p>
               </div>
 
               <!-- Classement -->
@@ -365,21 +361,21 @@
                     <span class="flex-1 text-sm font-medium truncate" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.name }}</span>
                     <span v-if="isIrlMode && p.id === session.dj_player" title="DJ" class="text-base">🎵</span>
                     <span class="font-mono font-bold text-primary" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.score }}</span>
-                    <span v-if="!isOnline(p)" class="w-2 h-2 rounded-full bg-base-content/20 shrink-0" title="Hors ligne"></span>
+                    <span v-if="!isOnline(p)" class="w-2 h-2 rounded-full bg-base-content/20 shrink-0" :title="t('room.offline')"></span>
                     <span v-else-if="activeBuzz?.player === p.id" class="i-fa-solid-bell text-warning animate-bounce text-xs"></span>
                     <button
                       v-if="isIrlMode && p.id === currentPlayer.id && p.id !== session.dj_player && session.dj_candidate !== currentPlayer.id"
                       class="btn btn-xs btn-ghost text-accent"
                       @click="proposeDJ"
                     >
-                      Devenir DJ
+                      {{ t('room.become_dj') }}
                     </button>
                     <span v-else-if="isIrlMode && p.id === currentPlayer.id && session.dj_candidate === currentPlayer.id" class="text-xs text-base-content/40">
-                      En attente...
+                      {{ t('room.dj_pending') }}
                     </span>
                   </li>
                 </ul>
-                <p v-if="players.length === 0" class="text-base-content/40 text-sm text-center py-4">Aucun joueur</p>
+                <p v-if="players.length === 0" class="text-base-content/40 text-sm text-center py-4">{{ t('room.no_players') }}</p>
               </div>
 
             </div>
@@ -400,15 +396,15 @@
     <!-- Modal réinitialisation -->
     <div :class="['modal', showResetModal ? 'modal-open' : '']">
       <div class="modal-box">
-        <h3 class="font-bold text-lg">Réinitialiser le blindtest ?</h3>
+        <h3 class="font-bold text-lg">{{ t('room.reset_modal_title') }}</h3>
         <p class="py-4 text-base-content/70">
-          Tous les scores seront remis à zéro et les morceaux rejoueront depuis le début, comme si la session venait de commencer.
+          {{ t('room.reset_modal_text') }}
         </p>
         <div class="modal-action">
-          <button class="btn btn-ghost" :disabled="resetting" @click="showResetModal = false">Annuler</button>
+          <button class="btn btn-ghost" :disabled="resetting" @click="showResetModal = false">{{ t('room.reset_cancel') }}</button>
           <button class="btn btn-warning" :disabled="resetting" @click="resetSession">
             <span v-if="resetting" class="loading loading-spinner loading-sm"></span>
-            Réinitialiser
+            {{ t('room.reset_confirm') }}
           </button>
         </div>
       </div>
@@ -418,7 +414,7 @@
     <!-- Modale ajout de morceau (full screen) -->
     <div v-if="showAddTrackModal" class="fixed inset-0 z-50 bg-base-100 flex flex-col">
       <header class="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-base-300">
-        <h2 class="font-bold text-lg flex-1">Ajouter un morceau</h2>
+        <h2 class="font-bold text-lg flex-1">{{ t('room.add_modal_title') }}</h2>
         <button class="btn btn-ghost btn-sm" @click="showAddTrackModal = false">
           <span class="i-fa6-solid-xmark text-lg"></span>
         </button>
@@ -427,35 +423,35 @@
         <div class="tabs tabs-bordered">
           <button :class="['tab', addMode === 'search' ? 'tab-active' : '']" @click="addMode = 'search'">
             <span class="i-fa-solid-magnifying-glass mr-1"></span>
-            Recherche
+            {{ t('room.add_tab_search') }}
           </button>
           <button :class="['tab', addMode === 'single' ? 'tab-active' : '']" @click="addMode = 'single'">
-            URL unique
+            {{ t('room.add_tab_url') }}
           </button>
           <button :class="['tab', addMode === 'playlist' ? 'tab-active' : '']" @click="addMode = 'playlist'">
             <span class="i-fa-solid-list mr-1"></span>
-            Playlist
+            {{ t('room.add_tab_playlist') }}
           </button>
         </div>
         <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromPlaylist" />
         <template v-else-if="addMode === 'single'">
-          <input v-model="newTrack.youtube_url" type="url" placeholder="URL YouTube" class="input input-bordered w-full" />
+          <input v-model="newTrack.youtube_url" type="url" :placeholder="t('room.url_placeholder')" class="input input-bordered w-full" />
           <div class="flex flex-col gap-2">
             <div class="flex-1">
-              <input v-model.number="newTrack.start_seconds" type="number" placeholder="Départ (secondes)" class="input input-bordered w-full" min="0" />
+              <input v-model.number="newTrack.start_seconds" type="number" :placeholder="t('room.start_placeholder')" class="input input-bordered w-full" min="0" />
             </div>
             <div class="flex-1 relative">
-              <input v-model="newTrack.title" type="text" placeholder="Titre (optionnel)" class="input input-bordered w-full" />
+              <input v-model="newTrack.title" type="text" :placeholder="t('room.title_placeholder')" class="input input-bordered w-full" />
               <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
             </div>
             <div class="flex-1 relative">
-              <input v-model="newTrack.artist" type="text" placeholder="Artiste (optionnel)" class="input input-bordered w-full" />
+              <input v-model="newTrack.artist" type="text" :placeholder="t('room.artist_placeholder')" class="input input-bordered w-full" />
               <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
             </div>
           </div>
           <button class="btn btn-primary w-full" :disabled="!newTrack.youtube_url.trim() || addingTrack" @click="handleAddTrack">
             <span v-if="addingTrack" class="loading loading-spinner loading-sm"></span>
-            Ajouter
+            {{ t('room.add_button') }}
           </button>
         </template>
         <PlaylistImport v-else :add-track="addTrackFromPlaylist" />
@@ -466,6 +462,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted, useTemplateRef } from 'vue'
+import { useI36n } from '@jota-one/i36n'
 import Sortable from 'sortablejs'
 import { useSwipe } from '@vueuse/core'
 import usePlayers from '@game/composables/usePlayers'
@@ -480,12 +477,13 @@ import SolvedOverlay from '@game/components/SolvedOverlay.vue'
 import { pb } from '@game/pb'
 import { getVideoId, isOnline } from '@game/utils'
 
+const { t } = useI36n()
+
 const props = defineProps<{
   session: any
   currentPlayer: any
 }>()
 
-const emit = defineEmits<{ leave: [] }>()
 
 const { players, onlinePlayers } = usePlayers(props.session.id)
 const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip } = useTracks(props.session.id)
@@ -559,7 +557,7 @@ watch(solvedBuzz, (buzz) => {
   const track = tracks.value.find((t: any) => t.id === buzz.track)
   const player = players.value.find((p: any) => p.id === buzz.player)
   animationState.value = {
-    playerName: player?.name ?? 'Inconnu',
+    playerName: player?.name ?? t('room.unknown_player'),
     title: track?.expand?.video?.title ?? '',
     artist: track?.expand?.video?.artist ?? '',
   }
@@ -590,7 +588,6 @@ const videoId = computed(() => {
   return currentTrack.value?.expand?.video?.video_id ?? null
 })
 
-// Appelé quand l'utilisateur tap play dans l'iframe YouTube — déverrouille l'audio
 const onPlaying = () => { audioUnlocked.value = true }
 
 // Computed
@@ -598,7 +595,11 @@ const isCurrentTrackAdmin = computed(() =>
   !!trackValidatorId.value && trackValidatorId.value === props.currentPlayer.id
 )
 const sessionStatusLabel = computed(
-  () => ({ waiting: 'En attente', playing: 'En cours', finished: 'Terminée' })[props.session.status as string] ?? props.session.status,
+  () => ({
+    waiting: t('room.status_waiting'),
+    playing: t('room.status_playing'),
+    finished: t('room.status_finished'),
+  })[props.session.status as string] ?? props.session.status,
 )
 const isHost = computed(() => props.session.host === props.currentPlayer.id)
 const isIrlMode = computed(() => !!props.session.irl_mode)
@@ -648,7 +649,7 @@ watch(skipVoteArray, async (votes) => {
   }
 })
 
-const getPlayerName = (playerId: string) => players.value.find(p => p.id === playerId)?.name ?? 'Inconnu'
+const getPlayerName = (playerId: string) => players.value.find(p => p.id === playerId)?.name ?? t('room.unknown_player')
 const isMyTrack = (track: any) => track.added_by === props.currentPlayer.id
 
 const trackStatusEmoji = (track: any) => {
@@ -685,28 +686,16 @@ const validateBuzz = async () => {
   const buzzer = players.value.find(p => p.id === buzzPlayerId)
   const next = queuedTracks.value[0]
 
-  // Step 1: mark buzz correct + increment score (triggers animation on all clients via realtime)
   await Promise.all([
     pb.collection('buzzes').update(buzzId, { status: 'correct' }),
     buzzer && pb.collection('players').update(buzzer.id, { score: (buzzer.score || 0) + 1 }),
   ])
 
-  // Step 2: after animation, mark track done and advance
   setTimeout(async () => {
     await pb.collection('tracks').update(trackId, { status: 'done', solved_by: buzzPlayerId })
     if (next) await playTrack(next.id)
     else await pb.collection('sessions').update(props.session.id, { status: 'finished' })
   }, 3000)
-}
-
-const leaveSession = async () => {
-  if (isHost.value) {
-    const nextHost = onlinePlayers.value.find(p => p.id !== props.currentPlayer.id)
-    if (nextHost) await pb.collection('sessions').update(props.session.id, { host: nextHost.id })
-  }
-  await pb.collection('players').delete(props.currentPlayer.id, { query: { secret: props.currentPlayer.secret } })
-  localStorage.removeItem(`blablind_player_${props.session.id}`)
-  emit('leave')
 }
 
 const markReady = (value: boolean) => pb.collection('players').update(props.currentPlayer.id, { ready: value })
@@ -785,7 +774,6 @@ watch(trackListEl, (el) => {
       handle: '.drag-handle',
       animation: 150,
       onEnd() {
-        // Player's queued tracks sorted by their current order (= the "slots" they own)
         const myQueued = queuedTracks.value
           .filter(t => t.added_by === props.currentPlayer.id)
           .sort((a, b) => a.order - b.order)
@@ -793,7 +781,6 @@ watch(trackListEl, (el) => {
 
         const slots = myQueued.map(t => t.order)
 
-        // Read DOM order after drop
         const myInNewOrder = Array.from(el.querySelectorAll('[data-id]'))
           .map(node => node.getAttribute('data-id'))
           .map(id => queuedTracks.value.find(t => t.id === id))
@@ -807,13 +794,11 @@ watch(trackListEl, (el) => {
 
         if (updates.length === 0) return
 
-        // Optimistic local update so Vue re-renders immediately in the right order
         updates.forEach(({ track, newOrder }) => {
           const idx = tracks.value.findIndex(t => t.id === track.id)
           if (idx >= 0) tracks.value[idx] = { ...tracks.value[idx], order: newOrder }
         })
 
-        // Persist
         updates.forEach(({ track, newOrder }) =>
           pb.collection('tracks').update(track.id, { order: newOrder }, { requestKey: null }),
         )

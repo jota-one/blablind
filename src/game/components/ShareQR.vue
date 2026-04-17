@@ -1,20 +1,20 @@
 <template>
-  <button class="btn btn-xs btn-ghost" title="Partager" @click="open = true">
+  <button class="btn btn-xs btn-ghost" :title="t('share.title')" @click="open = true">
     <span class="i-fa-solid-qrcode text-lg"></span>
   </button>
 
   <Teleport to="body">
     <dialog class="modal" :class="{ 'modal-open': open }">
       <div class="modal-box flex flex-col items-center gap-4 max-w-xs">
-        <h3 class="font-bold text-lg font-display">Rejoindre la session</h3>
+        <h3 class="font-bold text-lg font-display">{{ t('share.title') }}</h3>
         <div ref="qrContainer"></div>
         <p class="text-xs text-base-content/50 break-all text-center select-all">{{ url }}</p>
         <div class="flex gap-2 w-full">
           <button class="btn btn-sm flex-1" @click="copy">
             <span :class="copied ? 'i-fa-solid-check text-success' : 'i-fa-solid-copy'"></span>
-            {{ copied ? 'Copié !' : 'Copier le lien' }}
+            {{ copied ? t('share.copied') : t('share.copy') }}
           </button>
-          <button class="btn btn-sm btn-ghost" @click="open = false">Fermer</button>
+          <button class="btn btn-sm btn-ghost" @click="open = false">{{ t('share.close') }}</button>
         </div>
       </div>
       <div class="modal-backdrop bg-black/40" @click="open = false"></div>
@@ -24,6 +24,9 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick, useTemplateRef } from 'vue'
+import { useI36n } from '@jota-one/i36n'
+
+const { t } = useI36n()
 
 const props = defineProps<{ slug: string }>()
 

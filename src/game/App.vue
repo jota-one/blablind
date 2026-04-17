@@ -3,18 +3,19 @@
     <span v-if="loading" class="loading loading-spinner loading-lg text-primary"></span>
     <div v-else-if="error" class="text-center p-8">
       <p class="text-4xl mb-3">😕</p>
-      <p class="text-error font-semibold text-lg">{{ error }}</p>
-      <a href="/" class="btn btn-ghost mt-4">Retour à l'accueil</a>
+      <p class="text-error font-semibold text-lg">{{ t(error) }}</p>
+      <a href="/" class="btn btn-ghost mt-4">{{ t('app.back_home') }}</a>
     </div>
     <template v-else-if="session">
       <Join v-if="!player" :session="session" @joined="onJoined" />
-      <Room v-else :session="session" :current-player="player" @leave="onLeave" />
+      <Room v-else :session="session" :current-player="player" />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onUnmounted, getCurrentInstance } from 'vue'
+import { useI36n } from '@jota-one/i36n'
 import useSession from '@game/composables/useSession'
 import { pb } from '@game/pb'
 import Join from '@game/views/Join.vue'
@@ -23,6 +24,8 @@ import Room from '@game/views/Room.vue'
 // Register v-focus directive for the game SPA
 const app = getCurrentInstance()?.appContext.app
 app?.directive('focus', { mounted: (el) => el.focus() })
+
+const { t } = useI36n()
 
 const slug = window.location.pathname.split('/').filter(Boolean)[0]
 const { session, loading, error } = useSession(slug)
@@ -70,7 +73,11 @@ watch(
 
 const onJoined = async (name: string) => {
   if (!session.value) return
-  const secret = crypto.randomUUID()
+  const secret = typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c =>
+        (+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16)
+      )
   const record = await pb.collection('players').create({
     session: session.value.id,
     name,
@@ -90,17 +97,5 @@ const onJoined = async (name: string) => {
   if (activeOthers.totalItems === 0) {
     await pb.collection('sessions').update(session.value.id, { host: record.id })
   }
-}
-
-const onLeave = () => {
-  stopHeartbeat?.()
-  stopHeartbeat = null
-  player.value = null
-  localStorage.removeItem('blablind_last_session')
-  if (session.value) {
-    localStorage.removeItem(`blablind_player_${session.value.id}`)
-    localStorage.removeItem(`blablind_secret_${session.value.id}`)
-  }
-  window.location.href = '/'
 }
 </script>

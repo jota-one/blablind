@@ -3,9 +3,9 @@
 
     <div>
       <p class="text-5xl mb-2">🏆</p>
-      <h2 class="text-2xl font-bold font-display">Blindtest terminé !</h2>
+      <h2 class="text-2xl font-bold font-display">{{ t('gameover.title') }}</h2>
       <p v-if="sorted[0]" class="text-base-content/60 mt-1">
-        Bravo <strong class="text-warning">{{ sorted[0].name }}</strong> !
+        {{ t('gameover.bravo', { name: sorted[0].name }) }}
       </p>
     </div>
 
@@ -40,7 +40,7 @@
 
     <!-- Classement complet (si > 3 joueurs) -->
     <div v-if="sorted.length > 3" class="w-full max-w-sm space-y-1">
-      <p class="text-xs text-base-content/40 uppercase tracking-wide mb-2">Suite du classement</p>
+      <p class="text-xs text-base-content/40 uppercase tracking-wide mb-2">{{ t('gameover.ranking_rest') }}</p>
       <div
         v-for="(p, i) in sorted.slice(3)"
         :key="p.id"
@@ -52,13 +52,16 @@
       </div>
     </div>
 
-    <a href="/" class="btn btn-ghost">Retour à l'accueil</a>
+    <a href="/" class="btn btn-ghost">{{ t('gameover.back_home') }}</a>
 
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI36n } from '@jota-one/i36n'
+
+const { t } = useI36n()
 
 const props = defineProps<{ players: any[]; currentPlayer: any }>()
 

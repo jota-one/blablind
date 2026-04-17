@@ -5,7 +5,7 @@
         class="btn btn-primary px-5 py-2 font-semibold rounded-lg cursor-pointer"
         @click="openLoginModal"
       >
-        Connexion
+        {{ t('auth.login_button') }}
       </button>
       <LoginModal ref="loginModalRef" @login-success="handleLoginSuccess" />
     </template>
@@ -17,7 +17,7 @@
           class="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-colors cursor-pointer"
         >
           <div class="flex flex-col">
-            <span class="text-xs font-medium text-white/70 uppercase tracking-wide">Connecté(e)</span>
+            <span class="text-xs font-medium text-white/70 uppercase tracking-wide">{{ t('auth.connected') }}</span>
             <span class="text-sm font-semibold text-white">{{ user.name }}</span>
           </div>
           <span class="i-fa-solid-chevron-down text-xs text-white/70"></span>
@@ -29,7 +29,7 @@
           <li>
             <a href="/profile" class="flex items-center gap-3 text-gray-700 hover:bg-gray-100">
               <span class="i-fa-solid-user text-base"></span>
-              <span>Mon compte</span>
+              <span>{{ t('auth.my_account') }}</span>
             </a>
           </li>
           <li>
@@ -38,7 +38,7 @@
               class="flex items-center gap-3 text-red-600 hover:bg-red-50 w-full text-left"
             >
               <span class="i-fa-solid-sign-out-alt text-base"></span>
-              <span>Déconnexion</span>
+              <span>{{ t('auth.logout') }}</span>
             </button>
           </li>
         </ul>
@@ -49,9 +49,11 @@
 
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
+import { useI36n } from '@jota-one/i36n'
 import useAuth from '@admin/composables/useAuth'
 import LoginModal from './LoginModal.vue'
 
+const { t } = useI36n()
 const { isAuthenticated, user, logout } = useAuth()
 const loginModalRef = useTemplateRef<InstanceType<typeof LoginModal>>('loginModalRef')
 

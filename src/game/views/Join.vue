@@ -6,7 +6,7 @@
         {{ session.name }}
       </h1>
       <p class="text-base-content/50 text-sm text-center mb-6">
-        Choisis ton pseudo pour rejoindre
+        {{ t('join.subtitle') }}
       </p>
 
       <form @submit.prevent="handleJoin" class="space-y-4">
@@ -14,14 +14,14 @@
           v-model="name"
           v-focus
           type="text"
-          placeholder="Ton pseudo..."
+          :placeholder="t('join.placeholder')"
           class="input input-bordered w-full text-center text-lg"
           maxlength="30"
           required
         />
         <button type="submit" class="btn btn-primary w-full" :disabled="loading">
           <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-          Rejoindre
+          {{ t('join.button') }}
         </button>
       </form>
 
@@ -32,6 +32,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI36n } from '@jota-one/i36n'
+
+const { t } = useI36n()
 
 const props = defineProps<{
   session: any
@@ -52,7 +55,7 @@ const handleJoin = async () => {
   try {
     emit('joined', name.value.trim())
   } catch (e: any) {
-    error.value = e.message || 'Erreur lors de la connexion'
+    error.value = e.message || t('join.error')
     loading.value = false
   }
 }
