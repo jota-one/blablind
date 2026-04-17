@@ -5,7 +5,7 @@
       <input
         v-model="url"
         type="url"
-        placeholder="URL de la playlist YouTube..."
+        :placeholder="t('playlist.url_placeholder')"
         class="input input-bordered flex-1"
         :disabled="fetching"
         @keyup.enter="fetchPlaylist"
@@ -26,7 +26,7 @@
           <span class="text-base-content/40 font-normal">({{ playlist.tracks.length }})</span>
         </span>
         <button class="btn btn-xs btn-ghost shrink-0" @click="toggleAll">
-          {{ allSelected ? 'Tout désélectionner' : 'Tout sélectionner' }}
+          {{ allSelected ? t('playlist.deselect_all') : t('playlist.select_all') }}
         </button>
       </div>
 
@@ -60,7 +60,7 @@
       >
         <span v-if="importing" class="loading loading-spinner loading-sm"></span>
         <span v-else class="i-fa-solid-file-import"></span>
-        Importer {{ selected.length }} morceau{{ selected.length > 1 ? 'x' : '' }}
+        {{ t(selected.length > 1 ? 'playlist.import_button_plural' : 'playlist.import_button', { count: selected.length }) }}
       </button>
     </template>
   </div>
@@ -68,7 +68,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI36n } from '@jota-one/i36n'
 import { getPlaylistId } from '@game/utils'
+
+const { t } = useI36n()
 
 interface PlaylistTrack {
   videoId: string
@@ -111,7 +114,7 @@ const fetchPlaylist = async () => {
 
   const playlistId = getPlaylistId(url.value)
   if (!playlistId) {
-    error.value = "URL invalide — colle l'URL complète d'une playlist YouTube"
+    error.value = t('playlist.error_invalid_url')
     return
   }
 
@@ -123,7 +126,7 @@ const fetchPlaylist = async () => {
     playlist.value = data
     selected.value = data.tracks.map((t: PlaylistTrack) => t.videoId)
   } catch (e: any) {
-    error.value = e.message || 'Impossible de charger la playlist.'
+    error.value = e.message || t('playlist.error_load')
   } finally {
     fetching.value = false
   }

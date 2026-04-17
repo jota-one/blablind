@@ -1,8 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
+import Users from '../views/Users.vue'
+import Roles from '../views/Roles.vue'
 import useAuth from '../composables/useAuth'
 
-const routes = [{ path: '', component: Home }]
+const routes = [
+  { path: '/', component: Home },
+  { path: '/users', component: Users },
+  { path: '/roles', component: Roles },
+]
 
 const baseUrl = (import.meta as any).env?.BASE_URL || '/'
 
@@ -12,13 +18,13 @@ const router = createRouter({
 })
 
 router.beforeEach(async (_to, _from) => {
-  const { isAuthenticated, refreshAuth } = useAuth()
+  const { isAuthenticated, isAdmin, refreshAuth } = useAuth()
 
   if (isAuthenticated.value) {
     await refreshAuth()
   }
 
-  if (!isAuthenticated.value) {
+  if (!isAdmin.value) {
     window.location.href = '/'
     return false
   }

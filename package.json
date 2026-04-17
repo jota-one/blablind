@@ -18,6 +18,7 @@
     "@astrojs/node": "^10.0.4",
     "@astrojs/vue": "^6.0.1",
     "@fontsource-variable/oswald": "^5.2.5",
+    "@jota-one/i36n": "^3.0.0",
     "@primeuix/themes": "^2.0.3",
     "@tailwindcss/vite": "^4.1.4",
     "@vueuse/core": "^14.1.0",

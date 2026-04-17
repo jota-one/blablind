@@ -14,6 +14,14 @@ List of small potential improvements and refactors.
 
 ## History (done)
 
+- [2026-04-17] User registration & admin user management — signup form (email, name, password) with pending validation flow; new `roles` collection with seeded `user` and `admin` roles; admin pages for users (list, add, edit, delete, verify) and roles (list, add, edit, delete); PocketBase `authRule` blocks unverified users from logging in; custom PocketBase hook allows admins to toggle the `verified` flag.
+
+- [2026-04-17] Internationalization (FR/EN) — all UI strings extracted to `src/translations/{fr,en}.json` using `@jota-one/i36n`. Language auto-detected from browser, persisted in localStorage, switchable via a FR/EN toggle in the navbar. All Vue components migrated.
+
+- [2026-04-17] Remove leave session button — the "Quitter" button in the room header was removed to prevent accidental player deletion. The dismiss action on the home page restore banner is unaffected (localStorage only, no player record deleted).
+
+- [2026-04-17] Fix crypto.randomUUID in non-secure contexts — fallback UUID v4 generation via `crypto.getRandomValues` for HTTP (local network) testing.
+
 - [2026-04-11] Add track modal — "Ajouter un morceau" moved out of the À venir tab into a full-screen modal triggered by a button in the action bar below BUZZ. Skip vote integrated in the same bar.
 
 - [2026-04-11] Compact guesser view — for non-track-owners, the playing area shrinks to a single compact row (emoji + "Morceau de X" + status), freeing space for the BUZZ button. Track owners keep the full aspect-ratio view.

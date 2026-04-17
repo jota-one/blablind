@@ -11,7 +11,7 @@ export default function useSession(slug: string) {
     try {
       session.value = await pb.collection('sessions').getFirstListItem(`slug="${slug}"`)
     } catch {
-      error.value = 'Session introuvable ou expirée.'
+      error.value = 'app.error_not_found'
     } finally {
       loading.value = false
     }

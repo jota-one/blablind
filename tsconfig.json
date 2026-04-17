@@ -5,6 +5,7 @@
   "compilerOptions": {
     "verbatimModuleSyntax": true,
     "paths": {
+      "@/*": ["./src/*"],
       "@admin/*": ["./src/admin/*"],
       "@game/*": ["./src/game/*"],
       "@components/*": ["./src/components/*"],

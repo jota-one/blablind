@@ -22,27 +22,12 @@ if (userJwt.value && !pb.authStore.isValid) {
   }
 }
 
-const loadUser = async (model: any) => {
-  if (!model?.id) return
-  try {
-    const full = await pb.collection('users').getOne(model.id)
-    user.value = full
-  } catch (e) {
-    console.error('Failed to load user', e)
-    user.value = model
-  }
-}
-
-pb.authStore.onChange((_, model) => {
-  if (model !== null) {
-    void loadUser(model)
-  }
-}, true)
-
 export default function useAuth() {
   const login = async (auth: { email: string; password: string }) => {
     try {
-      const authData = await pb.collection('users').authWithPassword(auth.email, auth.password)
+      const authData = await pb.collection('users').authWithPassword(auth.email, auth.password, {
+        expand: 'roles',
+      })
       userJwt.value = authData.token
       user.value = authData.record
       return authData.token
@@ -52,12 +37,9 @@ export default function useAuth() {
   }
 
   const refreshAuth = async () => {
-    if (!pb.authStore.isValid && userJwt.value) {
-      pb.authStore.save(userJwt.value, null)
-    }
     if (!pb.authStore.isValid) return null
     try {
-      const data = await pb.collection('users').authRefresh()
+      const data = await pb.collection('users').authRefresh({ expand: 'roles' })
       userJwt.value = data.token
       user.value = data.record
       return data
@@ -74,7 +56,9 @@ export default function useAuth() {
   }
 
   const isAuthenticated = computed(() => !!userJwt.value && userJwt.value.length > 0)
-  const isAdmin = computed(() => isAuthenticated.value)
+  const isAdmin = computed(
+    () => isAuthenticated.value && user.value?.expand?.roles?.some((r: any) => r.slug === 'admin'),
+  )
 
   return {
     isAuthenticated,

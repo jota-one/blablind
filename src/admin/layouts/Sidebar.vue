@@ -7,25 +7,31 @@
         <li>
           <RouterLink to="/" class="flex items-center gap-3" active-class="menu-active">
             <span class="i-fa6-solid-house text-xl"></span>
-            Accueil
+            {{ t('admin.nav_home') }}
           </RouterLink>
         </li>
         <li>
           <RouterLink to="/sessions" class="flex items-center gap-3" active-class="menu-active">
             <span class="i-fa-solid-headphones text-xl"></span>
-            Sessions
+            {{ t('admin.nav_sessions') }}
           </RouterLink>
         </li>
         <li>
           <RouterLink to="/users" class="flex items-center gap-3" active-class="menu-active">
             <span class="i-fa-solid-users text-xl"></span>
-            Utilisateurs
+            {{ t('admin.nav_users') }}
+          </RouterLink>
+        </li>
+        <li>
+          <RouterLink to="/roles" class="flex items-center gap-3" active-class="menu-active">
+            <span class="i-fa-solid-user-shield text-xl"></span>
+            Roles
           </RouterLink>
         </li>
         <li>
           <div class="flex items-center gap-3 cursor-pointer" @click="goOut">
             <span class="i-fa-solid-sign-out-alt text-xl"></span>
-            Retour au site
+            {{ t('admin.nav_back') }}
           </div>
         </li>
       </ul>
@@ -40,6 +46,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI36n } from '@jota-one/i36n'
+
+const { t } = useI36n()
+
 const goOut = () => {
   window.location.href = '/'
 }

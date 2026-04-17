@@ -10,17 +10,17 @@
     <!-- Slogan + Forms -->
     <div class="flex flex-col items-center px-4 pb-20 -mt-6 relative">
       <p class="text-3xl md:text-4xl font-black font-display uppercase tracking-wide bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent text-center mb-12 max-w-lg">
-        Crée ton blindtest, invite tes amis, buzzez en direct !
+        {{ t('home.slogan') }}
       </p>
 
       <!-- Bannière restore session -->
       <div v-if="lastSession" class="alert alert-info w-full max-w-2xl mb-6 flex items-center gap-4">
         <span class="i-fa-solid-rotate-left text-xl shrink-0"></span>
         <span class="flex-1 text-sm">
-          Tu étais dans <strong>{{ lastSession.name }}</strong>. Tu veux reprendre ?
+          {{ t('home.restore_banner', { name: lastSession.name }) }}
         </span>
-        <a :href="`/${lastSession.slug}`" class="btn btn-sm btn-primary shrink-0">Reprendre</a>
-        <button class="btn btn-sm btn-ghost shrink-0" @click="dismissLastSession">Ignorer</button>
+        <a :href="`/${lastSession.slug}`" class="btn btn-sm btn-primary shrink-0">{{ t('home.restore_resume') }}</a>
+        <button class="btn btn-sm btn-ghost shrink-0" @click="dismissLastSession">{{ t('home.restore_dismiss') }}</button>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
@@ -28,19 +28,19 @@
         <div class="card bg-base-200 shadow-xl p-6">
           <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
             <span class="i-fa-solid-plus text-primary"></span>
-            Créer un blindtest
+            {{ t('home.create_title') }}
           </h2>
           <form @submit.prevent="handleCreate" class="space-y-4">
             <input
               v-model="createName"
               type="text"
-              placeholder="Nom du blindtest..."
+              :placeholder="t('home.create_placeholder')"
               class="input input-bordered w-full"
               required
             />
             <button type="submit" class="btn btn-primary w-full" :disabled="creating">
               <span v-if="creating" class="loading loading-spinner loading-sm"></span>
-              Créer
+              {{ t('home.create_button') }}
             </button>
             <p v-if="createError" class="text-error text-sm text-center">{{ createError }}</p>
           </form>
@@ -50,17 +50,17 @@
         <div class="card bg-base-200 shadow-xl p-6">
           <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
             <span class="i-fa-solid-door-open text-secondary"></span>
-            Rejoindre un blindtest
+            {{ t('home.join_title') }}
           </h2>
           <form @submit.prevent="handleJoin" class="space-y-4">
             <input
               v-model="joinCode"
               type="text"
-              placeholder="Code de la session..."
+              :placeholder="t('home.join_placeholder')"
               class="input input-bordered w-full"
               required
             />
-            <button type="submit" class="btn btn-secondary w-full">Rejoindre</button>
+            <button type="submit" class="btn btn-secondary w-full">{{ t('home.join_button') }}</button>
           </form>
         </div>
       </div>
@@ -70,7 +70,7 @@
     <section class="bg-neutral text-neutral-content py-24 px-6">
       <div class="max-w-5xl mx-auto">
         <h2 class="text-5xl md:text-7xl font-black font-display uppercase mb-16 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          Comment ça marche ?
+          {{ t('home.how_title') }}
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           <div v-for="step in steps" :key="step.n" class="flex flex-col gap-4">
@@ -87,7 +87,7 @@
     <section class="bg-primary text-primary-content py-24 px-6">
       <div class="max-w-5xl mx-auto">
         <h2 class="text-5xl md:text-7xl font-black font-display uppercase mb-16 opacity-90">
-          En chiffres
+          {{ t('home.stats_title') }}
         </h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-12">
           <div v-for="stat in statsDisplay" :key="stat.label" class="flex flex-col gap-2">
@@ -105,31 +105,31 @@
     <section class="bg-base-200 text-base-content py-24 px-6">
       <div class="max-w-2xl mx-auto">
         <h2 class="text-5xl md:text-7xl font-black font-display uppercase mb-4 bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
-          Une idée ?
+          {{ t('home.feedback_title') }}
         </h2>
-        <p class="text-base-content/60 mb-12 text-lg">Un bug, une feature, une envie ? On est tout ouïe.</p>
+        <p class="text-base-content/60 mb-12 text-lg">{{ t('home.feedback_subtitle') }}</p>
 
         <div v-if="feedbackSent" class="text-center py-12">
           <p class="text-5xl mb-4">🙏</p>
-          <p class="text-2xl font-black font-display uppercase">Merci pour ton retour !</p>
-          <p class="text-base-content/60 mt-2">On en prend bonne note.</p>
+          <p class="text-2xl font-black font-display uppercase">{{ t('home.feedback_sent_title') }}</p>
+          <p class="text-base-content/60 mt-2">{{ t('home.feedback_sent_sub') }}</p>
         </div>
         <form v-else @submit.prevent="submitFeedback" class="space-y-5">
           <input
             v-model="feedback.name"
             type="text"
-            placeholder="Ton prénom (optionnel)"
+            :placeholder="t('home.feedback_name_placeholder')"
             class="input input-bordered w-full"
           />
           <textarea
             v-model="feedback.message"
-            placeholder="Ton idée ou ton retour..."
+            :placeholder="t('home.feedback_msg_placeholder')"
             class="textarea textarea-bordered w-full min-h-36 resize-none"
             required
           ></textarea>
           <button type="submit" class="btn btn-secondary w-full" :disabled="sendingFeedback">
             <span v-if="sendingFeedback" class="loading loading-spinner loading-sm"></span>
-            Envoyer
+            {{ t('home.feedback_submit') }}
           </button>
         </form>
       </div>
@@ -140,44 +140,47 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useI36n } from '@jota-one/i36n'
 import { pb } from '@game/pb'
 import { generateSlug } from '@game/utils'
 
+const { t } = useI36n()
+
 const THREE_HOURS = 3 * 60 * 60 * 1000
 
-const steps = [
+const steps = computed(() => [
   {
     n: '01',
     icon: '🎵',
-    title: 'Crée un blindtest',
-    desc: 'Choisis un nom, ajoute tes morceaux YouTube préférés depuis une URL ou la recherche intégrée.',
+    title: t('home.step1_title'),
+    desc: t('home.step1_desc'),
   },
   {
     n: '02',
     icon: '📲',
-    title: 'Invite tes amis',
-    desc: 'Partage le QR code ou le lien de session. Pas de compte, pas d\'appli — juste un pseudo.',
+    title: t('home.step2_title'),
+    desc: t('home.step2_desc'),
   },
   {
     n: '03',
     icon: '🔔',
-    title: 'Buzzez !',
-    desc: 'Sois le premier à buzzer et donner la bonne réponse pour marquer des points. Que le meilleur gagne !',
+    title: t('home.step3_title'),
+    desc: t('home.step3_desc'),
   },
   {
     n: '04',
     icon: '🍒',
-    title: 'La cerise sur le gâteau',
-    desc: 'Chaque participant peut ajouter ses propres morceaux à la liste — et les faire deviner aux autres !',
+    title: t('home.step4_title'),
+    desc: t('home.step4_desc'),
   },
-]
+])
 
 const stats = reactive({ sessions: 0, onlinePlayers: 0, tracks: 0 })
 const statsLoaded = ref(false)
 const statsDisplay = computed(() => [
-  { label: 'Blindtests créés', value: stats.sessions },
-  { label: 'Joueurs en ligne', value: stats.onlinePlayers },
-  { label: 'Morceaux dans la biblio', value: stats.tracks },
+  { label: t('home.stats_sessions'), value: stats.sessions },
+  { label: t('home.stats_online'), value: stats.onlinePlayers },
+  { label: t('home.stats_tracks'), value: stats.tracks },
 ])
 
 const getLastSession = () => {
@@ -239,7 +242,7 @@ const handleCreate = async () => {
     })
     window.location.href = `/${slug}`
   } catch (e: any) {
-    createError.value = e.message || 'Erreur lors de la création'
+    createError.value = e.message || t('home.error_create')
     creating.value = false
   }
 }
