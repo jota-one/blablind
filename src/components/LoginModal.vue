@@ -44,6 +44,13 @@
           </button>
         </div>
       </form>
+
+      <div class="mt-4 text-center text-sm">
+        {{ t('login.no_account_yet') }}
+        <button @click="emitSwitchToSignup" class="link link-primary">
+          {{ t('signup.button') }}
+        </button>
+      </div>
     </div>
     <form method="dialog" class="modal-backdrop">
       <button>close</button>
@@ -59,6 +66,7 @@ import useAuth from '@admin/composables/useAuth'
 const { t } = useI36n()
 const emit = defineEmits<{
   loginSuccess: []
+  switchToSignup: []
 }>()
 
 const { login } = useAuth()
@@ -111,4 +119,9 @@ defineExpose({
   open,
   close,
 })
+
+const emitSwitchToSignup = () => {
+  close()
+  emit('switchToSignup')
+}
 </script>

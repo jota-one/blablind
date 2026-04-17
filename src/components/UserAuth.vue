@@ -7,7 +7,8 @@
       >
         {{ t('auth.login_button') }}
       </button>
-      <LoginModal ref="loginModalRef" @login-success="handleLoginSuccess" />
+      <LoginModal ref="loginModalRef" @login-success="handleLoginSuccess" @switch-to-signup="handleSwitchToSignup" />
+      <SignupModal ref="signupModalRef" @signup-success="handleSignupSuccess" @switch-to-login="handleSwitchToLogin" />
     </template>
     <template v-else>
       <div class="dropdown dropdown-end">
@@ -52,17 +53,35 @@ import { useTemplateRef } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import useAuth from '@admin/composables/useAuth'
 import LoginModal from './LoginModal.vue'
+import SignupModal from './SignupModal.vue'
 
 const { t } = useI36n()
 const { isAuthenticated, user, logout } = useAuth()
 const loginModalRef = useTemplateRef<InstanceType<typeof LoginModal>>('loginModalRef')
+const signupModalRef = useTemplateRef<InstanceType<typeof SignupModal>>('signupModalRef')
 
 const openLoginModal = () => {
   loginModalRef.value?.open()
 }
 
+const openSignupModal = () => {
+  signupModalRef.value?.open()
+}
+
 const handleLoginSuccess = () => {
   // Réactivité automatique
+}
+
+const handleSignupSuccess = () => {
+  // Signup successful, let user know they need approval
+}
+
+const handleSwitchToSignup = () => {
+  openSignupModal()
+}
+
+const handleSwitchToLogin = () => {
+  openLoginModal()
 }
 
 const handleLogout = () => {
