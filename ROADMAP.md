@@ -14,6 +14,12 @@ List of small potential improvements and refactors.
 
 ## History (done)
 
+- [2026-04-29] Self-service email verification — after signup, PocketBase's `requestVerification` is called automatically so users receive a confirmation email and can activate their account without admin intervention.
+
+- [2026-04-29] Join error snackbar — entering a wrong session code on the homepage now shows a toast error instead of navigating to a blank error page.
+
+- [2026-04-29] YouTube search error handling — a snackbar is shown when the YouTube search proxy returns a non-ok response (e.g. 502).
+
 - [2026-04-29] Session ownership — authenticated users can link blindtests to their account. Owner is set automatically on creation; existing sessions can be claimed from the room header (host-only, one-click). Owned sessions listed in the profile page with status and direct link. Visual indicator (user-check icon) in the room header when the session is owned by the current user.
 
 - [2026-04-29] Pre-fill player name from auth user — when entering a blindtest room while authenticated, the pseudo field is pre-filled with the user's account name.
