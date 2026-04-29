@@ -136,6 +136,7 @@
   "search.youtube_label": "YouTube",
   "search.youtube_button": "Chercher sur YouTube aussi",
   "search.no_results": "Aucun résultat trouvé",
+  "search.youtube_error": "La recherche sur YouTube est momentanément impossible",
 
   "track.start_title": "Départ (secondes)",
 
@@ -162,7 +163,7 @@
   "signup.passwords_dont_match": "Les mots de passe ne correspondent pas",
   "signup.password_too_short": "Le mot de passe doit faire au moins 8 caractères",
   "signup.email_exists": "Cet email est déjà enregistré",
-  "signup.success_message": "Compte créé ! Ton inscription est en attente de validation par un admin. Tu pourras te connecter une fois approuvé.",
+  "signup.success_message": "Compte créé ! Un email de confirmation t'a été envoyé. Clique sur le lien pour activer ton compte.",
   "signup.close_button": "Retour à la connexion",
   "login.no_account_yet": "Pas encore de compte ?",
   "signup.login_link": "Se connecter",

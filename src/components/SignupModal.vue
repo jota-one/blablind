@@ -172,6 +172,7 @@ const handleSignup = async () => {
     formData.append('roles', userRole.id)
 
     await pb.collection('users').create(formData)
+    await pb.collection('users').requestVerification(form.value.email.trim())
 
     successMessage.value = t('signup.success_message')
     emit('signupSuccess')

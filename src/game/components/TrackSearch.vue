@@ -67,6 +67,14 @@
     <p v-if="noResults" class="text-sm text-base-content/40 text-center py-2">{{ t('search.no_results') }}</p>
 
   </div>
+
+  <!-- Toast erreur YouTube -->
+  <div v-if="ytError" class="toast toast-bottom toast-center z-50">
+    <div class="alert alert-error shadow-lg">
+      <span class="text-lg shrink-0">😕</span>
+      <span>{{ ytError }}</span>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -92,6 +100,7 @@ const previewInfo = ref<{ videoId: string; startSeconds: number } | null>(null)
 const searching = ref(false)
 const searchingYt = ref(false)
 const searched = ref(false)
+const ytError = ref('')
 
 const noResults = computed(() =>
   searched.value && !searching.value && !searchingYt.value &&
@@ -139,10 +148,15 @@ const searchYoutube = async () => {
   const q = query.value.trim()
   if (!q) return
   searchingYt.value = true
+  ytError.value = ''
   try {
     const res = await fetch(`/proxy/search?q=${encodeURIComponent(q)}`)
+    if (!res.ok) throw new Error()
     const data = await res.json()
     ytResults.value = data.results ?? []
+  } catch {
+    ytError.value = t('search.youtube_error')
+    setTimeout(() => { ytError.value = '' }, 4000)
   } finally {
     searchingYt.value = false
   }
