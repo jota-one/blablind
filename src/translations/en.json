@@ -136,6 +136,7 @@
   "search.youtube_label": "YouTube",
   "search.youtube_button": "Search on YouTube too",
   "search.no_results": "No results found",
+  "search.youtube_error": "YouTube search is temporarily unavailable",
 
   "track.start_title": "Start (seconds)",
 
@@ -162,7 +163,7 @@
   "signup.passwords_dont_match": "Passwords don't match",
   "signup.password_too_short": "Password must be at least 8 characters",
   "signup.email_exists": "This email is already registered",
-  "signup.success_message": "Account created! Your registration is pending admin validation. You'll be able to log in once approved.",
+  "signup.success_message": "Account created! A confirmation email has been sent to you. Click the link to activate your account.",
   "signup.close_button": "Return to login",
   "login.no_account_yet": "No account yet?",
   "signup.login_link": "Log in",
