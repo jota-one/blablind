@@ -14,6 +14,12 @@ List of small potential improvements and refactors.
 
 ## History (done)
 
+- [2026-04-29] Session ownership — authenticated users can link blindtests to their account. Owner is set automatically on creation; existing sessions can be claimed from the room header (host-only, one-click). Owned sessions listed in the profile page with status and direct link. Visual indicator (user-check icon) in the room header when the session is owned by the current user.
+
+- [2026-04-29] Pre-fill player name from auth user — when entering a blindtest room while authenticated, the pseudo field is pre-filled with the user's account name.
+
+- [2026-04-22] Profile editing — inline avatar upload (auto-save on change) and name editing (inline input with confirm/cancel) on the "My account" page.
+
 - [2026-04-17] User registration & admin user management — signup form (email, name, password) with pending validation flow; new `roles` collection with seeded `user` and `admin` roles; admin pages for users (list, add, edit, delete, verify) and roles (list, add, edit, delete); PocketBase `authRule` blocks unverified users from logging in; custom PocketBase hook allows admins to toggle the `verified` flag.
 
 - [2026-04-17] Internationalization (FR/EN) — all UI strings extracted to `src/translations/{fr,en}.json` using `@jota-one/i36n`. Language auto-detected from browser, persisted in localStorage, switchable via a FR/EN toggle in the navbar. All Vue components migrated.
