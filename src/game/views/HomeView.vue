@@ -60,7 +60,10 @@
               class="input input-bordered w-full"
               required
             />
-            <button type="submit" class="btn btn-secondary w-full">{{ t('home.join_button') }}</button>
+            <button type="submit" class="btn btn-secondary w-full" :disabled="joining">
+              <span v-if="joining" class="loading loading-spinner loading-sm"></span>
+              {{ t('home.join_button') }}
+            </button>
           </form>
         </div>
       </div>
@@ -135,6 +138,14 @@
       </div>
     </section>
 
+  </div>
+
+  <!-- Toast erreur join -->
+  <div v-if="joinError" class="toast toast-bottom toast-center z-50">
+    <div class="alert alert-error shadow-lg">
+      <span class="text-lg shrink-0">😕</span>
+      <span>{{ joinError }}</span>
+    </div>
   </div>
 </template>
 
@@ -251,9 +262,22 @@ const handleCreate = async () => {
   }
 }
 
-const handleJoin = () => {
+const joinError = ref('')
+const joining = ref(false)
+
+const handleJoin = async () => {
   const code = joinCode.value.trim()
-  if (code) window.location.href = `/${code}`
+  if (!code) return
+  joining.value = true
+  joinError.value = ''
+  try {
+    await pb.collection('sessions').getFirstListItem(`slug="${code}"`, { requestKey: null })
+    window.location.href = `/${code}`
+  } catch {
+    joinError.value = t('app.error_not_found')
+    joining.value = false
+    setTimeout(() => { joinError.value = '' }, 4000)
+  }
 }
 
 const submitFeedback = async () => {
