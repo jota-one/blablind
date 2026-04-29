@@ -9,6 +9,7 @@
           <span class="i-fa-solid-home text-lg"></span>
         </a>
         <h1 class="font-bold text-lg font-display flex-1 truncate">{{ session.name }}</h1>
+        <span v-if="isAuthenticated && session.owner === user?.id" class="i-fa-solid-user-check text-primary shrink-0" :title="t('room.session_owned')"></span>
         <span
           :class="['badge badge-sm', session.status === 'playing' ? 'badge-success' : session.status === 'finished' ? 'badge-neutral' : 'badge-warning']"
         >{{ sessionStatusLabel }}</span>
@@ -28,6 +29,10 @@
         </button>
         <button v-if="isHost" :class="['btn btn-xs btn-ghost', isIrlMode ? 'text-accent' : 'text-base-content/40']" :title="t('room.irl_mode')" @click="toggleIrlMode">
           <span class="i-fa6-solid-people-group"></span>
+        </button>
+        <button v-if="canClaim" class="btn btn-xs btn-outline btn-primary" @click="claimSession">
+          <span class="i-fa-solid-link text-xs"></span>
+          {{ t('room.claim_session') }}
         </button>
       </div>
     </header>
@@ -476,8 +481,11 @@ import GameOver from '@game/components/GameOver.vue'
 import SolvedOverlay from '@game/components/SolvedOverlay.vue'
 import { pb } from '@game/pb'
 import { getVideoId, isOnline } from '@game/utils'
+import useAuth from '@admin/composables/useAuth'
 
 const { t } = useI36n()
+const { isAuthenticated, user, refreshAuth } = useAuth()
+if (isAuthenticated.value && !user.value?.id) refreshAuth()
 
 const props = defineProps<{
   session: any
@@ -602,6 +610,10 @@ const sessionStatusLabel = computed(
   })[props.session.status as string] ?? props.session.status,
 )
 const isHost = computed(() => props.session.host === props.currentPlayer.id)
+const canClaim = computed(() => isHost.value && isAuthenticated.value && user.value?.id && !props.session.owner)
+
+const claimSession = () =>
+  pb.collection('sessions').update(props.session.id, { owner: user.value.id })
 const isIrlMode = computed(() => !!props.session.irl_mode)
 const isDJ = computed(() => props.session.dj_player === props.currentPlayer.id)
 const djPlayer = computed(() => players.value.find((p: any) => p.id === props.session.dj_player))

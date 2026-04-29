@@ -143,8 +143,10 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import { pb } from '@game/pb'
 import { generateSlug } from '@game/utils'
+import useAuth from '@admin/composables/useAuth'
 
 const { t } = useI36n()
+const { isAuthenticated, user, refreshAuth } = useAuth()
 
 const THREE_HOURS = 3 * 60 * 60 * 1000
 
@@ -235,10 +237,12 @@ const handleCreate = async () => {
   createError.value = ''
   try {
     const slug = generateSlug()
+    if (isAuthenticated.value && !user.value?.id) await refreshAuth()
     await pb.collection('sessions').create({
       name: createName.value.trim(),
       slug,
       status: 'waiting',
+      ...(user.value?.id ? { owner: user.value.id } : {}),
     })
     window.location.href = `/${slug}`
   } catch (e: any) {

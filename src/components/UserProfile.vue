@@ -73,6 +73,38 @@
 
       <div class="divider"></div>
 
+      <!-- Mes blindtests -->
+      <div>
+        <h2 class="text-base font-semibold mb-3 flex items-center gap-2">
+          <span class="i-fa-solid-music text-primary"></span>
+          {{ t('profile.my_blindtests') }}
+        </h2>
+        <div v-if="loadingSessions" class="flex justify-center py-4">
+          <span class="loading loading-spinner loading-sm"></span>
+        </div>
+        <ul v-else-if="mySessions.length > 0" class="space-y-2">
+          <li
+            v-for="session in mySessions"
+            :key="session.id"
+            class="flex items-center justify-between gap-3 rounded-lg bg-base-200 px-3 py-2"
+          >
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium truncate">{{ session.name }}</p>
+              <p class="text-xs text-base-content/40">{{ formatDate(session.created) }}</p>
+            </div>
+            <span :class="['badge badge-xs shrink-0', session.status === 'playing' ? 'badge-success' : session.status === 'finished' ? 'badge-neutral' : 'badge-warning']">
+              {{ t(`room.status_${session.status}`) }}
+            </span>
+            <a :href="`/${session.slug}`" class="btn btn-xs btn-primary shrink-0">
+              {{ t('profile.open_session') }}
+            </a>
+          </li>
+        </ul>
+        <p v-else class="text-sm text-base-content/40 text-center py-4">{{ t('profile.no_blindtests') }}</p>
+      </div>
+
+      <div class="divider"></div>
+
       <div class="flex gap-2">
         <a href="/admin" class="btn btn-sm btn-primary" v-if="isAdmin">
           <span class="i-fa-solid-cog"></span>
@@ -90,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, useTemplateRef } from 'vue'
+import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import useAuth from '@admin/composables/useAuth'
 import config from '@config'
@@ -109,6 +141,27 @@ const editingName = ref(false)
 const nameForm = ref('')
 const savingName = ref(false)
 const errorMessage = ref('')
+const mySessions = ref<any[]>([])
+const loadingSessions = ref(false)
+
+const loadMySessions = async () => {
+  if (!user.value?.id) return
+  loadingSessions.value = true
+  try {
+    mySessions.value = await pb.collection('sessions').getFullList({
+      filter: `owner="${user.value.id}"`,
+      sort: '-created',
+      requestKey: null,
+    })
+  } finally {
+    loadingSessions.value = false
+  }
+}
+
+watch(() => user.value?.id, (id) => { if (id) loadMySessions() }, { immediate: true })
+
+const formatDate = (dateStr: string) =>
+  new Date(dateStr).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
 
 const currentAvatarUrl = computed(() => {
   if (!user.value?.avatar) return ''

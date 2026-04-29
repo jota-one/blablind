@@ -40,6 +40,8 @@
   "app.error_not_found": "Session not found or expired.",
 
   "room.reset": "Reset",
+  "room.claim_session": "Link to my account",
+  "room.session_owned": "Linked to my account",
   "room.irl_mode": "IRL Mode",
   "room.status_waiting": "Waiting",
   "room.status_playing": "Playing",
@@ -174,6 +176,9 @@
   "profile.save_loading": "Saving...",
   "profile.save_success": "Profile updated!",
   "profile.save_error": "Error saving profile",
+  "profile.my_blindtests": "My blindtests",
+  "profile.no_blindtests": "No blindtests created yet",
+  "profile.open_session": "Open",
 
   "auth.login_button": "Login",
   "auth.connected": "Logged in",

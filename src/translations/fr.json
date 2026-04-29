@@ -40,6 +40,8 @@
   "app.error_not_found": "Session introuvable ou expirée.",
 
   "room.reset": "Réinitialiser",
+  "room.claim_session": "Lier à mon compte",
+  "room.session_owned": "Lié à mon compte",
   "room.irl_mode": "Mode IRL",
   "room.status_waiting": "En attente",
   "room.status_playing": "En cours",
@@ -174,6 +176,9 @@
   "profile.save_loading": "Enregistrement...",
   "profile.save_success": "Profil mis à jour !",
   "profile.save_error": "Erreur lors de la sauvegarde",
+  "profile.my_blindtests": "Mes blindtests",
+  "profile.no_blindtests": "Aucun blindtest créé pour l'instant",
+  "profile.open_session": "Ouvrir",
 
   "auth.login_button": "Connexion",
   "auth.connected": "Connecté(e)",

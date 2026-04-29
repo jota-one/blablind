@@ -31,10 +31,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useI36n } from '@jota-one/i36n'
+import useAuth from '@admin/composables/useAuth'
 
 const { t } = useI36n()
+const { isAuthenticated, user, refreshAuth } = useAuth()
 
 const props = defineProps<{
   session: any
@@ -47,6 +49,16 @@ const emit = defineEmits<{
 const name = ref('')
 const loading = ref(false)
 const error = ref('')
+
+watch(user, (u) => {
+  if (!name.value && u?.name) {
+    name.value = u.name
+  }
+}, { immediate: true })
+
+if (isAuthenticated.value && !user.value?.id) {
+  refreshAuth()
+}
 
 const handleJoin = async () => {
   if (!name.value.trim()) return
