@@ -7,9 +7,24 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 ## Improvements & Refactoring
 
 List of small potential improvements and refactors.
-
+- Pouvoir supprimer certaines de ses propres chanson pendant le jeu
+- Après chaque morceau, vérifier si des doublons existent dans la session. Si oui, les supprimer et prévenir leur auteur respectif (via une petite notif).
+- Un joueur doit pouvoir randomizer l'ordre de ses morceaux en un clic
+- Rendre beaucoup plus évident quand on a gagné un buzz (grosse icône verte! A toi de parler!!)
+- Pouvoir
 
 ## New Features
+
+### Settings
+Il faut prévoir un écran de configuration d'une session, qui dépendra d'un écran de configuration générique au niveau du compte utilisateur pour "Mes blindtests", qui dépendra lui-même d'un écran de configuration générique au niveau de l'app (géré par l'admin).
+
+Dans cet écran, on va pouvoir gérer les points suivants (certains impliquent de nouvelles features):
+- Nombre d'essais max. d'un joueur sur le même morceau (après il ne peut plus buzzer) (default: 5)
+- Temps avant de pouvoir rebuzzer sur le même morceau après un refus (default: 5 secondes)
+- Forcer l'équité entre joueurs au niveau nb de morceaux fournis (default: false)
+- Après succès, faut-il continuer de jouer le morceau (default: true)
+    - Si 'true', comment on peut l'arrêter? Par vote unanime ou choix du host (default: vote unanime)
+- Auto-refus après un certain temps (default: 8 secondes)
 
 
 ## History (done)
