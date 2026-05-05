@@ -11,7 +11,8 @@ List of small potential improvements and refactors.
 - Après chaque morceau, vérifier si des doublons existent dans la session. Si oui, les supprimer et prévenir leur auteur respectif (via une petite notif).
 - Un joueur doit pouvoir randomizer l'ordre de ses morceaux en un clic
 - Rendre beaucoup plus évident quand on a gagné un buzz (grosse icône verte! A toi de parler!!)
-- Pouvoir
+- Lorsqu'on fait une recherche et qu'on referme le panel de recherche et qu'on le rouvre ensuite, il faudrait que la précédente recherche (et ses résultats) soient toujours là. En effet, il arrive qu'on soit en train de chercher un morceau à ajouter et soudain on veut deviner le morceau en cours et on doit vite fermer le panel de recherche, buzzer, etc... Puis lorsqu'on revient à notre recherche, on doit tout recommencer.
+- Il faut trouver un moyen d'améliorer la visibilité des résultats de recherche en mobile. Pour l'instant on ne voit que les premier caractères de chaque morceau et on doit tjs se mettre en horizontal pour pouvoir lire correctement. Cela fait perdre bcp de temps.
 
 ## New Features
 
@@ -25,6 +26,20 @@ Dans cet écran, on va pouvoir gérer les points suivants (certains impliquent d
 - Après succès, faut-il continuer de jouer le morceau (default: true)
     - Si 'true', comment on peut l'arrêter? Par vote unanime ou choix du host (default: vote unanime)
 - Auto-refus après un certain temps (default: 8 secondes)
+
+### Espace client
+On dispose pour l'instant d'un espace client très limité dans la page /profile. Il faudrait convertir cette page en une véritable APP vue, à l'instar de /admin.
+
+L'admin sera réservée aux vrais administrateurs du site avec des possibilités "expertes", genre supprimer des morceaux de la bibliothèque, en importer d'autres directement depuis YouTube, accéder à des statistiques, gérer les membres, etc.
+
+L'espace client est une autre APP dans laquelle un utilisateur peut gérer ses blindtests, ses amis, affiner ses créations, modifier son mot de passe, son profil, accéder à certaines statistiques liées à son utilisation de l'app, proposer des améliorations, définir ses préférences de blindtest (voir feature Settings), etc. A affiner.
+
+### Mode autonome
+Pour l'instant, lorsque N joueurs jouent à blablind, pour chaque morceau il y a un maître et N-1 joueurs. Le maître juge quel autre joueur a répondu juste.
+
+Dans la mesure où l'on va pouvoir fournir des blindtests déjà créés (par un admin ou un autre membre du site), on peut imaginer qu'un groupe de joueur crée une partie et charge l'un de ces blindtests. Dans ce cas, il n'y a plus de maître. Tout le monde peut participer. En gros c'est comme un blindtest sur YouTube où tout le monde essaie de deviner et au bout d'un temps déterminé, la réponse est fournie par l'application.
+
+Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tracking des points. La définition du gagnant doit faire l'objet d'un consensus. Je pense qu'il faut garder la logique du BUZZ et le premier qui a buzzé
 
 
 ## History (done)
