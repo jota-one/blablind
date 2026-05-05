@@ -190,8 +190,15 @@
   "admin.nav_sessions": "Sessions",
   "admin.nav_users": "Utilisateurs",
   "admin.nav_back": "Retour au site",
+  "admin.nav_roadmap": "Feuille de route",
   "admin.dashboard_title": "Tableau de bord",
   "admin.stat_active_sessions": "Sessions actives",
   "admin.stat_connected_players": "Joueurs connectés",
-  "admin.stat_played_tracks": "Morceaux joués"
+  "admin.stat_played_tracks": "Morceaux joués",
+  "admin.roadmap_title": "Feuille de route",
+  "admin.roadmap_upcoming_section": "En préparation",
+  "admin.roadmap_features_label": "Nouvelles fonctionnalités",
+  "admin.roadmap_improvements_label": "Améliorations prévues",
+  "admin.roadmap_history_section": "Tout juste sorti du four",
+  "admin.roadmap_see_detail": "Voir le détail"
 }

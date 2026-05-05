@@ -190,8 +190,15 @@
   "admin.nav_sessions": "Sessions",
   "admin.nav_users": "Users",
   "admin.nav_back": "Back to site",
+  "admin.nav_roadmap": "Roadmap",
   "admin.dashboard_title": "Dashboard",
   "admin.stat_active_sessions": "Active sessions",
   "admin.stat_connected_players": "Connected players",
-  "admin.stat_played_tracks": "Tracks played"
+  "admin.stat_played_tracks": "Tracks played",
+  "admin.roadmap_title": "Roadmap",
+  "admin.roadmap_upcoming_section": "Coming soon",
+  "admin.roadmap_features_label": "New features",
+  "admin.roadmap_improvements_label": "Planned improvements",
+  "admin.roadmap_history_section": "Recently shipped",
+  "admin.roadmap_see_detail": "See detail"
 }
