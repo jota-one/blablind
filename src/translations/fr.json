@@ -177,6 +177,7 @@
   "auth.my_account": "Mon compte",
   "auth.logout": "Déconnexion",
 
+  "admin.nav_settings": "Paramètres",
   "admin.nav_videos": "Morceaux",
   "admin.nav_home": "Accueil",
   "admin.nav_sessions": "Sessions",
@@ -192,5 +193,27 @@
   "admin.roadmap_features_label": "Nouvelles fonctionnalités",
   "admin.roadmap_improvements_label": "Améliorations prévues",
   "admin.roadmap_history_section": "Tout juste sorti du four",
-  "admin.roadmap_see_detail": "Voir le détail"
+  "admin.roadmap_see_detail": "Voir le détail",
+
+  "admin.settings_title": "Paramètres",
+  "admin.settings_loading": "Chargement...",
+  "admin.settings_seconds": "secondes",
+  "admin.settings_attempts": "tentative(s)",
+  "admin.settings_max_buzz_attempts_label": "Tentatives max. par morceau",
+  "admin.settings_max_buzz_attempts_hint": "Au-delà de ce nombre de mauvaises réponses, un joueur ne peut plus buzzer sur le même morceau.",
+  "admin.settings_rebuzz_delay_label": "Délai avant de rebuzzer",
+  "admin.settings_rebuzz_delay_hint": "Temps qu'un joueur doit attendre après une mauvaise réponse avant de pouvoir rebuzzer.",
+  "admin.settings_auto_reject_delay_label": "Délai d'auto-refus",
+  "admin.settings_auto_reject_delay_hint": "Si un joueur met trop de temps à répondre après avoir buzzé, le buzz est automatiquement refusé.",
+  "admin.settings_continue_after_success_label": "Continuer à jouer après un buzz correct",
+  "admin.settings_continue_after_success_hint": "Si activé, le morceau continue de jouer jusqu'à ce qu'il soit arrêté manuellement.",
+  "admin.settings_stop_method_label": "Comment arrêter le morceau",
+  "admin.settings_stop_method_vote": "Vote unanime de tous les joueurs",
+  "admin.settings_stop_method_host": "Décision de l'hôte",
+  "admin.settings_force_equity_label": "Forcer l'équité des morceaux",
+  "admin.settings_force_equity_hint": "Empêche un joueur d'ajouter plus de morceaux que les autres.",
+  "admin.settings_save": "Enregistrer",
+  "admin.settings_saving": "Enregistrement...",
+  "admin.settings_saved": "Enregistré !",
+  "admin.settings_error": "Erreur lors de la sauvegarde"
 }

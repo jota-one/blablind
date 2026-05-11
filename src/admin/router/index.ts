@@ -4,6 +4,7 @@ import Users from '../views/Users.vue'
 import Roles from '../views/Roles.vue'
 import Roadmap from '../views/Roadmap.vue'
 import Videos from '../views/Videos.vue'
+import Settings from '../views/Settings.vue'
 import useAuth from '../composables/useAuth'
 
 const routes = [
@@ -12,6 +13,7 @@ const routes = [
   { path: '/roles', component: Roles },
   { path: '/roadmap', component: Roadmap },
   { path: '/videos', component: Videos },
+  { path: '/settings', component: Settings },
 ]
 
 const baseUrl = (import.meta as any).env?.BASE_URL || '/'

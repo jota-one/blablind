@@ -13,6 +13,7 @@ List of small potential improvements and refactors.
 - Rendre beaucoup plus évident quand on a gagné un buzz (grosse icône verte! A toi de parler!!)
 - Lorsqu'on fait une recherche et qu'on referme le panel de recherche et qu'on le rouvre ensuite, il faudrait que la précédente recherche (et ses résultats) soient toujours là. En effet, il arrive qu'on soit en train de chercher un morceau à ajouter et soudain on veut deviner le morceau en cours et on doit vite fermer le panel de recherche, buzzer, etc... Puis lorsqu'on revient à notre recherche, on doit tout recommencer.
 - Il faut trouver un moyen d'améliorer la visibilité des résultats de recherche en mobile. Pour l'instant on ne voit que les premier caractères de chaque morceau et on doit tjs se mettre en horizontal pour pouvoir lire correctement. Cela fait perdre bcp de temps.
+- Nouveau calcul des scores. Se baser sur le ratio de morceaux devinés par rapport au nombre de morceaux devinables (sachant qu'un morceau qu'on a proposé soi-même n'est pas devinable). Cela permet d'équilibrer les chances pour ceux qui proposent plus ou moins de morceaux.
 
 ## New Features
 
@@ -25,7 +26,7 @@ Dans cet écran, on va pouvoir gérer les points suivants (certains impliquent d
 - Forcer l'équité entre joueurs au niveau nb de morceaux fournis (default: false)
 - Après succès, faut-il continuer de jouer le morceau (default: true)
     - Si 'true', comment on peut l'arrêter? Par vote unanime ou choix du host (default: vote unanime)
-- Auto-refus après un certain temps (default: 8 secondes)
+- Auto-refus après un certain temps (default: 8 secondes). Si un joueur a buzzé et ne prend trop de temps à donner la réponse, le système refusera le buzz (et continuera à jouer le morceau) au bout du temps défini.
 
 ### Espace client
 On dispose pour l'instant d'un espace client très limité dans la page /profile. Il faudrait convertir cette page en une véritable APP vue, à l'instar de /admin.
@@ -43,6 +44,8 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 
 ## History (done)
+
+- [2026-05-11] App-level settings — admin page to configure global game defaults (max buzz attempts, rebuzz/auto-reject delays, post-success behaviour, track equity).
 
 - [2026-05-11] Remove YouTube playlist import — feature removed (unused; too complex to maintain)
 

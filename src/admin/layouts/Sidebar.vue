@@ -41,6 +41,12 @@
           </RouterLink>
         </li>
         <li>
+          <RouterLink to="/settings" class="flex items-center gap-3" active-class="menu-active">
+            <span class="i-fa6-solid-sliders text-xl"></span>
+            {{ t('admin.nav_settings') }}
+          </RouterLink>
+        </li>
+        <li>
           <div class="flex items-center gap-3 cursor-pointer" @click="goOut">
             <span class="i-fa-solid-sign-out-alt text-xl"></span>
             {{ t('admin.nav_back') }}
