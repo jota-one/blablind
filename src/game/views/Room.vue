@@ -49,7 +49,7 @@
       <div v-else class="flex flex-col gap-4 p-4 min-w-0">
 
         <!-- Conteneur principal : aspect-video seulement quand une vidéo est active -->
-        <div :class="['rounded-xl overflow-hidden', videoId ? ('relative ' + (isCurrentTrackAdmin ? 'aspect-video' : 'h-20')) : '']">
+        <div :class="['rounded-xl overflow-hidden', videoId ? ('relative ' + (isCurrentTrackAdmin ? 'aspect-video lg:max-h-56' : 'h-20')) : '']">
 
           <!-- Layer 1 : player toujours monté (invisible hors vidéo) -->
           <div class="absolute inset-0" :class="{'opacity-0 pointer-events-none': audioUnlocked || !videoId}">
@@ -97,7 +97,10 @@
               {{ t('room.in_pause') }}
             </p>
             <template v-else>
-              <p :class="['text-base-content/40', isCurrentTrackAdmin ? 'text-xs' : 'text-xs']">{{ t('room.playing') }}</p>
+              <p v-if="isTrackSolvedAndPlaying" :class="['text-success font-semibold', isCurrentTrackAdmin ? 'text-xs' : 'text-xs']">
+                🏆 {{ t('room.solved_by', { player: getPlayerName(currentTrack.solved_by) }) }}
+              </p>
+              <p v-else :class="['text-base-content/40', isCurrentTrackAdmin ? 'text-xs' : 'text-xs']">{{ t('room.playing') }}</p>
               <p v-if="isIrlMode && !isDJ && djPlayer" class="text-xs text-base-content/50">
                 {{ t('room.irl_music_on', { player: djPlayer.name }) }}
               </p>
@@ -149,14 +152,17 @@
                   {{ t('room.play_next') }}
                 </button>
                 <p v-else class="text-sm text-base-content/40">{{ t('room.add_tracks_hint') }}</p>
+                <button class="btn btn-sm btn-ghost text-base-content/40" @click="endSession">
+                  {{ t('room.end_game') }}
+                </button>
               </template>
             </template>
           </template>
           </div><!-- /Layer 3 -->
         </div><!-- /aspect-video container -->
 
-        <!-- Buzz zone (seulement pour les non-admin du morceau) -->
-        <div v-if="currentTrack && !isCurrentTrackAdmin" class="w-full">
+        <!-- Buzz zone (seulement pour les non-admin du morceau, et si non résolu) -->
+        <div v-if="currentTrack && !isCurrentTrackAdmin && !isTrackSolvedAndPlaying" class="w-full">
           <div v-if="activeBuzz && activeBuzz.player === currentPlayer.id" class="alert alert-info">
             <span class="i-fa-solid-bell text-xl"></span>
             <div>
@@ -188,17 +194,23 @@
                 <button class="btn btn-ghost" @click="buzzing = false">{{ t('room.buzz_cancel') }}</button>
               </div>
             </div>
-            <button
-              v-else-if="canBuzz"
-              class="btn btn-error w-full h-20 text-2xl font-bold shadow-lg hover:scale-[1.02] transition-transform"
-              @click="isIrlMode ? submitBuzz() : (buzzing = true)"
-            >
-              <span class="i-fa-solid-bell text-3xl"></span>
-              {{ t('room.buzz_button') }}
-            </button>
+            <template v-else-if="canBuzz">
+              <button
+                class="btn btn-error w-full h-20 text-2xl font-bold shadow-lg hover:scale-[1.02] transition-transform"
+                @click="isIrlMode ? submitBuzz() : (buzzing = true)"
+              >
+                <span class="i-fa-solid-bell text-3xl"></span>
+                {{ t('room.buzz_button') }}
+              </button>
+              <p v-if="remainingAttempts <= 2" class="text-xs text-warning text-center mt-1">
+                {{ t('room.buzz_attempts_remaining', { n: remainingAttempts }) }}
+              </p>
+            </template>
             <div v-else class="alert alert-warning alert-soft">
               <span class="i-fa-solid-ban"></span>
-              {{ t('room.buzz_wait') }}
+              <template v-if="buzzBlockReason === 'max_attempts'">{{ t('room.buzz_wait_max') }}</template>
+              <template v-else-if="buzzBlockReason === 'delay'">{{ t('room.buzz_wait_delay', { s: rebuzzRemainingSeconds }) }}</template>
+              <template v-else>{{ t('room.buzz_wait') }}</template>
             </div>
           </template>
         </div>
@@ -208,6 +220,9 @@
           <p class="font-bold flex items-center gap-2">
             <span class="i-fa-solid-bell text-warning animate-bounce"></span>
             {{ t('room.validate_buzz', { player: getPlayerName(activeBuzz.player) }) }}
+          </p>
+          <p v-if="sessionSettings.auto_reject_delay > 0 && autoRejectRemainingSeconds > 0" class="text-xs text-base-content/40 text-center tabular-nums">
+            {{ t('room.auto_reject_countdown', { s: autoRejectRemainingSeconds }) }}
           </p>
           <p v-if="!isIrlMode" class="text-lg">
             <span class="font-mono bg-base-300 px-3 py-1 rounded">{{ activeBuzz.answer }}</span>
@@ -224,18 +239,33 @@
           </div>
         </div>
 
-        <!-- Actions sous le BUZZ : ajouter + passer -->
+        <!-- Actions sous le BUZZ : ajouter + passer/arrêter -->
         <div v-if="session.status !== 'finished'" class="flex items-center gap-2">
-          <button class="btn btn-sm btn-ghost flex-1 border border-base-300" @click="showAddTrackModal = true">
+          <button
+            class="btn btn-sm btn-ghost flex-1 border border-base-300"
+            :disabled="!canAddTrack"
+            :title="!canAddTrack ? t('room.track_equity_limit') : undefined"
+            @click="showAddTrackModal = true"
+          >
             <span class="i-fa-solid-plus"></span>
             {{ t('room.add_track_button') }}
           </button>
-          <template v-if="currentTrack && !isCurrentTrackAdmin">
+          <!-- host_choice : bouton "suivant" pour l'host quand morceau résolu -->
+          <button
+            v-if="isTrackSolvedAndPlaying && sessionSettings.stop_method === 'host_choice' && isHost"
+            class="btn btn-sm btn-primary shrink-0"
+            @click="stopCurrentTrack"
+          >
+            <span class="i-fa-solid-forward-step"></span>
+            {{ t('room.play_next') }}
+          </button>
+          <!-- vote_unanimous : bouton stop/skip — tous les joueurs pour stop, non-admin pour skip -->
+          <template v-else-if="currentTrack && activeBuzz?.player !== currentPlayer.id && ((!isTrackSolvedAndPlaying && !isCurrentTrackAdmin) || (isTrackSolvedAndPlaying && sessionSettings.stop_method === 'vote_unanimous'))">
             <button v-if="!hasVotedToSkip" class="btn btn-sm btn-neutral shrink-0" @click="voteToSkip(currentTrack.id, currentPlayer.id)">
               <span class="i-fa-solid-forward-step"></span>
-              {{ t('room.skip_button', { votes: skipVoteCount, needed: skipVotesNeeded }) }}
+              {{ isTrackSolvedAndPlaying ? t('room.stop_button', { votes: skipVoteCount, needed: skipVotesNeeded }) : t('room.skip_button', { votes: skipVoteCount, needed: skipVotesNeeded }) }}
             </button>
-            <span v-else class="text-xs opacity-60 shrink-0">{{ t('room.skip_voted') }}</span>
+            <span v-else class="text-xs opacity-60 shrink-0">{{ isTrackSolvedAndPlaying ? t('room.stop_voted') : t('room.skip_voted') }}</span>
           </template>
         </div>
 
@@ -425,6 +455,10 @@
         </button>
       </header>
       <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div v-if="!canAddTrack" class="alert alert-warning py-2 text-sm">
+          <span class="i-fa6-solid-scale-balanced shrink-0"></span>
+          {{ t('room.track_equity_limit') }}
+        </div>
         <div class="tabs tabs-bordered">
           <button :class="['tab', addMode === 'search' ? 'tab-active' : '']" @click="addMode = 'search'">
             <span class="i-fa-solid-magnifying-glass mr-1"></span>
@@ -434,7 +468,7 @@
             {{ t('room.add_tab_url') }}
           </button>
         </div>
-        <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromSearch" />
+        <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromSearch" :can-add-track="canAddTrack" />
         <template v-else-if="addMode === 'single'">
           <input v-model="newTrack.youtube_url" type="url" :placeholder="t('room.url_placeholder')" class="input input-bordered w-full" />
           <div class="flex flex-col gap-2">
@@ -450,7 +484,7 @@
               <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
             </div>
           </div>
-          <button class="btn btn-primary w-full" :disabled="!newTrack.youtube_url.trim() || addingTrack" @click="handleAddTrack">
+          <button class="btn btn-primary w-full" :disabled="!newTrack.youtube_url.trim() || addingTrack || !canAddTrack" @click="handleAddTrack">
             <span v-if="addingTrack" class="loading loading-spinner loading-sm"></span>
             {{ t('room.add_button') }}
           </button>
@@ -500,10 +534,22 @@ const otherEligibleCount = computed(() =>
     p.id !== props.currentPlayer.id && p.id !== trackValidatorId.value
   ).length
 )
-const { activeBuzz, canBuzz, buzz, solvedBuzz } = useBuzzes(
+const sessionSettings = computed(() => {
+  const s = (props.session.settings ?? {}) as Record<string, any>
+  return {
+    max_buzz_attempts: s.max_buzz_attempts ?? 5,
+    rebuzz_delay: s.rebuzz_delay ?? 5,
+    auto_reject_delay: s.auto_reject_delay ?? 8,
+    continue_after_success: s.continue_after_success ?? true,
+    stop_method: (s.stop_method ?? 'vote_unanimous') as 'vote_unanimous' | 'host_choice',
+    force_equity: s.force_equity ?? false,
+  }
+})
+const { activeBuzz, canBuzz, buzzBlockReason, rebuzzRemainingSeconds, remainingAttempts, buzz, solvedBuzz } = useBuzzes(
   computed(() => currentTrack.value?.id),
   props.currentPlayer.id,
   otherEligibleCount,
+  sessionSettings,
 )
 
 // UI state
@@ -626,14 +672,43 @@ const skipVoteArray = computed<string[]>(() => {
 const skipVoteCount = computed(() => skipVoteArray.value.length)
 const skipVotesNeeded = computed(() => {
   if (!currentTrack.value) return 1
+  if (isTrackSolvedAndPlaying.value) return Math.max(1, onlinePlayers.value.length)
   return Math.max(1, onlinePlayers.value.filter(p => p.id !== trackValidatorId.value).length)
 })
 const hasVotedToSkip = computed(() => skipVoteArray.value.includes(props.currentPlayer.id))
+const isTrackSolvedAndPlaying = computed(() =>
+  !!currentTrack.value?.solved_by && currentTrack.value?.status === 'playing'
+)
+const canAddTrack = computed(() => {
+  if (!sessionSettings.value.force_equity) return true
+  const myCount = tracks.value.filter(t => t.added_by === props.currentPlayer.id).length
+  const others = players.value.filter(p => p.id !== props.currentPlayer.id)
+  if (others.length === 0) return true
+  const minOthers = Math.min(...others.map(p =>
+    tracks.value.filter(t => t.added_by === p.id).length
+  ))
+  return myCount <= minOthers
+})
+
+watch(buzzBlockReason, (reason) => {
+  if (reason === 'max_attempts' && currentTrack.value && !hasVotedToSkip.value && !isTrackSolvedAndPlaying.value) {
+    voteToSkip(currentTrack.value.id, props.currentPlayer.id)
+  }
+})
 
 watch(skipVoteArray, async (votes) => {
   if (!currentTrack.value) return
   if (animationState.value?.type === 'skipped') return
   if (onlinePlayers.value.length > 1 && votes.length >= skipVotesNeeded.value) {
+    // Track already solved: advance silently (no "skipped" animation)
+    if (isTrackSolvedAndPlaying.value) {
+      if (!isHost.value) return
+      const trackId = currentTrack.value.id
+      await finishTrack(trackId)
+      const next = queuedTracks.value[0]
+      if (next) { await playTrack(next.id) }
+      return
+    }
     animationState.value = {
       type: 'skipped',
       playerName: '',
@@ -649,8 +724,7 @@ watch(skipVoteArray, async (votes) => {
       animationState.value = null
       await finishTrack(trackId)
       const next = queuedTracks.value[0]
-      if (next) await playTrack(next.id)
-      else await pb.collection('sessions').update(props.session.id, { status: 'finished' })
+      if (next) { await playTrack(next.id) }
     }, 3000)
   }
 })
@@ -698,9 +772,12 @@ const validateBuzz = async () => {
   ])
 
   setTimeout(async () => {
-    await pb.collection('tracks').update(trackId, { status: 'done', solved_by: buzzPlayerId })
-    if (next) await playTrack(next.id)
-    else await pb.collection('sessions').update(props.session.id, { status: 'finished' })
+    if (sessionSettings.value.continue_after_success) {
+      await pb.collection('tracks').update(trackId, { solved_by: buzzPlayerId, skip_votes: [] })
+    } else {
+      await pb.collection('tracks').update(trackId, { status: 'done', solved_by: buzzPlayerId })
+      if (next) { await playTrack(next.id) }
+    }
   }, 3000)
 }
 
@@ -718,6 +795,38 @@ const invalidateBuzz = async () => {
   if (!activeBuzz.value) return
   await pb.collection('buzzes').update(activeBuzz.value.id, { status: 'wrong' })
 }
+
+const stopCurrentTrack = async () => {
+  if (!currentTrack.value) return
+  const trackId = currentTrack.value.id
+  const next = queuedTracks.value[0]
+  await finishTrack(trackId)
+  if (next) { await playTrack(next.id) }
+}
+
+let autoRejectTimer: ReturnType<typeof setTimeout> | null = null
+let autoRejectClock: ReturnType<typeof setInterval> | null = null
+const autoRejectNow = ref(Date.now())
+
+const autoRejectRemainingSeconds = computed(() => {
+  if (!activeBuzz.value || !isCurrentTrackAdmin.value || sessionSettings.value.auto_reject_delay <= 0) return 0
+  const deadline = new Date(activeBuzz.value.created).getTime() + sessionSettings.value.auto_reject_delay * 1000
+  return Math.max(0, Math.ceil((deadline - autoRejectNow.value) / 1000))
+})
+
+watch([activeBuzz, isCurrentTrackAdmin], ([buzz, isAdmin]) => {
+  if (autoRejectTimer) { clearTimeout(autoRejectTimer); autoRejectTimer = null }
+  if (autoRejectClock) { clearInterval(autoRejectClock); autoRejectClock = null }
+  if (buzz && (buzz as any).status === 'pending' && isAdmin && sessionSettings.value.auto_reject_delay > 0) {
+    autoRejectClock = setInterval(() => { autoRejectNow.value = Date.now() }, 500)
+    autoRejectTimer = setTimeout(() => {
+      if (autoRejectClock) { clearInterval(autoRejectClock); autoRejectClock = null }
+      if (activeBuzz.value?.id === (buzz as any).id && activeBuzz.value?.status === 'pending') {
+        invalidateBuzz()
+      }
+    }, sessionSettings.value.auto_reject_delay * 1000)
+  }
+}, { immediate: true })
 
 const toggleIrlMode = async () => {
   const enabling = !props.session.irl_mode
@@ -748,7 +857,11 @@ const resetSession = async () => {
   }
 }
 
+const endSession = () =>
+  pb.collection('sessions').update(props.session.id, { status: 'finished' })
+
 const handleAddTrack = async () => {
+  if (!canAddTrack.value) return
   const vid = getVideoId(newTrack.value.youtube_url.trim())
   if (!vid) return
   addingTrack.value = true
@@ -767,8 +880,10 @@ const handleAddTrack = async () => {
   }
 }
 
-const addTrackFromSearch = (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) =>
-  addTrack({ ...data, start_seconds: data.start_seconds ?? 0, added_by: props.currentPlayer.id })
+const addTrackFromSearch = (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) => {
+  if (!canAddTrack.value) return
+  return addTrack({ ...data, start_seconds: data.start_seconds ?? 0, added_by: props.currentPlayer.id })
+}
 
 // Drag & drop — own queued tracks only
 let sortableInstance: Sortable | null = null
@@ -816,5 +931,9 @@ watch(trackListEl, (el) => {
   }
 })
 
-onUnmounted(() => sortableInstance?.destroy())
+onUnmounted(() => {
+  sortableInstance?.destroy()
+  if (autoRejectTimer) { clearTimeout(autoRejectTimer) }
+  if (autoRejectClock) { clearInterval(autoRejectClock) }
+})
 </script>
