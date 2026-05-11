@@ -45,6 +45,10 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 ## History (done)
 
+- [2026-05-11] Mobile navigation improvements — hamburger moved to header for admin and client SPA; UserAuth shows avatar on all pages; drawer auto-closes on menu click.
+
+- [2026-05-11] Client space SPA — profile page converted to a full Vue SPA with sidebar navigation: Profile (avatar, name edit), My Blindtests, and Game Preferences (per-user overrides of app-level game settings).
+
 - [2026-05-11] App-level settings — admin page to configure global game defaults (max buzz attempts, rebuzz/auto-reject delays, post-success behaviour, track equity).
 
 - [2026-05-11] Remove YouTube playlist import — feature removed (unused; too complex to maintain)

@@ -1,10 +1,5 @@
 <template>
   <div>
-    <h1 class="text-2xl font-bold mb-6 flex items-center gap-2">
-      <span class="i-fa-solid-user"></span>
-      {{ t('profile.title') }}
-    </h1>
-
     <div v-if="user?.id" class="card bg-base-100 shadow-md p-6 space-y-4">
       <div class="flex items-center gap-4">
         <!-- Avatar -->
@@ -31,7 +26,6 @@
 
         <!-- Name + email -->
         <div class="flex-1 min-w-0">
-          <!-- Name display mode -->
           <div v-if="!editingName" class="flex items-center gap-2">
             <p class="text-xl font-semibold">{{ user.name || '—' }}</p>
             <button
@@ -41,7 +35,6 @@
               <span class="i-fa-solid-pen text-xs"></span>
             </button>
           </div>
-          <!-- Name edit mode -->
           <div v-else class="flex items-center gap-2">
             <input
               ref="nameInputRef"
@@ -51,11 +44,7 @@
               @keydown.enter="saveName"
               @keydown.escape="cancelEditName"
             />
-            <button
-              class="btn btn-xs btn-primary"
-              :disabled="savingName"
-              @click="saveName"
-            >
+            <button class="btn btn-xs btn-primary" :disabled="savingName" @click="saveName">
               <span v-if="savingName" class="loading loading-spinner loading-xs"></span>
               <span v-else class="i-fa-solid-check"></span>
             </button>
@@ -73,38 +62,6 @@
 
       <div class="divider"></div>
 
-      <!-- Mes blindtests -->
-      <div>
-        <h2 class="text-base font-semibold mb-3 flex items-center gap-2">
-          <span class="i-fa-solid-music text-primary"></span>
-          {{ t('profile.my_blindtests') }}
-        </h2>
-        <div v-if="loadingSessions" class="flex justify-center py-4">
-          <span class="loading loading-spinner loading-sm"></span>
-        </div>
-        <ul v-else-if="mySessions.length > 0" class="space-y-2">
-          <li
-            v-for="session in mySessions"
-            :key="session.id"
-            class="flex items-center justify-between gap-3 rounded-lg bg-base-200 px-3 py-2"
-          >
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium truncate">{{ session.name }}</p>
-              <p class="text-xs text-base-content/40">{{ formatDate(session.created) }}</p>
-            </div>
-            <span :class="['badge badge-xs shrink-0', session.status === 'playing' ? 'badge-success' : session.status === 'finished' ? 'badge-neutral' : 'badge-warning']">
-              {{ t(`room.status_${session.status}`) }}
-            </span>
-            <a :href="`/${session.slug}`" class="btn btn-xs btn-primary shrink-0">
-              {{ t('profile.open_session') }}
-            </a>
-          </li>
-        </ul>
-        <p v-else class="text-sm text-base-content/40 text-center py-4">{{ t('profile.no_blindtests') }}</p>
-      </div>
-
-      <div class="divider"></div>
-
       <div class="flex gap-2">
         <a href="/admin" class="btn btn-sm btn-primary" v-if="isAdmin">
           <span class="i-fa-solid-cog"></span>
@@ -117,12 +74,14 @@
       </div>
     </div>
 
-    <div v-else class="loading loading-spinner loading-lg"></div>
+    <div v-else class="flex justify-center py-16">
+      <span class="loading loading-spinner loading-lg"></span>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
+import { ref, computed, nextTick, useTemplateRef } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import useAuth from '@admin/composables/useAuth'
 import config from '@config'
@@ -141,30 +100,9 @@ const editingName = ref(false)
 const nameForm = ref('')
 const savingName = ref(false)
 const errorMessage = ref('')
-const mySessions = ref<any[]>([])
-const loadingSessions = ref(false)
-
-const loadMySessions = async () => {
-  if (!user.value?.id) return
-  loadingSessions.value = true
-  try {
-    mySessions.value = await pb.collection('sessions').getFullList({
-      filter: `owner="${user.value.id}"`,
-      sort: '-created',
-      requestKey: null,
-    })
-  } finally {
-    loadingSessions.value = false
-  }
-}
-
-watch(() => user.value?.id, (id) => { if (id) loadMySessions() }, { immediate: true })
-
-const formatDate = (dateStr: string) =>
-  new Date(dateStr).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
 
 const currentAvatarUrl = computed(() => {
-  if (!user.value?.avatar) return ''
+  if (!user.value?.avatar) { return '' }
   return `${config.apiBaseUrl}/api/files/_pb_users_auth_/${user.value.id}/${user.value.avatar}`
 })
 
@@ -174,7 +112,7 @@ const triggerFileInput = () => {
 
 const handleAvatarChange = async (e: Event) => {
   const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
+  if (!file) { return }
 
   avatarPreview.value = URL.createObjectURL(file)
   savingAvatar.value = true
@@ -191,7 +129,7 @@ const handleAvatarChange = async (e: Event) => {
     avatarPreview.value = ''
   } finally {
     savingAvatar.value = false
-    if (fileInputRef.value) fileInputRef.value.value = ''
+    if (fileInputRef.value) { fileInputRef.value.value = '' }
   }
 }
 

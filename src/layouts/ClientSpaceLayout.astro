@@ -1,0 +1,28 @@
+---
+import AuthGuard from '@components/AuthGuard.astro'
+import BaseLayout from '@layouts/BaseLayout.astro'
+import UserAuth from '@components/UserAuth.vue'
+import NavLogo from '@components/NavLogo.vue'
+import LangSwitch from '@components/LangSwitch.vue'
+---
+
+<AuthGuard />
+<BaseLayout>
+  <nav class="fixed top-0 left-0 w-full h-20 bg-primary/90 backdrop-blur-md shadow-lg p-5 z-50">
+    <div class="container flex justify-between items-center mx-auto">
+      <div class="flex items-center gap-4 mr-5">
+        <label for="client-drawer" class="drawer-button cursor-pointer lg:hidden text-white">
+          <span class="i-fa-solid-bars text-xl"></span>
+        </label>
+        <NavLogo client:only="vue" />
+      </div>
+      <div class="hidden lg:flex gap-5 items-center">
+        <LangSwitch client:only />
+      </div>
+      <UserAuth client:only />
+    </div>
+  </nav>
+  <div class="mt-20 h-[calc(100vh-5rem)] overflow-hidden">
+    <slot />
+  </div>
+</BaseLayout>

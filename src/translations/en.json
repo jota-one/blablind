@@ -215,5 +215,18 @@
   "admin.settings_save": "Save",
   "admin.settings_saving": "Saving...",
   "admin.settings_saved": "Saved!",
-  "admin.settings_error": "Error saving settings"
+  "admin.settings_error": "Error saving settings",
+
+  "client.nav_profile": "Profile",
+  "client.nav_blindtests": "My blindtests",
+  "client.nav_settings": "Game settings",
+  "client.settings_title": "Game preferences",
+  "client.settings_loading": "Loading...",
+  "client.settings_reset_with_default": "Reset (default: {value})",
+  "client.settings_yes": "Yes",
+  "client.settings_no": "No",
+  "client.settings_save": "Save",
+  "client.settings_saving": "Saving...",
+  "client.settings_saved": "Saved!",
+  "client.settings_error": "Error saving settings"
 }

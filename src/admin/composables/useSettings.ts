@@ -22,7 +22,9 @@ export default function useSettings() {
   }
 
   const saveSettings = async (payload: Omit<TSettings, 'id'>) => {
-    if (!settings.value) { return }
+    if (!settings.value) {
+      return
+    }
     return pb.collection('app_settings').update(settings.value.id, payload)
   }
 

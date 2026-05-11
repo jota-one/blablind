@@ -215,5 +215,18 @@
   "admin.settings_save": "Enregistrer",
   "admin.settings_saving": "Enregistrement...",
   "admin.settings_saved": "Enregistré !",
-  "admin.settings_error": "Erreur lors de la sauvegarde"
+  "admin.settings_error": "Erreur lors de la sauvegarde",
+
+  "client.nav_profile": "Profil",
+  "client.nav_blindtests": "Mes blindtests",
+  "client.nav_settings": "Préférences de jeu",
+  "client.settings_title": "Préférences de jeu",
+  "client.settings_loading": "Chargement...",
+  "client.settings_reset_with_default": "Réinitialiser (défaut : {value})",
+  "client.settings_yes": "Oui",
+  "client.settings_no": "Non",
+  "client.settings_save": "Enregistrer",
+  "client.settings_saving": "Enregistrement...",
+  "client.settings_saved": "Enregistré !",
+  "client.settings_error": "Erreur lors de la sauvegarde"
 }
