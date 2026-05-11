@@ -8,10 +8,15 @@ import UserAuth from '@components/UserAuth.vue'
 <BaseLayout>
   <!-- Navbar admin minimaliste (sans footer) -->
   <nav class="fixed top-0 left-0 w-full h-20 bg-black/80 backdrop-blur-md shadow-lg z-50 flex items-center px-6">
-    <a href="/" class="flex items-center gap-2 text-white font-bold text-xl">
-      <span class="i-fa-solid-music text-2xl"></span>
-      BlaBlind
-    </a>
+    <div class="flex items-center gap-4">
+      <label for="my-drawer" class="drawer-button cursor-pointer lg:hidden text-white">
+        <span class="i-fa-solid-bars text-xl"></span>
+      </label>
+      <a href="/" class="flex items-center gap-2 text-white font-bold text-xl">
+        <span class="i-fa-solid-music text-2xl"></span>
+        BlaBlind
+      </a>
+    </div>
     <div class="ml-auto">
       <UserAuth client:only />
     </div>

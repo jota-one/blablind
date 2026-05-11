@@ -15,13 +15,22 @@
         <button
           tabindex="0"
           role="button"
-          class="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-colors cursor-pointer"
+          class="flex items-center gap-3 sm:px-4 sm:py-2 sm:rounded-lg sm:bg-white/10 sm:backdrop-blur-sm sm:border sm:border-white/20 sm:hover:bg-white/15 transition-colors cursor-pointer"
         >
-          <div class="flex flex-col">
+          <div class="flex-shrink-0">
+            <img
+              v-if="avatarUrl"
+              :src="avatarUrl"
+              :alt="user.name"
+              class="w-8 h-8 rounded-full object-cover border border-white/30"
+            />
+            <span v-else class="i-fa-solid-user text-xl text-white"></span>
+          </div>
+          <div class="hidden sm:flex flex-col">
             <span class="text-xs font-medium text-white/70 uppercase tracking-wide">{{ t('auth.connected') }}</span>
             <span class="text-sm font-semibold text-white">{{ user.name }}</span>
           </div>
-          <span class="i-fa-solid-chevron-down text-xs text-white/70"></span>
+          <span class="hidden sm:inline i-fa-solid-chevron-down text-xs text-white/70"></span>
         </button>
         <ul
           tabindex="0"
@@ -49,16 +58,26 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef } from 'vue'
+import { computed, onMounted, useTemplateRef } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import useAuth from '@admin/composables/useAuth'
+import config from '@config'
 import LoginModal from './LoginModal.vue'
 import SignupModal from './SignupModal.vue'
 
 const { t } = useI36n()
-const { isAuthenticated, user, logout } = useAuth()
+const { isAuthenticated, user, logout, refreshAuth } = useAuth()
+
+onMounted(() => {
+  if (isAuthenticated.value) { refreshAuth() }
+})
 const loginModalRef = useTemplateRef<InstanceType<typeof LoginModal>>('loginModalRef')
 const signupModalRef = useTemplateRef<InstanceType<typeof SignupModal>>('signupModalRef')
+
+const avatarUrl = computed(() => {
+  if (!user.value?.avatar) { return '' }
+  return `${config.apiBaseUrl}/api/files/_pb_users_auth_/${user.value.id}/${user.value.avatar}`
+})
 
 const openLoginModal = () => {
   loginModalRef.value?.open()
