@@ -17,17 +17,6 @@ List of small potential improvements and refactors.
 
 ## New Features
 
-### Settings
-Il faut prévoir un écran de configuration d'une session, qui dépendra d'un écran de configuration générique au niveau du compte utilisateur pour "Mes blindtests", qui dépendra lui-même d'un écran de configuration générique au niveau de l'app (géré par l'admin).
-
-Dans cet écran, on va pouvoir gérer les points suivants (certains impliquent de nouvelles features):
-- Nombre d'essais max. d'un joueur sur le même morceau (après il ne peut plus buzzer) (default: 5)
-- Temps avant de pouvoir rebuzzer sur le même morceau après un refus (default: 5 secondes)
-- Forcer l'équité entre joueurs au niveau nb de morceaux fournis (default: false)
-- Après succès, faut-il continuer de jouer le morceau (default: true)
-    - Si 'true', comment on peut l'arrêter? Par vote unanime ou choix du host (default: vote unanime)
-- Auto-refus après un certain temps (default: 8 secondes). Si un joueur a buzzé et ne prend trop de temps à donner la réponse, le système refusera le buzz (et continuera à jouer le morceau) au bout du temps défini.
-
 ### Espace client
 On dispose pour l'instant d'un espace client très limité dans la page /profile. Il faudrait convertir cette page en une véritable APP vue, à l'instar de /admin.
 
@@ -44,6 +33,8 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 
 ## History (done)
+
+- [2026-05-11] Game settings — configurable per-session snapshot (max buzz attempts, rebuzz delay, auto-reject delay, continue after success, stop method, force equity); wizard-based creation; app-level and per-user defaults; all settings enforced in gameplay.
 
 - [2026-05-11] Mobile navigation improvements — hamburger moved to header for admin and client SPA; UserAuth shows avatar on all pages; drawer auto-closes on menu click.
 
