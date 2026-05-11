@@ -30,20 +30,11 @@
             <span class="i-fa-solid-plus text-primary"></span>
             {{ t('home.create_title') }}
           </h2>
-          <form @submit.prevent="handleCreate" class="space-y-4">
-            <input
-              v-model="createName"
-              type="text"
-              :placeholder="t('home.create_placeholder')"
-              class="input input-bordered w-full"
-              required
-            />
-            <button type="submit" class="btn btn-primary w-full" :disabled="creating">
-              <span v-if="creating" class="loading loading-spinner loading-sm"></span>
-              {{ t('home.create_button') }}
-            </button>
-            <p v-if="createError" class="text-error text-sm text-center">{{ createError }}</p>
-          </form>
+          <p class="text-base-content/60 text-sm mb-4">{{ t('home.create_hint') }}</p>
+          <button class="btn btn-primary w-full" @click="openWizard">
+            <span class="i-fa-solid-wand-magic-sparkles mr-2"></span>
+            {{ t('home.create_button') }}
+          </button>
         </div>
 
         <!-- Rejoindre un blindtest -->
@@ -147,17 +138,20 @@
       <span>{{ joinError }}</span>
     </div>
   </div>
+
+  <CreateSessionWizard ref="wizardRef" />
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import { pb } from '@game/pb'
-import { generateSlug } from '@game/utils'
-import useAuth from '@admin/composables/useAuth'
+import CreateSessionWizard from '@game/components/CreateSessionWizard.vue'
 
 const { t } = useI36n()
-const { isAuthenticated, user, refreshAuth } = useAuth()
+
+const wizardRef = ref<InstanceType<typeof CreateSessionWizard> | null>(null)
+const openWizard = () => wizardRef.value?.open()
 
 const THREE_HOURS = 3 * 60 * 60 * 1000
 
@@ -217,9 +211,6 @@ const dismissLastSession = () => {
   lastSession.value = null
 }
 
-const createName = ref('')
-const creating = ref(false)
-const createError = ref('')
 const joinCode = ref('')
 
 const feedback = reactive({ name: '', message: '' })
@@ -241,26 +232,6 @@ onMounted(async () => {
   stats.tracks = tracksRes.totalItems
   statsLoaded.value = true
 })
-
-const handleCreate = async () => {
-  if (!createName.value.trim()) return
-  creating.value = true
-  createError.value = ''
-  try {
-    const slug = generateSlug()
-    if (isAuthenticated.value && !user.value?.id) await refreshAuth()
-    await pb.collection('sessions').create({
-      name: createName.value.trim(),
-      slug,
-      status: 'waiting',
-      ...(user.value?.id ? { owner: user.value.id } : {}),
-    })
-    window.location.href = `/${slug}`
-  } catch (e: any) {
-    createError.value = e.message || t('home.error_create')
-    creating.value = false
-  }
-}
 
 const joinError = ref('')
 const joining = ref(false)

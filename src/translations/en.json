@@ -4,8 +4,9 @@
   "home.restore_resume": "Resume",
   "home.restore_dismiss": "Dismiss",
   "home.create_title": "Create a blindtest",
+  "home.create_hint": "Configure your game settings step by step.",
   "home.create_placeholder": "Blindtest name...",
-  "home.create_button": "Create",
+  "home.create_button": "Create a blindtest",
   "home.join_title": "Join a blindtest",
   "home.join_placeholder": "Session code...",
   "home.join_button": "Join",
@@ -228,5 +229,13 @@
   "client.settings_save": "Save",
   "client.settings_saving": "Saving...",
   "client.settings_saved": "Saved!",
-  "client.settings_error": "Error saving settings"
+  "client.settings_error": "Error saving settings",
+
+  "wizard.step_name": "Name your blindtest",
+  "wizard.step_name_hint": "Give your session a name your friends will recognize.",
+  "wizard.step_name_placeholder": "Blindtest name...",
+  "wizard.prev": "Back",
+  "wizard.next": "Next",
+  "wizard.create": "Create",
+  "wizard.error": "Error creating the session"
 }

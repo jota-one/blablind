@@ -4,8 +4,9 @@
   "home.restore_resume": "Reprendre",
   "home.restore_dismiss": "Ignorer",
   "home.create_title": "Créer un blindtest",
+  "home.create_hint": "Configure tes réglages de jeu étape par étape.",
   "home.create_placeholder": "Nom du blindtest...",
-  "home.create_button": "Créer",
+  "home.create_button": "Créer un blindtest",
   "home.join_title": "Rejoindre un blindtest",
   "home.join_placeholder": "Code de la session...",
   "home.join_button": "Rejoindre",
@@ -228,5 +229,13 @@
   "client.settings_save": "Enregistrer",
   "client.settings_saving": "Enregistrement...",
   "client.settings_saved": "Enregistré !",
-  "client.settings_error": "Erreur lors de la sauvegarde"
+  "client.settings_error": "Erreur lors de la sauvegarde",
+
+  "wizard.step_name": "Nom du blindtest",
+  "wizard.step_name_hint": "Donne un nom à ta session que tes amis reconnaîtront.",
+  "wizard.step_name_placeholder": "Nom du blindtest...",
+  "wizard.prev": "Retour",
+  "wizard.next": "Suivant",
+  "wizard.create": "Créer",
+  "wizard.error": "Erreur lors de la création"
 }
