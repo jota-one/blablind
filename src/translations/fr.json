@@ -103,7 +103,6 @@
   "room.add_modal_title": "Ajouter un morceau",
   "room.add_tab_search": "Recherche",
   "room.add_tab_url": "URL unique",
-  "room.add_tab_playlist": "Playlist",
   "room.url_placeholder": "URL YouTube",
   "room.start_placeholder": "Départ (secondes)",
   "room.title_placeholder": "Titre (optionnel)",
@@ -114,14 +113,6 @@
   "gameover.bravo": "Bravo {name} !",
   "gameover.ranking_rest": "Suite du classement",
   "gameover.back_home": "Retour à l'accueil",
-
-  "playlist.url_placeholder": "URL de la playlist YouTube...",
-  "playlist.select_all": "Tout sélectionner",
-  "playlist.deselect_all": "Tout désélectionner",
-  "playlist.import_button": "Importer {count} morceau",
-  "playlist.import_button_plural": "Importer {count} morceaux",
-  "playlist.error_invalid_url": "URL invalide — colle l'URL complète d'une playlist YouTube",
-  "playlist.error_load": "Impossible de charger la playlist.",
 
   "share.title": "Rejoindre la session",
   "share.copy": "Copier le lien",

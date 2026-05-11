@@ -103,7 +103,6 @@
   "room.add_modal_title": "Add a track",
   "room.add_tab_search": "Search",
   "room.add_tab_url": "Single URL",
-  "room.add_tab_playlist": "Playlist",
   "room.url_placeholder": "YouTube URL",
   "room.start_placeholder": "Start (seconds)",
   "room.title_placeholder": "Title (optional)",
@@ -114,14 +113,6 @@
   "gameover.bravo": "Well done {name}!",
   "gameover.ranking_rest": "Rest of the rankings",
   "gameover.back_home": "Back to home",
-
-  "playlist.url_placeholder": "YouTube playlist URL...",
-  "playlist.select_all": "Select all",
-  "playlist.deselect_all": "Deselect all",
-  "playlist.import_button": "Import {count} track",
-  "playlist.import_button_plural": "Import {count} tracks",
-  "playlist.error_invalid_url": "Invalid URL — paste the full URL of a YouTube playlist",
-  "playlist.error_load": "Failed to load the playlist.",
 
   "share.title": "Join the session",
   "share.copy": "Copy link",

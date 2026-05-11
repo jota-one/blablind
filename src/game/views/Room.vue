@@ -433,12 +433,8 @@
           <button :class="['tab', addMode === 'single' ? 'tab-active' : '']" @click="addMode = 'single'">
             {{ t('room.add_tab_url') }}
           </button>
-          <button :class="['tab', addMode === 'playlist' ? 'tab-active' : '']" @click="addMode = 'playlist'">
-            <span class="i-fa-solid-list mr-1"></span>
-            {{ t('room.add_tab_playlist') }}
-          </button>
         </div>
-        <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromPlaylist" />
+        <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromSearch" />
         <template v-else-if="addMode === 'single'">
           <input v-model="newTrack.youtube_url" type="url" :placeholder="t('room.url_placeholder')" class="input input-bordered w-full" />
           <div class="flex flex-col gap-2">
@@ -459,7 +455,6 @@
             {{ t('room.add_button') }}
           </button>
         </template>
-        <PlaylistImport v-else :add-track="addTrackFromPlaylist" />
       </div>
     </div>
   </div>
@@ -474,7 +469,6 @@ import usePlayers from '@game/composables/usePlayers'
 import useTracks from '@game/composables/useTracks'
 import useBuzzes from '@game/composables/useBuzzes'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
-import PlaylistImport from '@game/components/PlaylistImport.vue'
 import TrackSearch from '@game/components/TrackSearch.vue'
 import ShareQR from '@game/components/ShareQR.vue'
 import GameOver from '@game/components/GameOver.vue'
@@ -516,7 +510,7 @@ const { activeBuzz, canBuzz, buzz, solvedBuzz } = useBuzzes(
 const buzzing = ref(false)
 const answer = ref('')
 const addingTrack = ref(false)
-const addMode = ref<'search' | 'single' | 'playlist'>('search')
+const addMode = ref<'search' | 'single'>('search')
 const newTrack = ref({ youtube_url: '', start_seconds: 0, title: '', artist: '' })
 const fetchingMeta = ref(false)
 const audioUnlocked = ref(false)
@@ -773,7 +767,7 @@ const handleAddTrack = async () => {
   }
 }
 
-const addTrackFromPlaylist = (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) =>
+const addTrackFromSearch = (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) =>
   addTrack({ ...data, start_seconds: data.start_seconds ?? 0, added_by: props.currentPlayer.id })
 
 // Drag & drop — own queued tracks only
