@@ -17,6 +17,12 @@
           </RouterLink>
         </li>
         <li>
+          <RouterLink to="/videos" class="flex items-center gap-3" active-class="menu-active">
+            <span class="i-fa-solid-music text-xl"></span>
+            {{ t('admin.nav_videos') }}
+          </RouterLink>
+        </li>
+        <li>
           <RouterLink to="/users" class="flex items-center gap-3" active-class="menu-active">
             <span class="i-fa-solid-users text-xl"></span>
             {{ t('admin.nav_users') }}

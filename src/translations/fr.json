@@ -186,6 +186,7 @@
   "auth.my_account": "Mon compte",
   "auth.logout": "Déconnexion",
 
+  "admin.nav_videos": "Morceaux",
   "admin.nav_home": "Accueil",
   "admin.nav_sessions": "Sessions",
   "admin.nav_users": "Utilisateurs",

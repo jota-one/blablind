@@ -186,6 +186,7 @@
   "auth.my_account": "My account",
   "auth.logout": "Log out",
 
+  "admin.nav_videos": "Tracks",
   "admin.nav_home": "Home",
   "admin.nav_sessions": "Sessions",
   "admin.nav_users": "Users",

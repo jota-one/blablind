@@ -44,6 +44,8 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 ## History (done)
 
+- [2026-05-11] Admin video library management — new "Morceaux" page in the admin panel: list with debounced search (tokenized, AND logic via search_text), inline edit (title, artist, duration) and delete with confirmation. Update/delete restricted to admins via PocketBase rules.
+
 - [2026-04-29] Self-service email verification — after signup, PocketBase's `requestVerification` is called automatically so users receive a confirmation email and can activate their account without admin intervention.
 
 - [2026-04-29] Join error snackbar — entering a wrong session code on the homepage now shows a toast error instead of navigating to a blank error page.
