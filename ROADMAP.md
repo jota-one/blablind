@@ -8,7 +8,7 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
-- Lorsqu'un joueur buzz et que l'auteur du morceau est en plein recherche, la recherche doit se fermer pour que l'auteur voie qu'il doit gérer un buzz. Cela ne pose pas trop de problème si on gère le point précédent d'abord.
+
 - Il faut trouver un moyen d'améliorer la visibilité des résultats de recherche en mobile. Pour l'instant on ne voit que les premier caractères de chaque morceau et on doit tjs se mettre en horizontal pour pouvoir lire correctement. Cela fait perdre bcp de temps.
 - Nouveau calcul des scores. Se baser sur le ratio de morceaux devinés par rapport au nombre de morceaux devinables (sachant qu'un morceau qu'on a proposé soi-même n'est pas devinable). Cela permet d'équilibrer les chances pour ceux qui proposent plus ou moins de morceaux.
 - Il faudrait pouvoir ouvrir une modale qui résume les settings de la partie et l'hôte doit pouvoir modifier les settings durant la partie.
@@ -24,6 +24,8 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 
 ## History (done)
+
+- [2026-05-12] Auto-close search on incoming buzz — track owner's search panel closes automatically when a buzz arrives.
 
 - [2026-05-12] Preserve search panel state — modal now uses v-show so query and results persist when closed to buzz then reopened.
 

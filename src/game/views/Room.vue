@@ -702,6 +702,12 @@ watch(currentTrack, (newTrack, oldTrack) => {
 
 const buzzedAnimation = ref(false)
 
+watch(activeBuzz, (buzz) => {
+  if (buzz && isCurrentTrackAdmin.value) {
+    showAddTrackModal.value = false
+  }
+})
+
 watch(activeBuzz, (newBuzz) => {
   if (newBuzz && newBuzz.player === props.currentPlayer.id) {
     buzzedAnimation.value = true
