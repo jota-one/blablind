@@ -846,11 +846,21 @@ const rejectDJ = () =>
 const resetSession = async () => {
   resetting.value = true
   try {
-    await Promise.all([
-      ...players.value.map(p => pb.collection('players').update(p.id, { score: 0 })),
-      ...tracks.value.map(t => pb.collection('tracks').update(t.id, { status: 'queued', solved_by: null, skip_votes: [] })),
-      pb.collection('sessions').update(props.session.id, { status: 'waiting' }),
-    ])
+    const allBuzzes = await pb.collection('buzzes').getFullList({
+      filter: tracks.value.map(t => `track="${t.id}"`).join(' || '),
+      requestKey: null,
+    })
+    const allOps: Array<(b: ReturnType<typeof pb.createBatch>) => void> = [
+      ...allBuzzes.map(buzz => (b: ReturnType<typeof pb.createBatch>) => b.collection('buzzes').delete(buzz.id)),
+      ...players.value.map(p => (b: ReturnType<typeof pb.createBatch>) => b.collection('players').update(p.id, { score: 0 })),
+      ...tracks.value.map(t => (b: ReturnType<typeof pb.createBatch>) => b.collection('tracks').update(t.id, { status: 'queued', solved_by: null, skip_votes: [] })),
+      (b: ReturnType<typeof pb.createBatch>) => b.collection('sessions').update(props.session.id, { status: 'waiting' }),
+    ]
+    for (let i = 0; i < allOps.length; i += 45) {
+      const batch = pb.createBatch()
+      allOps.slice(i, i + 45).forEach(op => op(batch))
+      await batch.send()
+    }
     showResetModal.value = false
   } finally {
     resetting.value = false
