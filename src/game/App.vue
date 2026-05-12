@@ -53,19 +53,41 @@ const saveLastSession = () => {
   }))
 }
 
+const restorePlayer = async (sessionId: string) => {
+  const savedId = localStorage.getItem(`blablind_player_${sessionId}`)
+  if (savedId) {
+    try {
+      const secret = localStorage.getItem(`blablind_secret_${sessionId}`) ?? ''
+      player.value = { ...await pb.collection('players').getOne(savedId), secret }
+      return true
+    } catch {
+      localStorage.removeItem(`blablind_player_${sessionId}`)
+    }
+  }
+  if (pb.authStore.isValid && pb.authStore.record) {
+    try {
+      const existing = await pb.collection('players').getFirstListItem(
+        `session="${sessionId}" && auth_user="${pb.authStore.record.id}"`,
+        { requestKey: null },
+      )
+      const secret = localStorage.getItem(`blablind_secret_${sessionId}`) ?? ''
+      localStorage.setItem(`blablind_player_${sessionId}`, existing.id)
+      player.value = { ...existing, secret }
+      return true
+    } catch {
+      // no existing player found
+    }
+  }
+  return false
+}
+
 watch(
   session,
   async (s) => {
     if (!s || player.value) return
-    const savedId = localStorage.getItem(`blablind_player_${s.id}`)
-    if (!savedId) return
-    try {
-      const secret = localStorage.getItem(`blablind_secret_${s.id}`) ?? ''
-      player.value = { ...await pb.collection('players').getOne(savedId), secret }
+    if (await restorePlayer(s.id)) {
       startHeartbeat(player.value.id)
       saveLastSession()
-    } catch {
-      localStorage.removeItem(`blablind_player_${s.id}`)
     }
   },
   { once: true },
@@ -83,6 +105,7 @@ const onJoined = async (name: string) => {
     name,
     score: 0,
     secret,
+    ...(pb.authStore.isValid && pb.authStore.record ? { auth_user: pb.authStore.record.id } : {}),
   })
   localStorage.setItem(`blablind_player_${session.value.id}`, record.id)
   localStorage.setItem(`blablind_secret_${session.value.id}`, secret)
