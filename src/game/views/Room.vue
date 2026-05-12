@@ -259,13 +259,13 @@
             <span class="i-fa-solid-forward-step"></span>
             {{ t('room.play_next') }}
           </button>
-          <!-- vote_unanimous : bouton stop/skip — tous les joueurs pour stop, non-admin pour skip -->
-          <template v-else-if="currentTrack && activeBuzz?.player !== currentPlayer.id && ((!isTrackSolvedAndPlaying && !isCurrentTrackAdmin) || (isTrackSolvedAndPlaying && sessionSettings.stop_method === 'vote_unanimous'))">
+          <!-- vote_unanimous : bouton stop/skip — non-admin pour skip uniquement -->
+          <template v-else-if="currentTrack && activeBuzz?.player !== currentPlayer.id && !isTrackSolvedAndPlaying && !isCurrentTrackAdmin">
             <button v-if="!hasVotedToSkip" class="btn btn-sm btn-neutral shrink-0" @click="voteToSkip(currentTrack.id, currentPlayer.id)">
               <span class="i-fa-solid-forward-step"></span>
-              {{ isTrackSolvedAndPlaying ? t('room.stop_button', { votes: skipVoteCount, needed: skipVotesNeeded }) : t('room.skip_button', { votes: skipVoteCount, needed: skipVotesNeeded }) }}
+              {{ t('room.skip_button', { votes: skipVoteCount, needed: skipVotesNeeded }) }}
             </button>
-            <span v-else class="text-xs opacity-60 shrink-0">{{ isTrackSolvedAndPlaying ? t('room.stop_voted') : t('room.skip_voted') }}</span>
+            <span v-else class="text-xs opacity-60 shrink-0">{{ t('room.skip_voted') }}</span>
           </template>
         </div>
 
@@ -427,6 +427,30 @@
       :title="animationState.title"
       :artist="animationState.artist"
     />
+
+    <!-- Overlay "encore un moment" après une bonne réponse (continue_after_success + vote_unanimous) -->
+    <div
+      v-if="isTrackSolvedAndPlaying && !animationState && sessionSettings.stop_method === 'vote_unanimous'"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+    >
+      <div class="bg-base-100 rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl text-center max-w-xs mx-4">
+        <span class="i-fa6-solid-music text-primary text-6xl"></span>
+        <div class="space-y-1">
+          <p class="text-lg font-bold font-display">{{ currentTrack?.expand?.video?.title }}</p>
+          <p class="text-sm text-base-content/60">{{ currentTrack?.expand?.video?.artist }}</p>
+        </div>
+        <p class="text-base-content/70 text-sm">{{ t('room.still_playing_question') }}</p>
+        <button
+          v-if="!hasVotedToSkip"
+          class="btn btn-primary w-full"
+          @click="voteToSkip(currentTrack.id, currentPlayer.id)"
+        >
+          {{ t('room.still_playing_stop') }}
+        </button>
+        <p v-else class="text-sm text-success font-medium">{{ t('room.still_playing_voted') }}</p>
+        <p class="text-xs text-base-content/40">{{ t('room.still_playing_votes', { votes: skipVoteCount, needed: skipVotesNeeded }) }}</p>
+      </div>
+    </div>
 
     <!-- Modal réinitialisation -->
     <div :class="['modal', showResetModal ? 'modal-open' : '']">
