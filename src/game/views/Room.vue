@@ -499,7 +499,7 @@
     </div>
 
     <!-- Modale ajout de morceau (full screen) -->
-    <div v-if="showAddTrackModal" class="fixed inset-0 z-50 bg-base-100 flex flex-col">
+    <div v-show="showAddTrackModal" class="fixed inset-0 z-50 bg-base-100 flex flex-col">
       <header class="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-base-300">
         <h2 class="font-bold text-lg flex-1">{{ t('room.add_modal_title') }}</h2>
         <button class="btn btn-ghost btn-sm" @click="showAddTrackModal = false">
