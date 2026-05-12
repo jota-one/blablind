@@ -16,7 +16,7 @@
       <div class="flex flex-col items-center gap-2 flex-1">
         <span class="text-2xl">🥈</span>
         <p class="text-sm font-semibold truncate w-full" :class="sorted[1]?.id === currentPlayer.id ? 'text-primary' : ''">{{ sorted[1]?.name }}</p>
-        <p class="text-lg font-bold font-mono">{{ sorted[1]?.score }}</p>
+        <p class="text-lg font-bold font-mono">{{ scoreLabel(sorted[1]) }}</p>
         <div class="w-full bg-base-content/20 rounded-t-lg h-20 flex items-center justify-center text-2xl font-bold text-base-content/40">2</div>
       </div>
 
@@ -24,7 +24,7 @@
       <div class="flex flex-col items-center gap-2 flex-1">
         <span class="text-3xl">🥇</span>
         <p class="text-sm font-bold truncate w-full text-warning" :class="sorted[0]?.id === currentPlayer.id ? 'text-primary' : ''">{{ sorted[0]?.name }}</p>
-        <p class="text-xl font-bold font-mono text-warning">{{ sorted[0]?.score }}</p>
+        <p class="text-xl font-bold font-mono text-warning">{{ scoreLabel(sorted[0]) }}</p>
         <div class="w-full bg-warning/30 rounded-t-lg h-32 flex items-center justify-center text-2xl font-bold text-warning/60">1</div>
       </div>
 
@@ -32,7 +32,7 @@
       <div v-if="sorted[2]" class="flex flex-col items-center gap-2 flex-1">
         <span class="text-xl">🥉</span>
         <p class="text-sm font-semibold truncate w-full" :class="sorted[2]?.id === currentPlayer.id ? 'text-primary' : ''">{{ sorted[2]?.name }}</p>
-        <p class="text-lg font-bold font-mono">{{ sorted[2]?.score }}</p>
+        <p class="text-lg font-bold font-mono">{{ scoreLabel(sorted[2]) }}</p>
         <div class="w-full bg-base-content/10 rounded-t-lg h-16 flex items-center justify-center text-2xl font-bold text-base-content/30">3</div>
       </div>
 
@@ -48,7 +48,7 @@
       >
         <span class="text-sm text-base-content/40 w-4">{{ i + 4 }}</span>
         <span class="flex-1 text-sm font-medium truncate">{{ p.name }}</span>
-        <span class="font-mono font-bold">{{ p.score }}</span>
+        <span class="font-mono font-bold">{{ scoreLabel(p) }}</span>
       </div>
     </div>
 
@@ -63,9 +63,27 @@ import { useI36n } from '@jota-one/i36n'
 
 const { t } = useI36n()
 
-const props = defineProps<{ players: any[]; currentPlayer: any }>()
+const props = defineProps<{ players: any[]; currentPlayer: any; doneTracks: any[] }>()
+
+const playerRatio = (player: any) => {
+  const guessable = props.doneTracks.filter(t => t.added_by !== player.id).length
+  const guessed = props.doneTracks.filter(t => t.solved_by === player.id).length
+  return { guessed, guessable, ratio: guessable > 0 ? guessed / guessable : 0 }
+}
+
+const scoreLabel = (player: any) => {
+  if (!player) return ''
+  const { guessed, guessable, ratio } = playerRatio(player)
+  if (guessable === 0) return '—'
+  return `${parseFloat((ratio * 100).toFixed(2))}%`
+}
 
 const sorted = computed(() =>
-  [...props.players].sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+  [...props.players].sort((a, b) => {
+    const ra = playerRatio(a)
+    const rb = playerRatio(b)
+    if (rb.ratio !== ra.ratio) return rb.ratio - ra.ratio
+    return rb.guessed - ra.guessed
+  })
 )
 </script>

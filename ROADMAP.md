@@ -8,12 +8,6 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
-- Lorsqu'on fait une recherche et qu'on referme le panel de recherche et qu'on le rouvre ensuite, il faudrait que la précédente recherche (et ses résultats) soient toujours là. En effet, il arrive qu'on soit en train de chercher un morceau à ajouter et soudain on veut deviner le morceau en cours et on doit vite fermer le panel de recherche, buzzer, etc... Puis lorsqu'on revient à notre recherche, on doit tout recommencer.
-- Lorsqu'un joueur buzz et que l'auteur du morceau est en plein recherche, la recherche doit se fermer pour que l'auteur voie qu'il doit gérer un buzz. Cela ne pose pas trop de problème si on gère le point précédent d'abord.
-- Il faut trouver un moyen d'améliorer la visibilité des résultats de recherche en mobile. Pour l'instant on ne voit que les premier caractères de chaque morceau et on doit tjs se mettre en horizontal pour pouvoir lire correctement. Cela fait perdre bcp de temps.
-- Nouveau calcul des scores. Se baser sur le ratio de morceaux devinés par rapport au nombre de morceaux devinables (sachant qu'un morceau qu'on a proposé soi-même n'est pas devinable). Cela permet d'équilibrer les chances pour ceux qui proposent plus ou moins de morceaux.
-- Il faudrait pouvoir ouvrir une modale qui résume les settings de la partie et l'hôte doit pouvoir modifier les settings durant la partie.
-
 ## New Features
 
 ### Mode autonome
@@ -25,6 +19,16 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 
 ## History (done)
+
+- [2026-05-12] In-game settings modal — gear button in header opens session settings for all players; host can edit and save settings live during the game.
+
+- [2026-05-12] Ratio-based scoring — score now shows guessed/guessable tracks as a percentage; tracks added by the player themselves are excluded from their guessable count.
+
+- [2026-05-12] Search result visibility on mobile — track result rows now use a two-line layout so title and artist have full width; action buttons on a dedicated second line.
+
+- [2026-05-12] Auto-close search on incoming buzz — track owner's search panel closes automatically when a buzz arrives.
+
+- [2026-05-12] Preserve search panel state — modal now uses v-show so query and results persist when closed to buzz then reopened.
 
 - [2026-05-12] Buzz & track UX improvements — shuffle own queued tracks in one click; full-screen green overlay when you win the buzz race ("À toi de parler !"); validated buzz shows distinct winner overlay.
 

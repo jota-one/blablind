@@ -27,6 +27,9 @@
         <button v-if="isHost" class="btn btn-xs btn-ghost text-warning" :title="t('room.reset')" @click="showResetModal = true">
           <span class="i-fa6-solid-rotate-left"></span>
         </button>
+        <button class="btn btn-xs btn-ghost text-base-content/40" :title="t('room.settings')" @click="openSettingsModal">
+          <span class="i-fa6-solid-gear"></span>
+        </button>
         <button v-if="isHost" :class="['btn btn-xs btn-ghost', isIrlMode ? 'text-accent' : 'text-base-content/40']" :title="t('room.irl_mode')" @click="toggleIrlMode">
           <span class="i-fa6-solid-people-group"></span>
         </button>
@@ -42,7 +45,7 @@
 
       <!-- Game over -->
       <template v-if="session.status === 'finished'">
-        <GameOver :players="players" :current-player="currentPlayer" />
+        <GameOver :players="players" :current-player="currentPlayer" :done-tracks="doneTracks" />
       </template>
 
       <!-- Left column -->
@@ -413,14 +416,16 @@
               <div class="w-full shrink-0 pt-3">
                 <ul class="space-y-2">
                   <li
-                    v-for="(p, i) in players"
+                    v-for="(p, i) in rankedPlayers"
                     :key="p.id"
                     :class="['flex items-center gap-3 rounded-lg px-3 py-2', p.id === currentPlayer.id ? 'bg-primary/10 border border-primary/30' : 'bg-base-200']"
                   >
                     <span :class="['text-sm font-bold w-5 text-center', i === 0 ? 'text-warning' : 'text-base-content/40']">{{ i + 1 }}</span>
                     <span class="flex-1 text-sm font-medium truncate" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.name }}</span>
                     <span v-if="isIrlMode && p.id === session.dj_player" title="DJ" class="text-base">🎵</span>
-                    <span class="font-mono font-bold text-primary" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.score }}</span>
+                    <span class="font-mono font-bold text-primary tabular-nums" :class="!isOnline(p) ? 'opacity-40' : ''">
+                      {{ playerRatio(p).guessable === 0 ? '—' : `${parseFloat((playerRatio(p).ratio * 100).toFixed(2))}%` }}
+                    </span>
                     <span v-if="!isOnline(p)" class="w-2 h-2 rounded-full bg-base-content/20 shrink-0" :title="t('room.offline')"></span>
                     <span v-else-if="activeBuzz?.player === p.id" class="i-fa-solid-bell text-warning animate-bounce text-xs"></span>
                     <button
@@ -480,6 +485,68 @@
       </div>
     </div>
 
+    <!-- Modale settings -->
+    <div :class="['modal', showSettingsModal ? 'modal-open' : '']">
+      <div class="modal-box max-w-sm">
+        <h3 class="font-bold text-lg mb-4">{{ t('room.settings') }}</h3>
+        <div class="space-y-3 text-sm">
+
+          <div class="flex items-center justify-between gap-4">
+            <span class="text-base-content/70">{{ t('admin.settings_max_buzz_attempts_label') }}</span>
+            <input v-if="isHost" v-model.number="editedSettings.max_buzz_attempts" type="number" min="1" max="20" class="input input-xs w-16 text-right" />
+            <span v-else class="font-mono font-bold">{{ sessionSettings.max_buzz_attempts }}</span>
+          </div>
+
+          <div class="flex items-center justify-between gap-4">
+            <span class="text-base-content/70">{{ t('admin.settings_rebuzz_delay_label') }}</span>
+            <div v-if="isHost" class="flex items-center gap-1">
+              <input v-model.number="editedSettings.rebuzz_delay" type="number" min="0" max="60" class="input input-xs w-16 text-right" />
+              <span class="text-base-content/40 text-xs">{{ t('admin.settings_seconds') }}</span>
+            </div>
+            <span v-else class="font-mono font-bold">{{ sessionSettings.rebuzz_delay }}s</span>
+          </div>
+
+          <div class="flex items-center justify-between gap-4">
+            <span class="text-base-content/70">{{ t('admin.settings_auto_reject_delay_label') }}</span>
+            <div v-if="isHost" class="flex items-center gap-1">
+              <input v-model.number="editedSettings.auto_reject_delay" type="number" min="0" max="60" class="input input-xs w-16 text-right" />
+              <span class="text-base-content/40 text-xs">{{ t('admin.settings_seconds') }}</span>
+            </div>
+            <span v-else class="font-mono font-bold">{{ sessionSettings.auto_reject_delay }}s</span>
+          </div>
+
+          <div class="flex items-center justify-between gap-4">
+            <span class="text-base-content/70">{{ t('admin.settings_continue_after_success_label') }}</span>
+            <input v-if="isHost" v-model="editedSettings.continue_after_success" type="checkbox" class="toggle toggle-sm toggle-primary" />
+            <span v-else class="font-mono font-bold">{{ sessionSettings.continue_after_success ? '✓' : '✗' }}</span>
+          </div>
+
+          <div v-if="(isHost ? editedSettings.continue_after_success : sessionSettings.continue_after_success)" class="flex items-center justify-between gap-4">
+            <span class="text-base-content/70">{{ t('admin.settings_stop_method_label') }}</span>
+            <select v-if="isHost" v-model="editedSettings.stop_method" class="select select-xs">
+              <option value="vote_unanimous">{{ t('admin.settings_stop_method_vote') }}</option>
+              <option value="host_choice">{{ t('admin.settings_stop_method_host') }}</option>
+            </select>
+            <span v-else class="font-mono font-bold text-right max-w-32 leading-tight">
+              {{ sessionSettings.stop_method === 'vote_unanimous' ? t('admin.settings_stop_method_vote') : t('admin.settings_stop_method_host') }}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between gap-4">
+            <span class="text-base-content/70">{{ t('admin.settings_force_equity_label') }}</span>
+            <input v-if="isHost" v-model="editedSettings.force_equity" type="checkbox" class="toggle toggle-sm toggle-primary" />
+            <span v-else class="font-mono font-bold">{{ sessionSettings.force_equity ? '✓' : '✗' }}</span>
+          </div>
+
+        </div>
+        <div class="modal-action">
+          <button class="btn btn-ghost btn-sm" @click="showSettingsModal = false">{{ t('room.reset_cancel') }}</button>
+          <button v-if="isHost" class="btn btn-primary btn-sm" @click="saveSettings">{{ t('room.settings_save') }}</button>
+        </div>
+      </div>
+      <div class="modal-backdrop" @click="showSettingsModal = false"></div>
+    </div>
+
     <!-- Modal réinitialisation -->
     <div :class="['modal', showResetModal ? 'modal-open' : '']">
       <div class="modal-box">
@@ -499,7 +566,7 @@
     </div>
 
     <!-- Modale ajout de morceau (full screen) -->
-    <div v-if="showAddTrackModal" class="fixed inset-0 z-50 bg-base-100 flex flex-col">
+    <div v-show="showAddTrackModal" class="fixed inset-0 z-50 bg-base-100 flex flex-col">
       <header class="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-base-300">
         <h2 class="font-bold text-lg flex-1">{{ t('room.add_modal_title') }}</h2>
         <button class="btn btn-ghost btn-sm" @click="showAddTrackModal = false">
@@ -702,6 +769,12 @@ watch(currentTrack, (newTrack, oldTrack) => {
 
 const buzzedAnimation = ref(false)
 
+watch(activeBuzz, (buzz) => {
+  if (buzz && isCurrentTrackAdmin.value) {
+    showAddTrackModal.value = false
+  }
+})
+
 watch(activeBuzz, (newBuzz) => {
   if (newBuzz && newBuzz.player === props.currentPlayer.id) {
     buzzedAnimation.value = true
@@ -865,6 +938,21 @@ watch(skipVoteArray, async (votes) => {
   }
 })
 
+const playerRatio = (player: any) => {
+  const guessable = doneTracks.value.filter(t => t.added_by !== player.id).length
+  const guessed = doneTracks.value.filter(t => t.solved_by === player.id).length
+  return { guessed, guessable, ratio: guessable > 0 ? guessed / guessable : 0 }
+}
+
+const rankedPlayers = computed(() =>
+  [...players.value].sort((a, b) => {
+    const ra = playerRatio(a)
+    const rb = playerRatio(b)
+    if (rb.ratio !== ra.ratio) return rb.ratio - ra.ratio
+    return rb.guessed - ra.guessed
+  })
+)
+
 const myQueuedTracks = computed(() =>
   queuedTracks.value.filter(t => t.added_by === props.currentPlayer.id)
 )
@@ -1027,6 +1115,19 @@ const resetSession = async () => {
   } finally {
     resetting.value = false
   }
+}
+
+const showSettingsModal = ref(false)
+const editedSettings = ref({ ...sessionSettings.value })
+
+const openSettingsModal = () => {
+  editedSettings.value = { ...sessionSettings.value }
+  showSettingsModal.value = true
+}
+
+const saveSettings = async () => {
+  await pb.collection('sessions').update(props.session.id, { settings: { ...editedSettings.value } })
+  showSettingsModal.value = false
 }
 
 const endSession = () =>
