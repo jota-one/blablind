@@ -99,6 +99,7 @@
   "room.dj_accept": "Accepter",
   "room.dj_reject": "Refuser",
   "room.no_upcoming": "Aucun morceau à venir",
+  "room.delete_track": "Supprimer ce morceau",
   "room.added_by": "Ajouté par {player}",
   "room.my_badge": "moi",
   "room.solved_by": "Trouvé par {player}",

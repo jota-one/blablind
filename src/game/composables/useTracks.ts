@@ -85,6 +85,8 @@ export default function useTracks(sessionId: string) {
     await pb.collection('tracks').update(trackId, { skip_votes: [...current, playerId] })
   }
 
+  const deleteTrack = (trackId: string) => pb.collection('tracks').delete(trackId)
+
   let unsubscribe: (() => void) | undefined
 
   onMounted(async () => {
@@ -107,5 +109,5 @@ export default function useTracks(sessionId: string) {
 
   onUnmounted(() => unsubscribe?.())
 
-  return { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip }
+  return { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip, deleteTrack }
 }

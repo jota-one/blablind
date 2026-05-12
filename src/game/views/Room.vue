@@ -349,6 +349,25 @@
                       <p v-if="isMyTrack(track) && track.expand?.video?.artist" class="text-xs text-base-content/50">{{ track.expand?.video?.artist }}</p>
                       <p v-if="!isMyTrack(track)" class="text-xs text-base-content/40 mt-0.5">{{ t('room.added_by', { player: getPlayerName(track.added_by) }) }}</p>
                     </div>
+                    <template v-if="isMyTrack(track) && track.status === 'queued'">
+                      <button
+                        v-if="confirmDeleteId !== track.id"
+                        class="btn btn-ghost btn-xs text-base-content/30 hover:text-error shrink-0"
+                        :disabled="!canDeleteTrack"
+                        :title="t('room.delete_track')"
+                        @click.stop="requestDeleteTrack(track.id)"
+                      >
+                        <span class="i-fa6-solid-trash"></span>
+                      </button>
+                      <template v-else>
+                        <button class="btn btn-ghost btn-xs text-error shrink-0" @click.stop="confirmDeleteTrack(track.id)">
+                          <span class="i-fa6-solid-check"></span>
+                        </button>
+                        <button class="btn btn-ghost btn-xs text-base-content/30 shrink-0" @click.stop="confirmDeleteId = null">
+                          <span class="i-fa6-solid-xmark"></span>
+                        </button>
+                      </template>
+                    </template>
                   </li>
                 </ul>
                 <p v-else class="text-sm text-center text-base-content/40 py-4">{{ t('room.no_upcoming') }}</p>
@@ -546,7 +565,7 @@ const props = defineProps<{
 
 
 const { players, onlinePlayers } = usePlayers(props.session.id)
-const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip } = useTracks(props.session.id)
+const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip, deleteTrack } = useTracks(props.session.id)
 const trackValidatorId = computed(() => {
   if (!currentTrack.value) return null
   const owner = players.value.find(p => p.id === currentTrack.value.added_by)
@@ -729,6 +748,17 @@ const canAddTrack = computed(() => {
   return myCount <= minOthers
 })
 
+const canDeleteTrack = computed(() => {
+  if (!sessionSettings.value.force_equity) return true
+  const myCount = tracks.value.filter(t => t.added_by === props.currentPlayer.id).length
+  const others = players.value.filter(p => p.id !== props.currentPlayer.id)
+  if (others.length === 0) return true
+  const minOthers = Math.min(...others.map(p =>
+    tracks.value.filter(t => t.added_by === p.id).length
+  ))
+  return myCount >= minOthers
+})
+
 watch(buzzBlockReason, (reason) => {
   if (reason === 'max_attempts' && currentTrack.value && !hasVotedToSkip.value && !isTrackSolvedAndPlaying.value) {
     voteToSkip(currentTrack.value.id, props.currentPlayer.id)
@@ -770,6 +800,12 @@ watch(skipVoteArray, async (votes) => {
 
 const getPlayerName = (playerId: string) => players.value.find(p => p.id === playerId)?.name ?? t('room.unknown_player')
 const isMyTrack = (track: any) => track.added_by === props.currentPlayer.id
+const confirmDeleteId = ref<string | null>(null)
+const requestDeleteTrack = (trackId: string) => { confirmDeleteId.value = trackId }
+const confirmDeleteTrack = async (trackId: string) => {
+  confirmDeleteId.value = null
+  await deleteTrack(trackId)
+}
 
 const trackStatusEmoji = (track: any) => {
   if (track.status === 'playing') return '🎵'
