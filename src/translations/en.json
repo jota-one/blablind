@@ -120,6 +120,8 @@
   "room.reset_modal_text": "All scores will be reset to zero and tracks will play from the beginning, as if the session had just started.",
   "room.reset_cancel": "Cancel",
   "room.reset_confirm": "Reset",
+  "room.settings": "Game settings",
+  "room.settings_save": "Save",
   "room.add_modal_title": "Add a track",
   "room.add_tab_search": "Search",
   "room.add_tab_url": "Single URL",

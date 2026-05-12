@@ -8,8 +8,6 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
-- Il faudrait pouvoir ouvrir une modale qui résume les settings de la partie et l'hôte doit pouvoir modifier les settings durant la partie.
-
 ## New Features
 
 ### Mode autonome
@@ -21,6 +19,8 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 
 ## History (done)
+
+- [2026-05-12] In-game settings modal — gear button in header opens session settings for all players; host can edit and save settings live during the game.
 
 - [2026-05-12] Ratio-based scoring — score now shows guessed/guessable tracks as a percentage; tracks added by the player themselves are excluded from their guessable count.
 

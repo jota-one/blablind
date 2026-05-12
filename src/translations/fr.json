@@ -120,6 +120,8 @@
   "room.reset_modal_text": "Tous les scores seront remis à zéro et les morceaux rejoueront depuis le début, comme si la session venait de commencer.",
   "room.reset_cancel": "Annuler",
   "room.reset_confirm": "Réinitialiser",
+  "room.settings": "Paramètres de la partie",
+  "room.settings_save": "Enregistrer",
   "room.add_modal_title": "Ajouter un morceau",
   "room.add_tab_search": "Recherche",
   "room.add_tab_url": "URL unique",
