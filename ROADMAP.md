@@ -7,8 +7,7 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 ## Improvements & Refactoring
 
 List of small potential improvements and refactors.
-- Un joueur doit pouvoir randomizer l'ordre de ses morceaux en un clic
-- Rendre beaucoup plus évident quand on a gagné un buzz (grosse icône verte! A toi de parler!!)
+
 - Lorsqu'on fait une recherche et qu'on referme le panel de recherche et qu'on le rouvre ensuite, il faudrait que la précédente recherche (et ses résultats) soient toujours là. En effet, il arrive qu'on soit en train de chercher un morceau à ajouter et soudain on veut deviner le morceau en cours et on doit vite fermer le panel de recherche, buzzer, etc... Puis lorsqu'on revient à notre recherche, on doit tout recommencer.
 - Lorsqu'un joueur buzz et que l'auteur du morceau est en plein recherche, la recherche doit se fermer pour que l'auteur voie qu'il doit gérer un buzz. Cela ne pose pas trop de problème si on gère le point précédent d'abord.
 - Il faut trouver un moyen d'améliorer la visibilité des résultats de recherche en mobile. Pour l'instant on ne voit que les premier caractères de chaque morceau et on doit tjs se mettre en horizontal pour pouvoir lire correctement. Cela fait perdre bcp de temps.
@@ -26,6 +25,8 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 
 ## History (done)
+
+- [2026-05-12] Buzz & track UX improvements — shuffle own queued tracks in one click; full-screen green overlay when you win the buzz race ("À toi de parler !"); validated buzz shows distinct winner overlay.
 
 - [2026-05-12] Player track management — players can delete their own queued tracks (two-step confirmation, force_equity compliant); duplicate detection after each track ends prompts the author to keep or remove the copy.
 

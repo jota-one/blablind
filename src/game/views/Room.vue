@@ -445,12 +445,15 @@
       </div>
     </div>
 
+    <SolvedOverlay v-if="buzzedAnimation" type="buzzed" />
+
     <SolvedOverlay
       v-if="animationState"
       :type="animationState.type"
       :player-name="animationState.playerName"
       :title="animationState.title"
       :artist="animationState.artist"
+      :is-winner="animationState.playerId === props.currentPlayer.id"
     />
 
     <!-- Overlay "encore un moment" après une bonne réponse (continue_after_success + vote_unanimous) -->
@@ -638,7 +641,7 @@ const addMode = ref<'search' | 'single'>('search')
 const newTrack = ref({ youtube_url: '', start_seconds: 0, title: '', artist: '' })
 const fetchingMeta = ref(false)
 const audioUnlocked = ref(false)
-const animationState = ref<{ type?: 'solved' | 'skipped'; playerName: string; title: string; artist: string } | null>(null)
+const animationState = ref<{ type?: 'solved' | 'skipped'; playerName: string; playerId?: string; title: string; artist: string } | null>(null)
 const showResetModal = ref(false)
 const showAddTrackModal = ref(false)
 const resetting = ref(false)
@@ -697,12 +700,22 @@ watch(currentTrack, (newTrack, oldTrack) => {
   }, 3500)
 })
 
+const buzzedAnimation = ref(false)
+
+watch(activeBuzz, (newBuzz) => {
+  if (newBuzz && newBuzz.player === props.currentPlayer.id) {
+    buzzedAnimation.value = true
+    setTimeout(() => { buzzedAnimation.value = false }, 2000)
+  }
+})
+
 watch(solvedBuzz, (buzz) => {
   if (!buzz) return
   const track = tracks.value.find((t: any) => t.id === buzz.track)
   const player = players.value.find((p: any) => p.id === buzz.player)
   animationState.value = {
     playerName: player?.name ?? t('room.unknown_player'),
+    playerId: buzz.player,
     title: track?.expand?.video?.title ?? '',
     artist: track?.expand?.video?.artist ?? '',
   }
