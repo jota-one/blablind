@@ -7,8 +7,6 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 ## Improvements & Refactoring
 
 List of small potential improvements and refactors.
-- Pouvoir supprimer certaines de ses propres chanson pendant le jeu
-- Après chaque morceau, vérifier si des doublons existent dans la session. Si oui, les supprimer et prévenir leur auteur respectif (via une petite notif).
 - Un joueur doit pouvoir randomizer l'ordre de ses morceaux en un clic
 - Rendre beaucoup plus évident quand on a gagné un buzz (grosse icône verte! A toi de parler!!)
 - Lorsqu'on fait une recherche et qu'on referme le panel de recherche et qu'on le rouvre ensuite, il faudrait que la précédente recherche (et ses résultats) soient toujours là. En effet, il arrive qu'on soit en train de chercher un morceau à ajouter et soudain on veut deviner le morceau en cours et on doit vite fermer le panel de recherche, buzzer, etc... Puis lorsqu'on revient à notre recherche, on doit tout recommencer.
@@ -28,6 +26,8 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 
 ## History (done)
+
+- [2026-05-12] Player track management — players can delete their own queued tracks (two-step confirmation, force_equity compliant); duplicate detection after each track ends prompts the author to keep or remove the copy.
 
 - [2026-05-12] Player reconnection & session history — players are linked to their auth account via auth_user; reconnecting restores the existing player record even without localStorage; profile "My Blindtests" now shows sessions the user joined (not only owned ones); host auto-reassigned when the current host goes offline.
 

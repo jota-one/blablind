@@ -535,6 +535,18 @@
       </div>
     </div>
   </div>
+
+  <!-- Modale doublon -->
+  <div v-if="myDuplicateTrack" class="modal modal-open">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">{{ t('room.duplicate_title') }}</h3>
+      <p class="py-3 text-sm">{{ t('room.duplicate_body', { title: myDuplicateTrack.expand?.video?.title ?? t('room.no_title') }) }}</p>
+      <div class="modal-action">
+        <button class="btn btn-ghost" @click="dismissDuplicate(true)">{{ t('room.duplicate_keep') }}</button>
+        <button class="btn btn-error" @click="dismissDuplicate(false)">{{ t('room.duplicate_delete') }}</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -565,7 +577,24 @@ const props = defineProps<{
 
 
 const { players, onlinePlayers } = usePlayers(props.session.id)
+const manuallyDeletingIds = new Set<string>()
+
 const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip, deleteTrack } = useTracks(props.session.id)
+
+const myDuplicateTrack = computed(() =>
+  tracks.value.find(t => t.is_duplicate && t.added_by === props.currentPlayer.id) ?? null
+)
+
+const dismissDuplicate = (keep: boolean) => {
+  if (!myDuplicateTrack.value) return
+  if (keep) {
+    acknowledgedDuplicateIds.add(myDuplicateTrack.value.id)
+    pb.collection('tracks').update(myDuplicateTrack.value.id, { is_duplicate: false })
+  } else {
+    manuallyDeletingIds.add(myDuplicateTrack.value.id)
+    deleteTrack(myDuplicateTrack.value.id)
+  }
+}
 const trackValidatorId = computed(() => {
   if (!currentTrack.value) return null
   const owner = players.value.find(p => p.id === currentTrack.value.added_by)
@@ -641,6 +670,25 @@ const tabsTransform = computed(() => {
     return `translateX(calc(${base}% + ${drag}px))`
   }
   return `translateX(${base}%)`
+})
+
+let duplicateCheckTimeout: ReturnType<typeof setTimeout> | null = null
+const acknowledgedDuplicateIds = new Set<string>()
+
+watch(currentTrack, (newTrack, oldTrack) => {
+  if (!isHost.value) return
+  if (!oldTrack) return
+  if (newTrack?.id === oldTrack.id) return
+  if (duplicateCheckTimeout) clearTimeout(duplicateCheckTimeout)
+  duplicateCheckTimeout = setTimeout(async () => {
+    const videoId: string = oldTrack.video
+    const dupes = queuedTracks.value.filter(
+      t => t.video === videoId && !t.is_duplicate && !acknowledgedDuplicateIds.has(t.id)
+    )
+    for (const dupe of dupes) {
+      await pb.collection('tracks').update(dupe.id, { is_duplicate: true })
+    }
+  }, 3500)
 })
 
 watch(solvedBuzz, (buzz) => {
@@ -803,6 +851,7 @@ const isMyTrack = (track: any) => track.added_by === props.currentPlayer.id
 const confirmDeleteId = ref<string | null>(null)
 const requestDeleteTrack = (trackId: string) => { confirmDeleteId.value = trackId }
 const confirmDeleteTrack = async (trackId: string) => {
+  manuallyDeletingIds.add(trackId)
   confirmDeleteId.value = null
   await deleteTrack(trackId)
 }
@@ -1020,5 +1069,6 @@ onUnmounted(() => {
   sortableInstance?.destroy()
   if (autoRejectTimer) { clearTimeout(autoRejectTimer) }
   if (autoRejectClock) { clearInterval(autoRejectClock) }
+  if (duplicateCheckTimeout) { clearTimeout(duplicateCheckTimeout) }
 })
 </script>
