@@ -321,6 +321,12 @@
 
               <!-- À venir -->
               <div class="w-full shrink-0 pt-3 space-y-3">
+                <div v-if="myQueuedTracks.length >= 2" class="flex justify-end">
+                  <button class="btn btn-xs btn-ghost text-base-content/50" @click="shuffleMyTracks">
+                    <span class="i-fa6-solid-shuffle"></span>
+                    {{ t('room.shuffle_my_tracks') }}
+                  </button>
+                </div>
                 <ul v-if="upcomingTracks.length > 0" class="space-y-1" ref="trackList">
                   <li
                     v-for="track in upcomingTracks"
@@ -846,6 +852,23 @@ watch(skipVoteArray, async (votes) => {
   }
 })
 
+const myQueuedTracks = computed(() =>
+  queuedTracks.value.filter(t => t.added_by === props.currentPlayer.id)
+)
+
+const shuffleMyTracks = async () => {
+  const my = myQueuedTracks.value
+  if (my.length < 2) return
+  const orders = my.map(t => t.order)
+  for (let i = orders.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [orders[i], orders[j]] = [orders[j], orders[i]]
+  }
+  await Promise.all(my.map((track, i) =>
+    pb.collection('tracks').update(track.id, { order: orders[i] }, { requestKey: null })
+  ))
+}
+
 const getPlayerName = (playerId: string) => players.value.find(p => p.id === playerId)?.name ?? t('room.unknown_player')
 const isMyTrack = (track: any) => track.added_by === props.currentPlayer.id
 const confirmDeleteId = ref<string | null>(null)
@@ -969,6 +992,8 @@ const rejectDJ = () =>
 
 const resetSession = async () => {
   resetting.value = true
+  if (duplicateCheckTimeout) { clearTimeout(duplicateCheckTimeout); duplicateCheckTimeout = null }
+  acknowledgedDuplicateIds.clear()
   try {
     const allBuzzes = await pb.collection('buzzes').getFullList({
       filter: tracks.value.map(t => `track="${t.id}"`).join(' || '),
@@ -977,7 +1002,7 @@ const resetSession = async () => {
     const allOps: Array<(b: ReturnType<typeof pb.createBatch>) => void> = [
       ...allBuzzes.map(buzz => (b: ReturnType<typeof pb.createBatch>) => b.collection('buzzes').delete(buzz.id)),
       ...players.value.map(p => (b: ReturnType<typeof pb.createBatch>) => b.collection('players').update(p.id, { score: 0 })),
-      ...tracks.value.map(t => (b: ReturnType<typeof pb.createBatch>) => b.collection('tracks').update(t.id, { status: 'queued', solved_by: null, skip_votes: [] })),
+      ...tracks.value.map(t => (b: ReturnType<typeof pb.createBatch>) => b.collection('tracks').update(t.id, { status: 'queued', solved_by: null, skip_votes: [], is_duplicate: false })),
       (b: ReturnType<typeof pb.createBatch>) => b.collection('sessions').update(props.session.id, { status: 'waiting' }),
     ]
     for (let i = 0; i < allOps.length; i += 45) {

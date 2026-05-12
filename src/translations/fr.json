@@ -100,6 +100,7 @@
   "room.dj_reject": "Refuser",
   "room.no_upcoming": "Aucun morceau à venir",
   "room.delete_track": "Supprimer ce morceau",
+  "room.shuffle_my_tracks": "Mélanger mes morceaux",
   "room.duplicate_title": "Doublon détecté",
   "room.duplicate_body": "Ton morceau « {title} » est déjà présent dans la session. Tu peux le supprimer ou le garder.",
   "room.duplicate_keep": "Garder",
