@@ -151,6 +151,8 @@
   "search.youtube_error": "YouTube search is temporarily unavailable",
 
   "track.start_title": "Start (seconds)",
+  "track.add": "Add",
+  "track.added": "Added",
 
   "login.title": "Login",
   "login.email_label": "Email",

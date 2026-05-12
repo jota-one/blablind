@@ -1,41 +1,46 @@
 <template>
-  <div class="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-base-300 transition-colors">
+  <div class="flex gap-2 rounded-lg px-2 py-2 hover:bg-base-300 transition-colors">
     <img
       :src="`https://img.youtube.com/vi/${video.videoId}/default.jpg`"
-      class="w-12 h-9 object-cover rounded shrink-0 bg-base-300"
+      class="w-12 h-12 object-cover rounded shrink-0 bg-base-300 self-center"
       loading="lazy"
     />
-    <div class="flex-1 min-w-0">
-      <p class="text-sm font-medium truncate">{{ video.title }}</p>
-      <p class="text-xs text-base-content/50 truncate">
-        <span v-if="video.artist">{{ video.artist }}</span>
-        <span v-if="video.artist && video.duration"> · </span>
-        <span v-if="video.duration">{{ formatDuration(video.duration) }}</span>
-      </p>
+    <div class="flex-1 min-w-0 flex flex-col gap-1.5">
+      <div class="min-w-0">
+        <p class="text-sm font-medium truncate">{{ video.title }}</p>
+        <p class="text-xs text-base-content/50 truncate">
+          <span v-if="video.artist">{{ video.artist }}</span>
+          <span v-if="video.artist && video.duration"> · </span>
+          <span v-if="video.duration">{{ formatDuration(video.duration) }}</span>
+        </p>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <input
+          v-model.number="startSeconds"
+          type="number"
+          min="0"
+          placeholder="0s"
+          class="input input-xs w-16 text-center shrink-0"
+          :title="t('track.start_title')"
+        />
+        <button
+          class="btn btn-xs btn-ghost shrink-0"
+          :class="previewing ? 'text-error' : 'text-base-content/50'"
+          @click="$emit('preview', video, startSeconds)"
+        >
+          <span :class="previewing ? 'i-fa-solid-stop' : 'i-fa-solid-play'"></span>
+        </button>
+        <button
+          class="btn btn-xs shrink-0"
+          :class="added ? 'btn-success btn-outline' : 'btn-primary'"
+          :disabled="added || disabled"
+          @click="$emit('add', video, startSeconds)"
+        >
+          <span :class="added ? 'i-fa-solid-check' : 'i-fa-solid-plus'"></span>
+          <span>{{ added ? t('track.added') : t('track.add') }}</span>
+        </button>
+      </div>
     </div>
-    <input
-      v-model.number="startSeconds"
-      type="number"
-      min="0"
-      placeholder="0s"
-      class="input input-xs w-16 text-center shrink-0"
-      :title="t('track.start_title')"
-    />
-    <button
-      class="btn btn-xs btn-ghost shrink-0"
-      :class="previewing ? 'text-error' : 'text-base-content/50'"
-      @click="$emit('preview', video, startSeconds)"
-    >
-      <span :class="previewing ? 'i-fa-solid-stop' : 'i-fa-solid-play'"></span>
-    </button>
-    <button
-      class="btn btn-xs shrink-0"
-      :class="added ? 'btn-success btn-outline' : 'btn-primary'"
-      :disabled="added || disabled"
-      @click="$emit('add', video, startSeconds)"
-    >
-      <span :class="added ? 'i-fa-solid-check' : 'i-fa-solid-plus'"></span>
-    </button>
   </div>
 </template>
 

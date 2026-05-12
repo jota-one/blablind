@@ -151,6 +151,8 @@
   "search.youtube_error": "La recherche sur YouTube est momentanément impossible",
 
   "track.start_title": "Départ (secondes)",
+  "track.add": "Ajouter",
+  "track.added": "Ajouté",
 
   "login.title": "Connexion",
   "login.email_label": "Email",
