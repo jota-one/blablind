@@ -42,7 +42,7 @@
 
       <!-- Game over -->
       <template v-if="session.status === 'finished'">
-        <GameOver :players="players" :current-player="currentPlayer" />
+        <GameOver :players="players" :current-player="currentPlayer" :done-tracks="doneTracks" />
       </template>
 
       <!-- Left column -->
@@ -413,14 +413,16 @@
               <div class="w-full shrink-0 pt-3">
                 <ul class="space-y-2">
                   <li
-                    v-for="(p, i) in players"
+                    v-for="(p, i) in rankedPlayers"
                     :key="p.id"
                     :class="['flex items-center gap-3 rounded-lg px-3 py-2', p.id === currentPlayer.id ? 'bg-primary/10 border border-primary/30' : 'bg-base-200']"
                   >
                     <span :class="['text-sm font-bold w-5 text-center', i === 0 ? 'text-warning' : 'text-base-content/40']">{{ i + 1 }}</span>
                     <span class="flex-1 text-sm font-medium truncate" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.name }}</span>
                     <span v-if="isIrlMode && p.id === session.dj_player" title="DJ" class="text-base">🎵</span>
-                    <span class="font-mono font-bold text-primary" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.score }}</span>
+                    <span class="font-mono font-bold text-primary tabular-nums" :class="!isOnline(p) ? 'opacity-40' : ''">
+                      {{ playerRatio(p).guessable === 0 ? '—' : `${parseFloat((playerRatio(p).ratio * 100).toFixed(2))}%` }}
+                    </span>
                     <span v-if="!isOnline(p)" class="w-2 h-2 rounded-full bg-base-content/20 shrink-0" :title="t('room.offline')"></span>
                     <span v-else-if="activeBuzz?.player === p.id" class="i-fa-solid-bell text-warning animate-bounce text-xs"></span>
                     <button
@@ -870,6 +872,21 @@ watch(skipVoteArray, async (votes) => {
     }, 3000)
   }
 })
+
+const playerRatio = (player: any) => {
+  const guessable = doneTracks.value.filter(t => t.added_by !== player.id).length
+  const guessed = doneTracks.value.filter(t => t.solved_by === player.id).length
+  return { guessed, guessable, ratio: guessable > 0 ? guessed / guessable : 0 }
+}
+
+const rankedPlayers = computed(() =>
+  [...players.value].sort((a, b) => {
+    const ra = playerRatio(a)
+    const rb = playerRatio(b)
+    if (rb.ratio !== ra.ratio) return rb.ratio - ra.ratio
+    return rb.guessed - ra.guessed
+  })
+)
 
 const myQueuedTracks = computed(() =>
   queuedTracks.value.filter(t => t.added_by === props.currentPlayer.id)

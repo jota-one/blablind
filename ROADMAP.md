@@ -8,7 +8,6 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
-- Nouveau calcul des scores. Se baser sur le ratio de morceaux devinés par rapport au nombre de morceaux devinables (sachant qu'un morceau qu'on a proposé soi-même n'est pas devinable). Cela permet d'équilibrer les chances pour ceux qui proposent plus ou moins de morceaux.
 - Il faudrait pouvoir ouvrir une modale qui résume les settings de la partie et l'hôte doit pouvoir modifier les settings durant la partie.
 
 ## New Features
@@ -22,6 +21,8 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 
 ## History (done)
+
+- [2026-05-12] Ratio-based scoring — score now shows guessed/guessable tracks as a percentage; tracks added by the player themselves are excluded from their guessable count.
 
 - [2026-05-12] Search result visibility on mobile — track result rows now use a two-line layout so title and artist have full width; action buttons on a dedicated second line.
 
