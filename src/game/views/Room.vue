@@ -49,7 +49,7 @@
       <div v-else class="flex flex-col gap-4 p-4 min-w-0">
 
         <!-- Conteneur principal : aspect-video seulement quand une vidéo est active -->
-        <div :class="['rounded-xl overflow-hidden', videoId ? ('relative ' + (isCurrentTrackAdmin ? 'aspect-video' : 'h-20')) : '']">
+        <div :class="['rounded-xl overflow-hidden', videoId ? ('relative ' + (isCurrentTrackAdmin ? 'aspect-video lg:max-h-56' : 'h-20')) : '']">
 
           <!-- Layer 1 : player toujours monté (invisible hors vidéo) -->
           <div class="absolute inset-0" :class="{'opacity-0 pointer-events-none': audioUnlocked || !videoId}">
@@ -97,7 +97,10 @@
               {{ t('room.in_pause') }}
             </p>
             <template v-else>
-              <p :class="['text-base-content/40', isCurrentTrackAdmin ? 'text-xs' : 'text-xs']">{{ t('room.playing') }}</p>
+              <p v-if="isTrackSolvedAndPlaying" :class="['text-success font-semibold', isCurrentTrackAdmin ? 'text-xs' : 'text-xs']">
+                🏆 {{ t('room.solved_by', { player: getPlayerName(currentTrack.solved_by) }) }}
+              </p>
+              <p v-else :class="['text-base-content/40', isCurrentTrackAdmin ? 'text-xs' : 'text-xs']">{{ t('room.playing') }}</p>
               <p v-if="isIrlMode && !isDJ && djPlayer" class="text-xs text-base-content/50">
                 {{ t('room.irl_music_on', { player: djPlayer.name }) }}
               </p>
@@ -149,14 +152,17 @@
                   {{ t('room.play_next') }}
                 </button>
                 <p v-else class="text-sm text-base-content/40">{{ t('room.add_tracks_hint') }}</p>
+                <button class="btn btn-sm btn-ghost text-base-content/40" @click="endSession">
+                  {{ t('room.end_game') }}
+                </button>
               </template>
             </template>
           </template>
           </div><!-- /Layer 3 -->
         </div><!-- /aspect-video container -->
 
-        <!-- Buzz zone (seulement pour les non-admin du morceau) -->
-        <div v-if="currentTrack && !isCurrentTrackAdmin" class="w-full">
+        <!-- Buzz zone (seulement pour les non-admin du morceau, et si non résolu) -->
+        <div v-if="currentTrack && !isCurrentTrackAdmin && !isTrackSolvedAndPlaying" class="w-full">
           <div v-if="activeBuzz && activeBuzz.player === currentPlayer.id" class="alert alert-info">
             <span class="i-fa-solid-bell text-xl"></span>
             <div>
@@ -188,17 +194,23 @@
                 <button class="btn btn-ghost" @click="buzzing = false">{{ t('room.buzz_cancel') }}</button>
               </div>
             </div>
-            <button
-              v-else-if="canBuzz"
-              class="btn btn-error w-full h-20 text-2xl font-bold shadow-lg hover:scale-[1.02] transition-transform"
-              @click="isIrlMode ? submitBuzz() : (buzzing = true)"
-            >
-              <span class="i-fa-solid-bell text-3xl"></span>
-              {{ t('room.buzz_button') }}
-            </button>
+            <template v-else-if="canBuzz">
+              <button
+                class="btn btn-error w-full h-20 text-2xl font-bold shadow-lg hover:scale-[1.02] transition-transform"
+                @click="isIrlMode ? submitBuzz() : (buzzing = true)"
+              >
+                <span class="i-fa-solid-bell text-3xl"></span>
+                {{ t('room.buzz_button') }}
+              </button>
+              <p v-if="remainingAttempts <= 2" class="text-xs text-warning text-center mt-1">
+                {{ t('room.buzz_attempts_remaining', { n: remainingAttempts }) }}
+              </p>
+            </template>
             <div v-else class="alert alert-warning alert-soft">
               <span class="i-fa-solid-ban"></span>
-              {{ t('room.buzz_wait') }}
+              <template v-if="buzzBlockReason === 'max_attempts'">{{ t('room.buzz_wait_max') }}</template>
+              <template v-else-if="buzzBlockReason === 'delay'">{{ t('room.buzz_wait_delay', { s: rebuzzRemainingSeconds }) }}</template>
+              <template v-else>{{ t('room.buzz_wait') }}</template>
             </div>
           </template>
         </div>
@@ -208,6 +220,9 @@
           <p class="font-bold flex items-center gap-2">
             <span class="i-fa-solid-bell text-warning animate-bounce"></span>
             {{ t('room.validate_buzz', { player: getPlayerName(activeBuzz.player) }) }}
+          </p>
+          <p v-if="sessionSettings.auto_reject_delay > 0 && autoRejectRemainingSeconds > 0" class="text-xs text-base-content/40 text-center tabular-nums">
+            {{ t('room.auto_reject_countdown', { s: autoRejectRemainingSeconds }) }}
           </p>
           <p v-if="!isIrlMode" class="text-lg">
             <span class="font-mono bg-base-300 px-3 py-1 rounded">{{ activeBuzz.answer }}</span>
@@ -224,13 +239,28 @@
           </div>
         </div>
 
-        <!-- Actions sous le BUZZ : ajouter + passer -->
+        <!-- Actions sous le BUZZ : ajouter + passer/arrêter -->
         <div v-if="session.status !== 'finished'" class="flex items-center gap-2">
-          <button class="btn btn-sm btn-ghost flex-1 border border-base-300" @click="showAddTrackModal = true">
+          <button
+            class="btn btn-sm btn-ghost flex-1 border border-base-300"
+            :disabled="!canAddTrack"
+            :title="!canAddTrack ? t('room.track_equity_limit') : undefined"
+            @click="showAddTrackModal = true"
+          >
             <span class="i-fa-solid-plus"></span>
             {{ t('room.add_track_button') }}
           </button>
-          <template v-if="currentTrack && !isCurrentTrackAdmin">
+          <!-- host_choice : bouton "suivant" pour l'host quand morceau résolu -->
+          <button
+            v-if="isTrackSolvedAndPlaying && sessionSettings.stop_method === 'host_choice' && isHost"
+            class="btn btn-sm btn-primary shrink-0"
+            @click="stopCurrentTrack"
+          >
+            <span class="i-fa-solid-forward-step"></span>
+            {{ t('room.play_next') }}
+          </button>
+          <!-- vote_unanimous : bouton stop/skip — non-admin pour skip uniquement -->
+          <template v-else-if="currentTrack && activeBuzz?.player !== currentPlayer.id && !isTrackSolvedAndPlaying && !isCurrentTrackAdmin">
             <button v-if="!hasVotedToSkip" class="btn btn-sm btn-neutral shrink-0" @click="voteToSkip(currentTrack.id, currentPlayer.id)">
               <span class="i-fa-solid-forward-step"></span>
               {{ t('room.skip_button', { votes: skipVoteCount, needed: skipVotesNeeded }) }}
@@ -291,6 +321,12 @@
 
               <!-- À venir -->
               <div class="w-full shrink-0 pt-3 space-y-3">
+                <div v-if="myQueuedTracks.length >= 2" class="flex justify-end">
+                  <button class="btn btn-xs btn-ghost text-base-content/50" @click="shuffleMyTracks">
+                    <span class="i-fa6-solid-shuffle"></span>
+                    {{ t('room.shuffle_my_tracks') }}
+                  </button>
+                </div>
                 <ul v-if="upcomingTracks.length > 0" class="space-y-1" ref="trackList">
                   <li
                     v-for="track in upcomingTracks"
@@ -319,6 +355,25 @@
                       <p v-if="isMyTrack(track) && track.expand?.video?.artist" class="text-xs text-base-content/50">{{ track.expand?.video?.artist }}</p>
                       <p v-if="!isMyTrack(track)" class="text-xs text-base-content/40 mt-0.5">{{ t('room.added_by', { player: getPlayerName(track.added_by) }) }}</p>
                     </div>
+                    <template v-if="isMyTrack(track) && track.status === 'queued'">
+                      <button
+                        v-if="confirmDeleteId !== track.id"
+                        class="btn btn-ghost btn-xs text-base-content/30 hover:text-error shrink-0"
+                        :disabled="!canDeleteTrack"
+                        :title="t('room.delete_track')"
+                        @click.stop="requestDeleteTrack(track.id)"
+                      >
+                        <span class="i-fa6-solid-trash"></span>
+                      </button>
+                      <template v-else>
+                        <button class="btn btn-ghost btn-xs text-error shrink-0" @click.stop="confirmDeleteTrack(track.id)">
+                          <span class="i-fa6-solid-check"></span>
+                        </button>
+                        <button class="btn btn-ghost btn-xs text-base-content/30 shrink-0" @click.stop="confirmDeleteId = null">
+                          <span class="i-fa6-solid-xmark"></span>
+                        </button>
+                      </template>
+                    </template>
                   </li>
                 </ul>
                 <p v-else class="text-sm text-center text-base-content/40 py-4">{{ t('room.no_upcoming') }}</p>
@@ -390,13 +445,40 @@
       </div>
     </div>
 
+    <SolvedOverlay v-if="buzzedAnimation" type="buzzed" />
+
     <SolvedOverlay
       v-if="animationState"
       :type="animationState.type"
       :player-name="animationState.playerName"
       :title="animationState.title"
       :artist="animationState.artist"
+      :is-winner="animationState.playerId === props.currentPlayer.id"
     />
+
+    <!-- Overlay "encore un moment" après une bonne réponse (continue_after_success + vote_unanimous) -->
+    <div
+      v-if="isTrackSolvedAndPlaying && !animationState && sessionSettings.stop_method === 'vote_unanimous'"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+    >
+      <div class="bg-base-100 rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl text-center max-w-xs mx-4">
+        <span class="i-fa6-solid-music text-primary text-6xl"></span>
+        <div class="space-y-1">
+          <p class="text-lg font-bold font-display">{{ currentTrack?.expand?.video?.title }}</p>
+          <p class="text-sm text-base-content/60">{{ currentTrack?.expand?.video?.artist }}</p>
+        </div>
+        <p class="text-base-content/70 text-sm">{{ t('room.still_playing_question') }}</p>
+        <button
+          v-if="!hasVotedToSkip"
+          class="btn btn-primary w-full"
+          @click="voteToSkip(currentTrack.id, currentPlayer.id)"
+        >
+          {{ t('room.still_playing_stop') }}
+        </button>
+        <p v-else class="text-sm text-success font-medium">{{ t('room.still_playing_voted') }}</p>
+        <p class="text-xs text-base-content/40">{{ t('room.still_playing_votes', { votes: skipVoteCount, needed: skipVotesNeeded }) }}</p>
+      </div>
+    </div>
 
     <!-- Modal réinitialisation -->
     <div :class="['modal', showResetModal ? 'modal-open' : '']">
@@ -425,6 +507,10 @@
         </button>
       </header>
       <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div v-if="!canAddTrack" class="alert alert-warning py-2 text-sm">
+          <span class="i-fa6-solid-scale-balanced shrink-0"></span>
+          {{ t('room.track_equity_limit') }}
+        </div>
         <div class="tabs tabs-bordered">
           <button :class="['tab', addMode === 'search' ? 'tab-active' : '']" @click="addMode = 'search'">
             <span class="i-fa-solid-magnifying-glass mr-1"></span>
@@ -433,12 +519,8 @@
           <button :class="['tab', addMode === 'single' ? 'tab-active' : '']" @click="addMode = 'single'">
             {{ t('room.add_tab_url') }}
           </button>
-          <button :class="['tab', addMode === 'playlist' ? 'tab-active' : '']" @click="addMode = 'playlist'">
-            <span class="i-fa-solid-list mr-1"></span>
-            {{ t('room.add_tab_playlist') }}
-          </button>
         </div>
-        <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromPlaylist" />
+        <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromSearch" :can-add-track="canAddTrack" />
         <template v-else-if="addMode === 'single'">
           <input v-model="newTrack.youtube_url" type="url" :placeholder="t('room.url_placeholder')" class="input input-bordered w-full" />
           <div class="flex flex-col gap-2">
@@ -454,12 +536,23 @@
               <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
             </div>
           </div>
-          <button class="btn btn-primary w-full" :disabled="!newTrack.youtube_url.trim() || addingTrack" @click="handleAddTrack">
+          <button class="btn btn-primary w-full" :disabled="!newTrack.youtube_url.trim() || addingTrack || !canAddTrack" @click="handleAddTrack">
             <span v-if="addingTrack" class="loading loading-spinner loading-sm"></span>
             {{ t('room.add_button') }}
           </button>
         </template>
-        <PlaylistImport v-else :add-track="addTrackFromPlaylist" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale doublon -->
+  <div v-if="myDuplicateTrack" class="modal modal-open">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">{{ t('room.duplicate_title') }}</h3>
+      <p class="py-3 text-sm">{{ t('room.duplicate_body', { title: myDuplicateTrack.expand?.video?.title ?? t('room.no_title') }) }}</p>
+      <div class="modal-action">
+        <button class="btn btn-ghost" @click="dismissDuplicate(true)">{{ t('room.duplicate_keep') }}</button>
+        <button class="btn btn-error" @click="dismissDuplicate(false)">{{ t('room.duplicate_delete') }}</button>
       </div>
     </div>
   </div>
@@ -474,7 +567,6 @@ import usePlayers from '@game/composables/usePlayers'
 import useTracks from '@game/composables/useTracks'
 import useBuzzes from '@game/composables/useBuzzes'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
-import PlaylistImport from '@game/components/PlaylistImport.vue'
 import TrackSearch from '@game/components/TrackSearch.vue'
 import ShareQR from '@game/components/ShareQR.vue'
 import GameOver from '@game/components/GameOver.vue'
@@ -494,7 +586,24 @@ const props = defineProps<{
 
 
 const { players, onlinePlayers } = usePlayers(props.session.id)
-const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip } = useTracks(props.session.id)
+const manuallyDeletingIds = new Set<string>()
+
+const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip, deleteTrack } = useTracks(props.session.id)
+
+const myDuplicateTrack = computed(() =>
+  tracks.value.find(t => t.is_duplicate && t.added_by === props.currentPlayer.id) ?? null
+)
+
+const dismissDuplicate = (keep: boolean) => {
+  if (!myDuplicateTrack.value) return
+  if (keep) {
+    acknowledgedDuplicateIds.add(myDuplicateTrack.value.id)
+    pb.collection('tracks').update(myDuplicateTrack.value.id, { is_duplicate: false })
+  } else {
+    manuallyDeletingIds.add(myDuplicateTrack.value.id)
+    deleteTrack(myDuplicateTrack.value.id)
+  }
+}
 const trackValidatorId = computed(() => {
   if (!currentTrack.value) return null
   const owner = players.value.find(p => p.id === currentTrack.value.added_by)
@@ -506,21 +615,33 @@ const otherEligibleCount = computed(() =>
     p.id !== props.currentPlayer.id && p.id !== trackValidatorId.value
   ).length
 )
-const { activeBuzz, canBuzz, buzz, solvedBuzz } = useBuzzes(
+const sessionSettings = computed(() => {
+  const s = (props.session.settings ?? {}) as Record<string, any>
+  return {
+    max_buzz_attempts: s.max_buzz_attempts ?? 5,
+    rebuzz_delay: s.rebuzz_delay ?? 5,
+    auto_reject_delay: s.auto_reject_delay ?? 8,
+    continue_after_success: s.continue_after_success ?? true,
+    stop_method: (s.stop_method ?? 'vote_unanimous') as 'vote_unanimous' | 'host_choice',
+    force_equity: s.force_equity ?? false,
+  }
+})
+const { activeBuzz, canBuzz, buzzBlockReason, rebuzzRemainingSeconds, remainingAttempts, buzz, solvedBuzz } = useBuzzes(
   computed(() => currentTrack.value?.id),
   props.currentPlayer.id,
   otherEligibleCount,
+  sessionSettings,
 )
 
 // UI state
 const buzzing = ref(false)
 const answer = ref('')
 const addingTrack = ref(false)
-const addMode = ref<'search' | 'single' | 'playlist'>('search')
+const addMode = ref<'search' | 'single'>('search')
 const newTrack = ref({ youtube_url: '', start_seconds: 0, title: '', artist: '' })
 const fetchingMeta = ref(false)
 const audioUnlocked = ref(false)
-const animationState = ref<{ type?: 'solved' | 'skipped'; playerName: string; title: string; artist: string } | null>(null)
+const animationState = ref<{ type?: 'solved' | 'skipped'; playerName: string; playerId?: string; title: string; artist: string } | null>(null)
 const showResetModal = ref(false)
 const showAddTrackModal = ref(false)
 const resetting = ref(false)
@@ -560,12 +681,41 @@ const tabsTransform = computed(() => {
   return `translateX(${base}%)`
 })
 
+let duplicateCheckTimeout: ReturnType<typeof setTimeout> | null = null
+const acknowledgedDuplicateIds = new Set<string>()
+
+watch(currentTrack, (newTrack, oldTrack) => {
+  if (!isHost.value) return
+  if (!oldTrack) return
+  if (newTrack?.id === oldTrack.id) return
+  if (duplicateCheckTimeout) clearTimeout(duplicateCheckTimeout)
+  duplicateCheckTimeout = setTimeout(async () => {
+    const videoId: string = oldTrack.video
+    const dupes = queuedTracks.value.filter(
+      t => t.video === videoId && !t.is_duplicate && !acknowledgedDuplicateIds.has(t.id)
+    )
+    for (const dupe of dupes) {
+      await pb.collection('tracks').update(dupe.id, { is_duplicate: true })
+    }
+  }, 3500)
+})
+
+const buzzedAnimation = ref(false)
+
+watch(activeBuzz, (newBuzz) => {
+  if (newBuzz && newBuzz.player === props.currentPlayer.id) {
+    buzzedAnimation.value = true
+    setTimeout(() => { buzzedAnimation.value = false }, 2000)
+  }
+})
+
 watch(solvedBuzz, (buzz) => {
   if (!buzz) return
   const track = tracks.value.find((t: any) => t.id === buzz.track)
   const player = players.value.find((p: any) => p.id === buzz.player)
   animationState.value = {
     playerName: player?.name ?? t('room.unknown_player'),
+    playerId: buzz.player,
     title: track?.expand?.video?.title ?? '',
     artist: track?.expand?.video?.artist ?? '',
   }
@@ -610,6 +760,21 @@ const sessionStatusLabel = computed(
   })[props.session.status as string] ?? props.session.status,
 )
 const isHost = computed(() => props.session.host === props.currentPlayer.id)
+
+watch(
+  [() => props.session.host, onlinePlayers],
+  ([hostId, online]) => {
+    if (online.length === 0) return
+    const hostOnline = !!hostId && online.some(p => p.id === hostId)
+    if (hostOnline) return
+    const elected = [...online].sort((a, b) => a.created.localeCompare(b.created))[0]
+    if (elected.id === props.currentPlayer.id) {
+      pb.collection('sessions').update(props.session.id, { host: elected.id })
+    }
+  },
+  { immediate: true },
+)
+
 const canClaim = computed(() => isHost.value && isAuthenticated.value && user.value?.id && !props.session.owner)
 
 const claimSession = () =>
@@ -632,14 +797,54 @@ const skipVoteArray = computed<string[]>(() => {
 const skipVoteCount = computed(() => skipVoteArray.value.length)
 const skipVotesNeeded = computed(() => {
   if (!currentTrack.value) return 1
+  if (isTrackSolvedAndPlaying.value) return Math.max(1, onlinePlayers.value.length)
   return Math.max(1, onlinePlayers.value.filter(p => p.id !== trackValidatorId.value).length)
 })
 const hasVotedToSkip = computed(() => skipVoteArray.value.includes(props.currentPlayer.id))
+const isTrackSolvedAndPlaying = computed(() =>
+  !!currentTrack.value?.solved_by && currentTrack.value?.status === 'playing'
+)
+const canAddTrack = computed(() => {
+  if (!sessionSettings.value.force_equity) return true
+  const myCount = tracks.value.filter(t => t.added_by === props.currentPlayer.id).length
+  const others = players.value.filter(p => p.id !== props.currentPlayer.id)
+  if (others.length === 0) return true
+  const minOthers = Math.min(...others.map(p =>
+    tracks.value.filter(t => t.added_by === p.id).length
+  ))
+  return myCount <= minOthers
+})
+
+const canDeleteTrack = computed(() => {
+  if (!sessionSettings.value.force_equity) return true
+  const myCount = tracks.value.filter(t => t.added_by === props.currentPlayer.id).length
+  const others = players.value.filter(p => p.id !== props.currentPlayer.id)
+  if (others.length === 0) return true
+  const minOthers = Math.min(...others.map(p =>
+    tracks.value.filter(t => t.added_by === p.id).length
+  ))
+  return myCount >= minOthers
+})
+
+watch(buzzBlockReason, (reason) => {
+  if (reason === 'max_attempts' && currentTrack.value && !hasVotedToSkip.value && !isTrackSolvedAndPlaying.value) {
+    voteToSkip(currentTrack.value.id, props.currentPlayer.id)
+  }
+})
 
 watch(skipVoteArray, async (votes) => {
   if (!currentTrack.value) return
   if (animationState.value?.type === 'skipped') return
   if (onlinePlayers.value.length > 1 && votes.length >= skipVotesNeeded.value) {
+    // Track already solved: advance silently (no "skipped" animation)
+    if (isTrackSolvedAndPlaying.value) {
+      if (!isHost.value) return
+      const trackId = currentTrack.value.id
+      await finishTrack(trackId)
+      const next = queuedTracks.value[0]
+      if (next) { await playTrack(next.id) }
+      return
+    }
     animationState.value = {
       type: 'skipped',
       playerName: '',
@@ -655,14 +860,37 @@ watch(skipVoteArray, async (votes) => {
       animationState.value = null
       await finishTrack(trackId)
       const next = queuedTracks.value[0]
-      if (next) await playTrack(next.id)
-      else await pb.collection('sessions').update(props.session.id, { status: 'finished' })
+      if (next) { await playTrack(next.id) }
     }, 3000)
   }
 })
 
+const myQueuedTracks = computed(() =>
+  queuedTracks.value.filter(t => t.added_by === props.currentPlayer.id)
+)
+
+const shuffleMyTracks = async () => {
+  const my = myQueuedTracks.value
+  if (my.length < 2) return
+  const orders = my.map(t => t.order)
+  for (let i = orders.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [orders[i], orders[j]] = [orders[j], orders[i]]
+  }
+  await Promise.all(my.map((track, i) =>
+    pb.collection('tracks').update(track.id, { order: orders[i] }, { requestKey: null })
+  ))
+}
+
 const getPlayerName = (playerId: string) => players.value.find(p => p.id === playerId)?.name ?? t('room.unknown_player')
 const isMyTrack = (track: any) => track.added_by === props.currentPlayer.id
+const confirmDeleteId = ref<string | null>(null)
+const requestDeleteTrack = (trackId: string) => { confirmDeleteId.value = trackId }
+const confirmDeleteTrack = async (trackId: string) => {
+  manuallyDeletingIds.add(trackId)
+  confirmDeleteId.value = null
+  await deleteTrack(trackId)
+}
 
 const trackStatusEmoji = (track: any) => {
   if (track.status === 'playing') return '🎵'
@@ -704,9 +932,12 @@ const validateBuzz = async () => {
   ])
 
   setTimeout(async () => {
-    await pb.collection('tracks').update(trackId, { status: 'done', solved_by: buzzPlayerId })
-    if (next) await playTrack(next.id)
-    else await pb.collection('sessions').update(props.session.id, { status: 'finished' })
+    if (sessionSettings.value.continue_after_success) {
+      await pb.collection('tracks').update(trackId, { solved_by: buzzPlayerId, skip_votes: [] })
+    } else {
+      await pb.collection('tracks').update(trackId, { status: 'done', solved_by: buzzPlayerId })
+      if (next) { await playTrack(next.id) }
+    }
   }, 3000)
 }
 
@@ -725,6 +956,38 @@ const invalidateBuzz = async () => {
   await pb.collection('buzzes').update(activeBuzz.value.id, { status: 'wrong' })
 }
 
+const stopCurrentTrack = async () => {
+  if (!currentTrack.value) return
+  const trackId = currentTrack.value.id
+  const next = queuedTracks.value[0]
+  await finishTrack(trackId)
+  if (next) { await playTrack(next.id) }
+}
+
+let autoRejectTimer: ReturnType<typeof setTimeout> | null = null
+let autoRejectClock: ReturnType<typeof setInterval> | null = null
+const autoRejectNow = ref(Date.now())
+
+const autoRejectRemainingSeconds = computed(() => {
+  if (!activeBuzz.value || !isCurrentTrackAdmin.value || sessionSettings.value.auto_reject_delay <= 0) return 0
+  const deadline = new Date(activeBuzz.value.created).getTime() + sessionSettings.value.auto_reject_delay * 1000
+  return Math.max(0, Math.ceil((deadline - autoRejectNow.value) / 1000))
+})
+
+watch([activeBuzz, isCurrentTrackAdmin], ([buzz, isAdmin]) => {
+  if (autoRejectTimer) { clearTimeout(autoRejectTimer); autoRejectTimer = null }
+  if (autoRejectClock) { clearInterval(autoRejectClock); autoRejectClock = null }
+  if (buzz && (buzz as any).status === 'pending' && isAdmin && sessionSettings.value.auto_reject_delay > 0) {
+    autoRejectClock = setInterval(() => { autoRejectNow.value = Date.now() }, 500)
+    autoRejectTimer = setTimeout(() => {
+      if (autoRejectClock) { clearInterval(autoRejectClock); autoRejectClock = null }
+      if (activeBuzz.value?.id === (buzz as any).id && activeBuzz.value?.status === 'pending') {
+        invalidateBuzz()
+      }
+    }, sessionSettings.value.auto_reject_delay * 1000)
+  }
+}, { immediate: true })
+
 const toggleIrlMode = async () => {
   const enabling = !props.session.irl_mode
   await pb.collection('sessions').update(props.session.id, {
@@ -742,19 +1005,35 @@ const rejectDJ = () =>
 
 const resetSession = async () => {
   resetting.value = true
+  if (duplicateCheckTimeout) { clearTimeout(duplicateCheckTimeout); duplicateCheckTimeout = null }
+  acknowledgedDuplicateIds.clear()
   try {
-    await Promise.all([
-      ...players.value.map(p => pb.collection('players').update(p.id, { score: 0 })),
-      ...tracks.value.map(t => pb.collection('tracks').update(t.id, { status: 'queued', solved_by: null, skip_votes: [] })),
-      pb.collection('sessions').update(props.session.id, { status: 'waiting' }),
-    ])
+    const allBuzzes = await pb.collection('buzzes').getFullList({
+      filter: tracks.value.map(t => `track="${t.id}"`).join(' || '),
+      requestKey: null,
+    })
+    const allOps: Array<(b: ReturnType<typeof pb.createBatch>) => void> = [
+      ...allBuzzes.map(buzz => (b: ReturnType<typeof pb.createBatch>) => b.collection('buzzes').delete(buzz.id)),
+      ...players.value.map(p => (b: ReturnType<typeof pb.createBatch>) => b.collection('players').update(p.id, { score: 0 })),
+      ...tracks.value.map(t => (b: ReturnType<typeof pb.createBatch>) => b.collection('tracks').update(t.id, { status: 'queued', solved_by: null, skip_votes: [], is_duplicate: false })),
+      (b: ReturnType<typeof pb.createBatch>) => b.collection('sessions').update(props.session.id, { status: 'waiting' }),
+    ]
+    for (let i = 0; i < allOps.length; i += 45) {
+      const batch = pb.createBatch()
+      allOps.slice(i, i + 45).forEach(op => op(batch))
+      await batch.send()
+    }
     showResetModal.value = false
   } finally {
     resetting.value = false
   }
 }
 
+const endSession = () =>
+  pb.collection('sessions').update(props.session.id, { status: 'finished' })
+
 const handleAddTrack = async () => {
+  if (!canAddTrack.value) return
   const vid = getVideoId(newTrack.value.youtube_url.trim())
   if (!vid) return
   addingTrack.value = true
@@ -773,8 +1052,10 @@ const handleAddTrack = async () => {
   }
 }
 
-const addTrackFromPlaylist = (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) =>
-  addTrack({ ...data, start_seconds: data.start_seconds ?? 0, added_by: props.currentPlayer.id })
+const addTrackFromSearch = (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) => {
+  if (!canAddTrack.value) return
+  return addTrack({ ...data, start_seconds: data.start_seconds ?? 0, added_by: props.currentPlayer.id })
+}
 
 // Drag & drop — own queued tracks only
 let sortableInstance: Sortable | null = null
@@ -822,5 +1103,10 @@ watch(trackListEl, (el) => {
   }
 })
 
-onUnmounted(() => sortableInstance?.destroy())
+onUnmounted(() => {
+  sortableInstance?.destroy()
+  if (autoRejectTimer) { clearTimeout(autoRejectTimer) }
+  if (autoRejectClock) { clearInterval(autoRejectClock) }
+  if (duplicateCheckTimeout) { clearTimeout(duplicateCheckTimeout) }
+})
 </script>

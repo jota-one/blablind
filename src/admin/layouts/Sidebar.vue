@@ -3,29 +3,47 @@
     <input id="my-drawer" type="checkbox" class="drawer-toggle" />
     <aside class="drawer-side">
       <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-      <ul class="menu bg-base-200 text-base-content min-h-full w-60 p-4">
+      <ul class="menu bg-base-200 text-base-content min-h-full w-60 p-4 pt-24 lg:pt-4">
         <li>
-          <RouterLink to="/" class="flex items-center gap-3" active-class="menu-active">
+          <RouterLink to="/" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
             <span class="i-fa6-solid-house text-xl"></span>
             {{ t('admin.nav_home') }}
           </RouterLink>
         </li>
         <li>
-          <RouterLink to="/sessions" class="flex items-center gap-3" active-class="menu-active">
+          <RouterLink to="/sessions" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
             <span class="i-fa-solid-headphones text-xl"></span>
             {{ t('admin.nav_sessions') }}
           </RouterLink>
         </li>
         <li>
-          <RouterLink to="/users" class="flex items-center gap-3" active-class="menu-active">
+          <RouterLink to="/videos" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
+            <span class="i-fa-solid-music text-xl"></span>
+            {{ t('admin.nav_videos') }}
+          </RouterLink>
+        </li>
+        <li>
+          <RouterLink to="/users" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
             <span class="i-fa-solid-users text-xl"></span>
             {{ t('admin.nav_users') }}
           </RouterLink>
         </li>
         <li>
-          <RouterLink to="/roles" class="flex items-center gap-3" active-class="menu-active">
+          <RouterLink to="/roles" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
             <span class="i-fa-solid-user-shield text-xl"></span>
             Roles
+          </RouterLink>
+        </li>
+        <li>
+          <RouterLink to="/roadmap" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
+            <span class="i-fa6-solid-map text-xl"></span>
+            {{ t('admin.nav_roadmap') }}
+          </RouterLink>
+        </li>
+        <li>
+          <RouterLink to="/settings" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
+            <span class="i-fa6-solid-sliders text-xl"></span>
+            {{ t('admin.nav_settings') }}
           </RouterLink>
         </li>
         <li>
@@ -37,9 +55,6 @@
       </ul>
     </aside>
     <div class="drawer-content p-4 overflow-y-auto h-[calc(100vh-5rem)]">
-      <label for="my-drawer" class="drawer-button cursor-pointer lg:hidden">
-        <span class="i-fa-solid-bars text-xl"></span>
-      </label>
       <slot />
     </div>
   </div>
@@ -49,6 +64,11 @@
 import { useI36n } from '@jota-one/i36n'
 
 const { t } = useI36n()
+
+const closeDrawer = () => {
+  const drawer = document.getElementById('my-drawer') as HTMLInputElement | null
+  if (drawer) { drawer.checked = false }
+}
 
 const goOut = () => {
   window.location.href = '/'

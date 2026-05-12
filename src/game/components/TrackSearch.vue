@@ -34,6 +34,7 @@
           <TrackResultRow
             :video="{ videoId: v.video_id, title: v.title, artist: v.artist, duration: v.duration }"
             :added="addedIds.has(v.video_id)"
+            :disabled="props.canAddTrack === false"
             :previewing="previewInfo?.videoId === v.video_id"
             @add="addVideo"
             @preview="togglePreview"
@@ -55,6 +56,7 @@
           <TrackResultRow
             :video="v"
             :added="addedIds.has(v.videoId)"
+            :disabled="props.canAddTrack === false"
             :previewing="previewInfo?.videoId === v.videoId"
             @add="addVideo"
             @preview="togglePreview"
@@ -89,7 +91,8 @@ const { t } = useI36n()
 interface SearchVideo { videoId: string; title: string; artist: string; duration: number }
 
 const props = defineProps<{
-  addTrack: (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) => Promise<void>
+  addTrack: (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) => Promise<void> | undefined
+  canAddTrack?: boolean
 }>()
 
 const query = ref('')
@@ -127,7 +130,7 @@ const search = async () => {
 
   try {
     if (tokens.length > 0) {
-      const filter = tokens.map(t => `search_text ~ "${t.replace(/"/g, '\\"')}"`).join(' || ')
+      const filter = tokens.map(t => `search_text ~ "${t.replace(/"/g, '\\"')}"`).join(' && ')
       const res = await pb.collection('videos').getList(1, 20, { filter })
       localResults.value = res.items
         .map(item => ({ item, score: tokens.filter(t => item.search_text?.includes(t)).length }))

@@ -1,0 +1,9 @@
+---
+import ClientSpaceLayout from '@layouts/ClientSpaceLayout.astro'
+import ClientSpa from '@components/Client.vue'
+export const prerender = false;
+---
+
+<ClientSpaceLayout>
+  <ClientSpa client:only />
+</ClientSpaceLayout>

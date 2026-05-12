@@ -31,7 +31,7 @@
     <button
       class="btn btn-xs shrink-0"
       :class="added ? 'btn-success btn-outline' : 'btn-primary'"
-      :disabled="added"
+      :disabled="added || disabled"
       @click="$emit('add', video, startSeconds)"
     >
       <span :class="added ? 'i-fa-solid-check' : 'i-fa-solid-plus'"></span>
@@ -47,7 +47,7 @@ const { t } = useI36n()
 
 interface SearchVideo { videoId: string; title: string; artist: string; duration: number }
 
-defineProps<{ video: SearchVideo; added: boolean; previewing: boolean }>()
+defineProps<{ video: SearchVideo; added: boolean; previewing: boolean; disabled?: boolean }>()
 defineEmits<{ add: [video: SearchVideo, startSeconds: number]; preview: [video: SearchVideo, startSeconds: number] }>()
 
 const startSeconds = ref(0)

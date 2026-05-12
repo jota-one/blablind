@@ -3,14 +3,6 @@ export function getVideoId(url: string): string | null {
   return match?.[1] ?? null
 }
 
-export function getPlaylistId(url: string): string | null {
-  try {
-    return new URL(url).searchParams.get('list')
-  } catch {
-    return null
-  }
-}
-
 export function generateSlug(length = 6): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
   return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
@@ -22,5 +14,9 @@ export function isOnline(player: any): boolean {
 }
 
 export function normalizeSearch(s: string): string {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+  return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
 }
