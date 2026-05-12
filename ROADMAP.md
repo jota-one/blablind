@@ -12,17 +12,12 @@ List of small potential improvements and refactors.
 - Un joueur doit pouvoir randomizer l'ordre de ses morceaux en un clic
 - Rendre beaucoup plus évident quand on a gagné un buzz (grosse icône verte! A toi de parler!!)
 - Lorsqu'on fait une recherche et qu'on referme le panel de recherche et qu'on le rouvre ensuite, il faudrait que la précédente recherche (et ses résultats) soient toujours là. En effet, il arrive qu'on soit en train de chercher un morceau à ajouter et soudain on veut deviner le morceau en cours et on doit vite fermer le panel de recherche, buzzer, etc... Puis lorsqu'on revient à notre recherche, on doit tout recommencer.
+- Lorsqu'un joueur buzz et que l'auteur du morceau est en plein recherche, la recherche doit se fermer pour que l'auteur voie qu'il doit gérer un buzz. Cela ne pose pas trop de problème si on gère le point précédent d'abord.
 - Il faut trouver un moyen d'améliorer la visibilité des résultats de recherche en mobile. Pour l'instant on ne voit que les premier caractères de chaque morceau et on doit tjs se mettre en horizontal pour pouvoir lire correctement. Cela fait perdre bcp de temps.
 - Nouveau calcul des scores. Se baser sur le ratio de morceaux devinés par rapport au nombre de morceaux devinables (sachant qu'un morceau qu'on a proposé soi-même n'est pas devinable). Cela permet d'équilibrer les chances pour ceux qui proposent plus ou moins de morceaux.
+- Il faudrait pouvoir ouvrir une modale qui résume les settings de la partie et l'hôte doit pouvoir modifier les settings durant la partie.
 
 ## New Features
-
-### Espace client
-On dispose pour l'instant d'un espace client très limité dans la page /profile. Il faudrait convertir cette page en une véritable APP vue, à l'instar de /admin.
-
-L'admin sera réservée aux vrais administrateurs du site avec des possibilités "expertes", genre supprimer des morceaux de la bibliothèque, en importer d'autres directement depuis YouTube, accéder à des statistiques, gérer les membres, etc.
-
-L'espace client est une autre APP dans laquelle un utilisateur peut gérer ses blindtests, ses amis, affiner ses créations, modifier son mot de passe, son profil, accéder à certaines statistiques liées à son utilisation de l'app, proposer des améliorations, définir ses préférences de blindtest (voir feature Settings), etc. A affiner.
 
 ### Mode autonome
 Pour l'instant, lorsque N joueurs jouent à blablind, pour chaque morceau il y a un maître et N-1 joueurs. Le maître juge quel autre joueur a répondu juste.
@@ -34,11 +29,13 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 ## History (done)
 
+- [2026-05-12] Player reconnection & session history — players are linked to their auth account via auth_user; reconnecting restores the existing player record even without localStorage; profile "My Blindtests" now shows sessions the user joined (not only owned ones); host auto-reassigned when the current host goes offline.
+
 - [2026-05-11] Game settings — configurable per-session snapshot (max buzz attempts, rebuzz delay, auto-reject delay, continue after success, stop method, force equity); wizard-based creation; app-level and per-user defaults; all settings enforced in gameplay.
 
 - [2026-05-11] Mobile navigation improvements — hamburger moved to header for admin and client SPA; UserAuth shows avatar on all pages; drawer auto-closes on menu click.
 
-- [2026-05-11] Client space SPA — profile page converted to a full Vue SPA with sidebar navigation: Profile (avatar, name edit), My Blindtests, and Game Preferences (per-user overrides of app-level game settings).
+- [2026-05-11] Client space SPA — profile page converted to a full Vue SPA with sidebar navigation: Profile (avatar, name edit), My Blindtests (owned + participated sessions), and Game Preferences (per-user overrides of app-level game settings).
 
 - [2026-05-11] App-level settings — admin page to configure global game defaults (max buzz attempts, rebuzz/auto-reject delays, post-success behaviour, track equity).
 
