@@ -178,6 +178,8 @@
   "profile.my_blindtests": "My blindtests",
   "profile.no_blindtests": "No blindtests created yet",
   "profile.open_session": "Open",
+  "profile.participated_blindtests": "Blindtests I joined",
+  "profile.no_participated_blindtests": "No sessions joined yet.",
 
   "auth.login_button": "Login",
   "auth.connected": "Logged in",
