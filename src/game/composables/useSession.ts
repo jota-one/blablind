@@ -6,6 +6,7 @@ export default function useSession(slug: string) {
   const loading = ref(true)
   const error = ref<string | null>(null)
   let unsubscribe: (() => void) | undefined
+  let unsubscribeReconnect: (() => void) | undefined
 
   const load = async () => {
     try {
@@ -27,9 +28,16 @@ export default function useSession(slug: string) {
   onMounted(async () => {
     await load()
     await subscribe()
+    // Reload on SSE reconnect to recover any missed session updates (e.g. irl_mode changes)
+    unsubscribeReconnect = await pb.realtime.subscribe('PB_CONNECT', () => {
+      load()
+    })
   })
 
-  onUnmounted(() => unsubscribe?.())
+  onUnmounted(() => {
+    unsubscribe?.()
+    unsubscribeReconnect?.()
+  })
 
   return { session, loading, error }
 }
