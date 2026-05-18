@@ -21,27 +21,39 @@ export default function usePlayers(sessionId: string) {
   }
 
   let unsubscribe: (() => void) | undefined
+  let unsubscribeReconnect: (() => void) | undefined
   let clockInterval: ReturnType<typeof setInterval>
 
   onMounted(async () => {
     await load()
-    clockInterval = setInterval(() => { now.value = Date.now() }, 5_000)
-    unsubscribe = await pb.collection('players').subscribe('*', e => {
-      if (e.action === 'create') {
-        players.value.push(e.record)
-        sort()
-      } else if (e.action === 'update') {
-        const idx = players.value.findIndex(p => p.id === e.record.id)
-        if (idx >= 0) players.value[idx] = e.record
-        sort()
-      } else if (e.action === 'delete') {
-        players.value = players.value.filter(p => p.id !== e.record.id)
-      }
-    }, { filter: `session="${sessionId}"` })
+    clockInterval = setInterval(() => {
+      now.value = Date.now()
+    }, 5_000)
+    unsubscribe = await pb.collection('players').subscribe(
+      '*',
+      e => {
+        if (e.action === 'create') {
+          players.value.push(e.record)
+          sort()
+        } else if (e.action === 'update') {
+          const idx = players.value.findIndex(p => p.id === e.record.id)
+          if (idx >= 0) players.value[idx] = e.record
+          sort()
+        } else if (e.action === 'delete') {
+          players.value = players.value.filter(p => p.id !== e.record.id)
+        }
+      },
+      { filter: `session="${sessionId}"` },
+    )
+    // Reload on SSE reconnect to recover any missed update events (e.g. last_seen updates)
+    unsubscribeReconnect = await pb.realtime.subscribe('PB_CONNECT', () => {
+      load()
+    })
   })
 
   onUnmounted(() => {
     unsubscribe?.()
+    unsubscribeReconnect?.()
     clearInterval(clockInterval)
   })
 
