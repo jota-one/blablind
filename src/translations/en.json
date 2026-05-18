@@ -31,15 +31,12 @@
   "home.feedback_msg_placeholder": "Your idea or feedback...",
   "home.feedback_submit": "Send",
   "home.error_create": "Error creating the session",
-
   "join.subtitle": "Choose a nickname to join",
   "join.placeholder": "Your nickname...",
   "join.button": "Join",
   "join.error": "Connection error",
-
   "app.back_home": "Back to home",
   "app.error_not_found": "Session not found or expired.",
-
   "room.reset": "Reset",
   "room.claim_session": "Link to my account",
   "room.session_owned": "Linked to my account",
@@ -130,32 +127,26 @@
   "room.title_placeholder": "Title (optional)",
   "room.artist_placeholder": "Artist (optional)",
   "room.add_button": "Add",
-
   "gameover.title": "Blindtest over!",
   "gameover.bravo": "Well done {name}!",
   "gameover.ranking_rest": "Rest of the rankings",
   "gameover.back_home": "Back to home",
-
   "share.title": "Join the session",
   "share.copy": "Copy link",
   "share.copied": "Copied!",
   "share.close": "Close",
-
   "overlay.solved": "{player} got it!",
   "overlay.you_solved": "Well done!",
   "overlay.skipped": "Nobody got it!",
-
   "search.placeholder": "Title, artist...",
   "search.library_label": "In the library",
   "search.youtube_label": "YouTube",
   "search.youtube_button": "Search on YouTube too",
   "search.no_results": "No results found",
   "search.youtube_error": "YouTube search is temporarily unavailable",
-
   "track.start_title": "Start (seconds)",
   "track.add": "Add",
   "track.added": "Added",
-
   "login.title": "Login",
   "login.email_label": "Email",
   "login.email_placeholder": "your@email.com",
@@ -163,7 +154,6 @@
   "login.button": "Login",
   "login.button_loading": "Logging in...",
   "login.error": "Login error",
-
   "signup.title": "Sign up",
   "signup.name_label": "Name",
   "signup.name_placeholder": "Your name",
@@ -183,7 +173,6 @@
   "signup.close_button": "Return to login",
   "login.no_account_yet": "No account yet?",
   "signup.login_link": "Log in",
-
   "profile.title": "My account",
   "profile.admin_link": "Administration",
   "profile.logout": "Log out",
@@ -198,12 +187,10 @@
   "profile.open_session": "Open",
   "profile.participated_blindtests": "Blindtests I joined",
   "profile.no_participated_blindtests": "No sessions joined yet.",
-
   "auth.login_button": "Login",
   "auth.connected": "Logged in",
   "auth.my_account": "My account",
   "auth.logout": "Log out",
-
   "admin.nav_settings": "Settings",
   "admin.nav_videos": "Tracks",
   "admin.nav_home": "Home",
@@ -221,7 +208,6 @@
   "admin.roadmap_improvements_label": "Planned improvements",
   "admin.roadmap_history_section": "Recently shipped",
   "admin.roadmap_see_detail": "See detail",
-
   "admin.settings_title": "Settings",
   "admin.settings_loading": "Loading...",
   "admin.settings_seconds": "seconds",
@@ -243,7 +229,6 @@
   "admin.settings_saving": "Saving...",
   "admin.settings_saved": "Saved!",
   "admin.settings_error": "Error saving settings",
-
   "client.nav_profile": "Profile",
   "client.nav_blindtests": "My blindtests",
   "client.nav_settings": "Game settings",
@@ -256,12 +241,15 @@
   "client.settings_saving": "Saving...",
   "client.settings_saved": "Saved!",
   "client.settings_error": "Error saving settings",
-
   "wizard.step_name": "Name your blindtest",
   "wizard.step_name_hint": "Give your session a name your friends will recognize.",
   "wizard.step_name_placeholder": "Blindtest name...",
   "wizard.prev": "Back",
   "wizard.next": "Next",
   "wizard.create": "Create",
-  "wizard.error": "Error creating the session"
+  "wizard.error": "Error creating the session",
+  "room.orphan_notification": "{player} left the game. What to do with their {n} queued track(s)?",
+  "room.orphan_inherit": "Host inherits",
+  "room.orphan_delete": "Delete",
+  "room.orphan_split": "Split equally"
 }

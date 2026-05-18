@@ -8,6 +8,8 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
+- [2026-05-18] Reconnection fix & orphan tracks — players who reconnect after an SSE drop now reappear correctly for all clients (reload on `PB_CONNECT`). When a player stays disconnected for 30s with queued tracks, the host is prompted to choose: inherit the tracks, delete them, or split them equally among remaining players.
+
 ## New Features
 
 ### Mode autonome
