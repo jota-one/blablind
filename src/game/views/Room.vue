@@ -179,7 +179,7 @@
             <span>{{ t('room.buzz_answering', { player: getPlayerName(activeBuzz.player) }) }}</span>
           </div>
           <template v-else>
-            <div v-if="buzzing" class="card bg-base-200 p-4 space-y-3">
+            <div v-if="buzzing && !isIrlMode" class="card bg-base-200 p-4 space-y-3">
               <p class="font-bold text-center">{{ t('room.buzz_answer_label') }}</p>
               <input
                 v-model="answer"
