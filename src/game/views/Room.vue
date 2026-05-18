@@ -242,6 +242,28 @@
           </div>
         </div>
 
+        <!-- Orphan tracks notification (host only) -->
+        <div v-if="isHost && nextOrphanOwner" class="card bg-warning/10 border border-warning/30 p-4 space-y-3">
+          <p class="font-bold flex items-center gap-2 text-sm">
+            <span class="i-fa-solid-user-slash text-warning shrink-0"></span>
+            {{ t('room.orphan_notification', { player: nextOrphanOwner.name, n: orphanedQueuedTracks.length }) }}
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <button class="btn btn-sm btn-warning flex-1" @click="orphanInherit">
+              <span class="i-fa-solid-download text-xs"></span>
+              {{ t('room.orphan_inherit') }}
+            </button>
+            <button class="btn btn-sm btn-error flex-1" @click="orphanDelete">
+              <span class="i-fa-solid-trash text-xs"></span>
+              {{ t('room.orphan_delete') }}
+            </button>
+            <button class="btn btn-sm btn-info flex-1" @click="orphanSplit">
+              <span class="i-fa6-solid-shuffle text-xs"></span>
+              {{ t('room.orphan_split') }}
+            </button>
+          </div>
+        </div>
+
         <!-- Actions sous le BUZZ : ajouter + passer/arrêter -->
         <div v-if="session.status !== 'finished'" class="flex items-center gap-2">
           <button
@@ -712,6 +734,18 @@ const animationState = ref<{ type?: 'solved' | 'skipped'; playerName: string; pl
 const showResetModal = ref(false)
 const showAddTrackModal = ref(false)
 const resetting = ref(false)
+const nextOrphanOwner = computed(() => {
+  if (!queuedTracks.value.length) return null
+  const next = queuedTracks.value[0]
+  const onlineIds = new Set(onlinePlayers.value.map((p: any) => p.id))
+  if (onlineIds.has(next.added_by)) return null
+  return players.value.find((p: any) => p.id === next.added_by) ?? null
+})
+const orphanedQueuedTracks = computed(() =>
+  nextOrphanOwner.value
+    ? queuedTracks.value.filter(t => t.added_by === nextOrphanOwner.value!.id)
+    : [],
+)
 
 const activeTab = ref<'upcoming' | 'done' | 'scores'>('upcoming')
 const tabOrder = ['upcoming', 'done', 'scores'] as const
@@ -937,6 +971,27 @@ watch(skipVoteArray, async (votes) => {
     }, 3000)
   }
 })
+
+const orphanInherit = async () => {
+  await Promise.all(orphanedQueuedTracks.value.map(t =>
+    pb.collection('tracks').update(t.id, { added_by: props.currentPlayer.id })
+  ))
+}
+
+const orphanDelete = async () => {
+  await Promise.all(orphanedQueuedTracks.value.map(t => deleteTrack(t.id)))
+}
+
+const orphanSplit = async () => {
+  const recipients = onlinePlayers.value.filter((p: any) => p.id !== nextOrphanOwner.value?.id)
+  if (recipients.length === 0) {
+    await orphanInherit()
+    return
+  }
+  await Promise.all(orphanedQueuedTracks.value.map((t, i) =>
+    pb.collection('tracks').update(t.id, { added_by: recipients[i % recipients.length].id })
+  ))
+}
 
 const playerRatio = (player: any) => {
   const guessable = doneTracks.value.filter(t => t.added_by !== player.id).length

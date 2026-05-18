@@ -31,15 +31,12 @@
   "home.feedback_msg_placeholder": "Ton idée ou ton retour...",
   "home.feedback_submit": "Envoyer",
   "home.error_create": "Erreur lors de la création",
-
   "join.subtitle": "Choisis ton pseudo pour rejoindre",
   "join.placeholder": "Ton pseudo...",
   "join.button": "Rejoindre",
   "join.error": "Erreur lors de la connexion",
-
   "app.back_home": "Retour à l'accueil",
   "app.error_not_found": "Session introuvable ou expirée.",
-
   "room.reset": "Réinitialiser",
   "room.claim_session": "Lier à mon compte",
   "room.session_owned": "Lié à mon compte",
@@ -130,32 +127,26 @@
   "room.title_placeholder": "Titre (optionnel)",
   "room.artist_placeholder": "Artiste (optionnel)",
   "room.add_button": "Ajouter",
-
   "gameover.title": "Blindtest terminé !",
   "gameover.bravo": "Bravo {name} !",
   "gameover.ranking_rest": "Suite du classement",
   "gameover.back_home": "Retour à l'accueil",
-
   "share.title": "Rejoindre la session",
   "share.copy": "Copier le lien",
   "share.copied": "Copié !",
   "share.close": "Fermer",
-
   "overlay.solved": "{player} a trouvé !",
   "overlay.you_solved": "Bien joué !",
   "overlay.skipped": "Personne n'a trouvé !",
-
   "search.placeholder": "Titre, artiste...",
   "search.library_label": "Dans la bibliothèque",
   "search.youtube_label": "YouTube",
   "search.youtube_button": "Chercher sur YouTube aussi",
   "search.no_results": "Aucun résultat trouvé",
   "search.youtube_error": "La recherche sur YouTube est momentanément impossible",
-
   "track.start_title": "Départ (secondes)",
   "track.add": "Ajouter",
   "track.added": "Ajouté",
-
   "login.title": "Connexion",
   "login.email_label": "Email",
   "login.email_placeholder": "votre@email.com",
@@ -163,7 +154,6 @@
   "login.button": "Connexion",
   "login.button_loading": "Connexion...",
   "login.error": "Erreur lors de la connexion",
-
   "signup.title": "Créer un compte",
   "signup.name_label": "Nom",
   "signup.name_placeholder": "Ton nom",
@@ -183,7 +173,6 @@
   "signup.close_button": "Retour à la connexion",
   "login.no_account_yet": "Pas encore de compte ?",
   "signup.login_link": "Se connecter",
-
   "profile.title": "Mon compte",
   "profile.admin_link": "Administration",
   "profile.logout": "Déconnexion",
@@ -198,12 +187,10 @@
   "profile.open_session": "Ouvrir",
   "profile.participated_blindtests": "Blindtests auxquels j'ai participé",
   "profile.no_participated_blindtests": "Aucune participation enregistrée.",
-
   "auth.login_button": "Connexion",
   "auth.connected": "Connecté(e)",
   "auth.my_account": "Mon compte",
   "auth.logout": "Déconnexion",
-
   "admin.nav_settings": "Paramètres",
   "admin.nav_videos": "Morceaux",
   "admin.nav_home": "Accueil",
@@ -221,7 +208,6 @@
   "admin.roadmap_improvements_label": "Améliorations prévues",
   "admin.roadmap_history_section": "Tout juste sorti du four",
   "admin.roadmap_see_detail": "Voir le détail",
-
   "admin.settings_title": "Paramètres",
   "admin.settings_loading": "Chargement...",
   "admin.settings_seconds": "secondes",
@@ -243,7 +229,6 @@
   "admin.settings_saving": "Enregistrement...",
   "admin.settings_saved": "Enregistré !",
   "admin.settings_error": "Erreur lors de la sauvegarde",
-
   "client.nav_profile": "Profil",
   "client.nav_blindtests": "Mes blindtests",
   "client.nav_settings": "Préférences de jeu",
@@ -256,12 +241,15 @@
   "client.settings_saving": "Enregistrement...",
   "client.settings_saved": "Enregistré !",
   "client.settings_error": "Erreur lors de la sauvegarde",
-
   "wizard.step_name": "Nom du blindtest",
   "wizard.step_name_hint": "Donne un nom à ta session que tes amis reconnaîtront.",
   "wizard.step_name_placeholder": "Nom du blindtest...",
   "wizard.prev": "Retour",
   "wizard.next": "Suivant",
   "wizard.create": "Créer",
-  "wizard.error": "Erreur lors de la création"
+  "wizard.error": "Erreur lors de la création",
+  "room.orphan_notification": "{player} a quitté la partie. Que faire avec ses {n} morceau(x) en attente ?",
+  "room.orphan_inherit": "Le host en hérite",
+  "room.orphan_delete": "Supprimer",
+  "room.orphan_split": "Répartir équitablement"
 }
