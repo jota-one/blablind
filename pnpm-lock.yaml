@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@astrojs/check':
-        specifier: ^0.9.6
+        specifier: ^0.9.8
         version: 0.9.8(prettier@3.8.1)(typescript@5.9.3)
       '@astrojs/node':
         specifier: ^10.0.5
@@ -18,7 +18,7 @@ importers:
         specifier: ^6.0.1
         version: 6.0.1(@types/node@25.5.0)(astro@6.1.6(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.2)(typescript@5.9.3)(yaml@2.8.3))(jiti@2.6.1)(lightningcss@1.32.0)(vue@3.5.31(typescript@5.9.3))(yaml@2.8.3)
       '@fontsource-variable/oswald':
-        specifier: ^5.2.5
+        specifier: ^5.2.8
         version: 5.2.8
       '@jota-one/i36n':
         specifier: ^3.0.0
@@ -27,10 +27,10 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       '@tailwindcss/vite':
-        specifier: ^4.1.4
+        specifier: ^4.2.2
         version: 4.2.2(vite@7.3.2(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(yaml@2.8.3))
       '@vueuse/core':
-        specifier: ^14.1.0
+        specifier: ^14.2.1
         version: 14.2.1(vue@3.5.31(typescript@5.9.3))
       astro:
         specifier: ^6.1.6
@@ -39,28 +39,28 @@ importers:
         specifier: ^4.5.1
         version: 4.5.1
       dayjs:
-        specifier: ^1.11.19
+        specifier: ^1.11.20
         version: 1.11.20
       marked:
-        specifier: ^17.0.1
+        specifier: ^17.0.5
         version: 17.0.5
       pdfmake:
-        specifier: ^0.3.6
+        specifier: ^0.3.7
         version: 0.3.7
       pocketbase:
-        specifier: ^0.26.0
+        specifier: ^0.26.8
         version: 0.26.8
       primevue:
-        specifier: ^4.3.5
+        specifier: ^4.5.4
         version: 4.5.4(vue@3.5.31(typescript@5.9.3))
       qr-code-styling:
         specifier: ^1.9.2
         version: 1.9.2
       tailwindcss:
-        specifier: ^4.1.4
+        specifier: ^4.2.2
         version: 4.2.2
       vue:
-        specifier: ^3.5.13
+        specifier: ^3.5.31
         version: 3.5.31(typescript@5.9.3)
       vue-router:
         specifier: ^5.0.4
@@ -70,16 +70,16 @@ importers:
         version: 1.2.17(typescript@5.9.3)
     devDependencies:
       '@egoist/tailwindcss-icons':
-        specifier: ^1.9.0
+        specifier: ^1.9.2
         version: 1.9.2(tailwindcss@4.2.2)
       '@iconify-json/fa-solid':
-        specifier: ^1.2.1
+        specifier: ^1.2.2
         version: 1.2.2
       '@iconify-json/fa6-solid':
-        specifier: ^1.1.0
+        specifier: ^1.2.4
         version: 1.2.4
       '@iconify-json/fa7-solid':
-        specifier: ^1.2.0
+        specifier: ^1.2.4
         version: 1.2.4
       '@iconify-json/ic':
         specifier: ^1.2.4
@@ -88,34 +88,34 @@ importers:
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@4.2.2)
       '@types/node':
-        specifier: ^25.3.5
+        specifier: ^25.5.0
         version: 25.5.0
       '@types/pdfmake':
         specifier: ^0.3.2
         version: 0.3.2
       '@vueuse/integrations':
-        specifier: ^14.1.0
+        specifier: ^14.2.1
         version: 14.2.1(sortablejs@1.15.7)(vue@3.5.31(typescript@5.9.3))
       daisyui:
-        specifier: ^5.0.27
+        specifier: ^5.5.19
         version: 5.5.19
       oxfmt:
         specifier: ^0.43.0
         version: 0.43.0
       oxlint:
-        specifier: ^1.32.0
+        specifier: ^1.58.0
         version: 1.58.0(oxlint-tsgolint@0.19.0)
       oxlint-tsgolint:
         specifier: ^0.19.0
         version: 0.19.0
       sortablejs:
-        specifier: ^1.15.6
+        specifier: ^1.15.7
         version: 1.15.7
       typescript:
-        specifier: ^5.8.3
+        specifier: ^5.9.3
         version: 5.9.3
       vitest:
-        specifier: ^4.0.18
+        specifier: ^4.1.2
         version: 4.1.2(@types/node@25.5.0)(vite@7.3.2(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(yaml@2.8.3))
 
 packages:
@@ -1445,6 +1445,7 @@ packages:
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+    deprecated: Potential CWE-502 - Update to 1.3.1 or higher
 
   '@vitejs/plugin-vue-jsx@5.1.5':
     resolution: {integrity: sha512-jIAsvHOEtWpslLOI2MeElGFxH7M8pM83BU/Tor4RLyiwH0FM4nUW3xdvbw20EeU9wc5IspQwMq225K3CMnJEpA==}
@@ -1913,8 +1914,8 @@ packages:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
 
-  devalue@5.7.1:
-    resolution: {integrity: sha512-MUbZ586EgQqdRnC4yDrlod3BEdyvE4TapGYHMW2CiaW+KkkFmWEFqBUaLltEZCGi0iFXCEjRF0OjF0DV2QHjOA==}
+  devalue@5.8.1:
+    resolution: {integrity: sha512-4CXDYRBGqN+57wVJkuXBYmpAVUSg3L6JAQa/DFqm238G73E1wuyc/JhGQJzN7vUf/CMphYau2zXbfWzDR5aTEw==}
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
@@ -4826,7 +4827,7 @@ snapshots:
       clsx: 2.1.1
       common-ancestor-path: 2.0.0
       cookie: 1.1.1
-      devalue: 5.7.1
+      devalue: 5.8.1
       diff: 8.0.4
       dset: 3.1.4
       es-module-lexer: 2.0.0
@@ -5056,7 +5057,7 @@ snapshots:
 
   detect-libc@2.1.2: {}
 
-  devalue@5.7.1: {}
+  devalue@5.8.1: {}
 
   devlop@1.1.0:
     dependencies:
