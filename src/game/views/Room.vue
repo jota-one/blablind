@@ -19,6 +19,7 @@
         <div class="flex items-center gap-2 flex-1 min-w-0">
           <span v-if="isIrlMode" class="badge badge-xs badge-accent shrink-0">IRL</span>
           <span v-if="isIrlMode && djPlayer" class="text-xs text-base-content/50 truncate">🎵 {{ djPlayer.name }}</span>
+          <span v-if="hostPlayer" class="text-xs text-base-content/40 truncate">👑 {{ hostPlayer.name }}</span>
         </div>
         <span class="text-base-content/50 shrink-0">
           <span class="i-fa-solid-users text-xs"></span> {{ onlinePlayers.length }}
@@ -444,6 +445,7 @@
                   >
                     <span :class="['text-sm font-bold w-5 text-center', i === 0 ? 'text-warning' : 'text-base-content/40']">{{ i + 1 }}</span>
                     <span class="flex-1 text-sm font-medium truncate" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.name }}</span>
+                    <span v-if="p.id === session.host" class="text-xs" title="Host">👑</span>
                     <span v-if="isIrlMode && p.id === session.dj_player" title="DJ" class="text-base">🎵</span>
                     <span class="font-mono font-bold text-primary tabular-nums" :class="!isOnline(p) ? 'opacity-40' : ''">
                       {{ playerRatio(p).guessable === 0 ? '—' : `${parseFloat((playerRatio(p).ratio * 100).toFixed(2))}%` }}
@@ -570,9 +572,13 @@
           </div>
 
         </div>
+        <p v-if="settingsError" class="text-error text-xs mt-2">{{ settingsError }}</p>
         <div class="modal-action">
           <button class="btn btn-ghost btn-sm" @click="showSettingsModal = false">{{ t('room.reset_cancel') }}</button>
-          <button v-if="isHost" class="btn btn-primary btn-sm" @click="saveSettings">{{ t('room.settings_save') }}</button>
+          <button v-if="isHost" class="btn btn-primary btn-sm" :disabled="settingsSaving" @click="saveSettings">
+            <span v-if="settingsSaving" class="loading loading-spinner loading-xs"></span>
+            {{ t('room.settings_save') }}
+          </button>
         </div>
       </div>
       <div class="modal-backdrop" @click="showSettingsModal = false"></div>
@@ -1009,6 +1015,8 @@ const playerRatio = (player: any) => {
   return { guessed, guessable, ratio: guessable > 0 ? guessed / guessable : 0 }
 }
 
+const hostPlayer = computed(() => players.value.find(p => p.id === props.session.host) ?? null)
+
 const rankedPlayers = computed(() =>
   [...players.value].sort((a, b) => {
     const ra = playerRatio(a)
@@ -1183,16 +1191,27 @@ const resetSession = async () => {
 }
 
 const showSettingsModal = ref(false)
+const settingsSaving = ref(false)
+const settingsError = ref('')
 const editedSettings = ref({ ...sessionSettings.value })
 
 const openSettingsModal = () => {
   editedSettings.value = { ...sessionSettings.value }
+  settingsError.value = ''
   showSettingsModal.value = true
 }
 
 const saveSettings = async () => {
-  await pb.collection('sessions').update(props.session.id, { settings: { ...editedSettings.value } })
-  showSettingsModal.value = false
+  settingsSaving.value = true
+  settingsError.value = ''
+  try {
+    await pb.collection('sessions').update(props.session.id, { settings: { ...editedSettings.value } })
+    showSettingsModal.value = false
+  } catch (e: any) {
+    settingsError.value = e.message ?? 'Error saving settings'
+  } finally {
+    settingsSaving.value = false
+  }
 }
 
 const endSession = () =>
