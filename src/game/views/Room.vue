@@ -929,22 +929,22 @@ const isTrackSolvedAndPlaying = computed(() =>
 )
 const canAddTrack = computed(() => {
   if (!sessionSettings.value.force_equity) return true
-  const myCount = tracks.value.filter(t => t.added_by === props.currentPlayer.id).length
+  const myCount = queuedTracks.value.filter(t => t.added_by === props.currentPlayer.id).length
   const others = onlinePlayers.value.filter(p => p.id !== props.currentPlayer.id)
   if (others.length === 0) return true
   const minOthers = Math.min(...others.map(p =>
-    tracks.value.filter(t => t.added_by === p.id).length
+    queuedTracks.value.filter(t => t.added_by === p.id).length
   ))
   return myCount < minOthers + sessionSettings.value.equity_margin
 })
 
 const canDeleteTrack = computed(() => {
   if (!sessionSettings.value.force_equity) return true
-  const myCount = tracks.value.filter(t => t.added_by === props.currentPlayer.id).length
+  const myCount = queuedTracks.value.filter(t => t.added_by === props.currentPlayer.id).length
   const others = onlinePlayers.value.filter(p => p.id !== props.currentPlayer.id)
   if (others.length === 0) return true
   const minOthers = Math.min(...others.map(p =>
-    tracks.value.filter(t => t.added_by === p.id).length
+    queuedTracks.value.filter(t => t.added_by === p.id).length
   ))
   return myCount >= minOthers
 })
