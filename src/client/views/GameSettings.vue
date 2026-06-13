@@ -142,6 +142,35 @@
         </div>
       </div>
 
+      <!-- equity_margin -->
+      <div v-if="form?.force_equity" class="form-control">
+        <label class="label">
+          <span class="label-text font-medium">{{ t('admin.settings_equity_margin_label') }}</span>
+        </label>
+        <div class="flex items-center gap-2">
+          <input
+            v-model.number="form.equity_margin"
+            type="number"
+            min="1"
+            max="10"
+            class="input input-bordered w-32"
+          />
+          <span class="text-base-content/50 text-sm">{{ t('admin.settings_tracks') }}</span>
+        </div>
+        <div class="flex items-center gap-2 mt-1">
+          <p class="text-sm text-base-content/50">{{ t('admin.settings_equity_margin_hint') }}</p>
+          <button
+            v-if="isOverridden('equity_margin')"
+            type="button"
+            class="btn btn-xs btn-ghost text-base-content/40 shrink-0"
+            @click="handleResetField('equity_margin')"
+          >
+            <span class="i-fa-solid-rotate-left text-xs"></span>
+            {{ t('client.settings_reset_with_default', { value: appSettings?.equity_margin ?? 1 }) }}
+          </button>
+        </div>
+      </div>
+
       <!-- Error -->
       <div v-if="errorMessage" class="alert alert-error">
         <span>{{ errorMessage }}</span>
@@ -208,7 +237,7 @@ const handleSave = async () => {
 
   try {
     const overrides: TUserSettings = {}
-    const keys = ['max_buzz_attempts', 'rebuzz_delay', 'auto_reject_delay', 'continue_after_success', 'stop_method', 'force_equity'] as const
+    const keys = ['max_buzz_attempts', 'rebuzz_delay', 'auto_reject_delay', 'continue_after_success', 'stop_method', 'force_equity', 'equity_margin'] as const
 
     for (const key of keys) {
       if ((form.value as any)[key] !== (appSettings.value as any)[key]) {

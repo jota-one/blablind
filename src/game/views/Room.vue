@@ -560,6 +560,15 @@
             <span v-else class="font-mono font-bold">{{ sessionSettings.force_equity ? '✓' : '✗' }}</span>
           </div>
 
+          <div v-if="(isHost ? editedSettings.force_equity : sessionSettings.force_equity)" class="flex items-center justify-between gap-4">
+            <span class="text-base-content/70">{{ t('admin.settings_equity_margin_label') }}</span>
+            <div v-if="isHost" class="flex items-center gap-1">
+              <input v-model.number="editedSettings.equity_margin" type="number" min="1" max="10" class="input input-xs w-16 text-right" />
+              <span class="text-base-content/40 text-xs">{{ t('admin.settings_tracks') }}</span>
+            </div>
+            <span v-else class="font-mono font-bold">{{ sessionSettings.equity_margin }}</span>
+          </div>
+
         </div>
         <div class="modal-action">
           <button class="btn btn-ghost btn-sm" @click="showSettingsModal = false">{{ t('room.reset_cancel') }}</button>
@@ -713,6 +722,7 @@ const sessionSettings = computed(() => {
     continue_after_success: s.continue_after_success ?? true,
     stop_method: (s.stop_method ?? 'vote_unanimous') as 'vote_unanimous' | 'host_choice',
     force_equity: s.force_equity ?? false,
+    equity_margin: s.equity_margin ?? 1,
   }
 })
 const { activeBuzz, canBuzz, buzzBlockReason, rebuzzRemainingSeconds, remainingAttempts, buzz, solvedBuzz } = useBuzzes(
@@ -914,18 +924,18 @@ const isTrackSolvedAndPlaying = computed(() =>
 const canAddTrack = computed(() => {
   if (!sessionSettings.value.force_equity) return true
   const myCount = tracks.value.filter(t => t.added_by === props.currentPlayer.id).length
-  const others = players.value.filter(p => p.id !== props.currentPlayer.id)
+  const others = onlinePlayers.value.filter(p => p.id !== props.currentPlayer.id)
   if (others.length === 0) return true
   const minOthers = Math.min(...others.map(p =>
     tracks.value.filter(t => t.added_by === p.id).length
   ))
-  return myCount <= minOthers
+  return myCount < minOthers + sessionSettings.value.equity_margin
 })
 
 const canDeleteTrack = computed(() => {
   if (!sessionSettings.value.force_equity) return true
   const myCount = tracks.value.filter(t => t.added_by === props.currentPlayer.id).length
-  const others = players.value.filter(p => p.id !== props.currentPlayer.id)
+  const others = onlinePlayers.value.filter(p => p.id !== props.currentPlayer.id)
   if (others.length === 0) return true
   const minOthers = Math.min(...others.map(p =>
     tracks.value.filter(t => t.added_by === p.id).length

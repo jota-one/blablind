@@ -99,6 +99,24 @@
         <p class="text-sm text-base-content/50 mt-1">{{ t('admin.settings_force_equity_hint') }}</p>
       </div>
 
+      <!-- equity_margin -->
+      <div v-if="form.force_equity" class="form-control">
+        <label class="label">
+          <span class="label-text font-medium">{{ t('admin.settings_equity_margin_label') }}</span>
+        </label>
+        <div class="flex items-center gap-2">
+          <input
+            v-model.number="form.equity_margin"
+            type="number"
+            min="1"
+            max="10"
+            class="input input-bordered w-32"
+          />
+          <span class="text-base-content/50 text-sm">{{ t('admin.settings_tracks') }}</span>
+        </div>
+        <p class="text-sm text-base-content/50 mt-1">{{ t('admin.settings_equity_margin_hint') }}</p>
+      </div>
+
       <!-- Error -->
       <div v-if="errorMessage" class="alert alert-error">
         <span>{{ errorMessage }}</span>

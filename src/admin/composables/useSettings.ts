@@ -10,6 +10,7 @@ export interface TSettings {
   continue_after_success: boolean
   stop_method: 'vote_unanimous' | 'host_choice'
   force_equity: boolean
+  equity_margin: number
 }
 
 export default function useSettings() {

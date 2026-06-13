@@ -128,6 +128,7 @@ const form = reactive({
   continue_after_success: true,
   stop_method: 'vote_unanimous' as 'vote_unanimous' | 'host_choice',
   force_equity: false,
+  equity_margin: 1,
 })
 
 type WizardStep = {
@@ -205,6 +206,19 @@ const steps = computed<WizardStep[]>(() => [
     hint: t('admin.settings_force_equity_hint'),
     inputType: 'toggle',
   },
+  ...(form.force_equity
+    ? [
+        {
+          key: 'equity_margin',
+          icon: 'i-fa6-solid-scale-balanced',
+          label: t('admin.settings_equity_margin_label'),
+          hint: t('admin.settings_equity_margin_hint'),
+          inputType: 'number' as const,
+          unit: t('admin.settings_tracks'),
+          min: 1,
+        },
+      ]
+    : []),
 ])
 
 const currentStep = computed(() => steps.value[currentStepIndex.value])
@@ -252,6 +266,7 @@ const createSession = async () => {
         continue_after_success: form.continue_after_success,
         stop_method: form.stop_method,
         force_equity: form.force_equity,
+        equity_margin: form.equity_margin,
       },
       ...(user.value?.id ? { owner: user.value.id } : {}),
     })
@@ -283,6 +298,7 @@ const open = async () => {
   form.continue_after_success = effective.continue_after_success ?? true
   form.stop_method = effective.stop_method ?? 'vote_unanimous'
   form.force_equity = effective.force_equity ?? false
+  form.equity_margin = effective.equity_margin ?? 1
 
   dialogRef.value?.showModal()
   await nextTick()
