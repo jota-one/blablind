@@ -8,7 +8,11 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
-- [2026-05-18] Reconnection fix & orphan tracks — players who reconnect after an SSE drop now reappear correctly for all clients (reload on `PB_CONNECT`). When a player stays disconnected for 30s with queued tracks, the host is prompted to choose: inherit the tracks, delete them, or split them equally among remaining players.
+- Bug: le système me dit que je vais pouvoir rebuzzer dans X secondes, et une fois les X secondes écoulées, ça affiche de nouveau de devoir attendre que quelqu'un buzz avant que je puisse rebuzz.
+
+- Si un joueur est désactivé, il doit être exclus de l'équité d'ajout de morceaux. Sinon il bloque tout le monde. Il faut aussi qu'on puisse définir une marge d'écart autre que 1.
+
+- Quand on a passé, on peut toujours Buzzer. Il faudrait que ça annuler le "je passe" si on rebuzz.
 
 ## New Features
 
@@ -21,6 +25,8 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 
 ## History (done)
+
+- [2026-05-18] Reconnection fix & orphan tracks — players who reconnect after an SSE drop now reappear correctly for all clients (reload on `PB_CONNECT`). When a player stays disconnected for 30s with queued tracks, the host is prompted to choose: inherit the tracks, delete them, or split them equally among remaining players.
 
 - [2026-05-12] In-game settings modal — gear button in header opens session settings for all players; host can edit and save settings live during the game.
 

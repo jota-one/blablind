@@ -42,7 +42,10 @@ export default function useBuzzes(
 
     const lastWrong = wrong[wrong.length - 1]
     const delayMs = settings.value.rebuzz_delay * 1000
-    if (delayMs > 0 && now.value - new Date(lastWrong.updated).getTime() < delayMs) return 'delay'
+    if (delayMs > 0) {
+      if (now.value - new Date(lastWrong.updated).getTime() < delayMs) return 'delay'
+      return null
+    }
 
     if (otherEligibleCount.value === 0) return null
     const othersAfter = buzzes.value.filter(
