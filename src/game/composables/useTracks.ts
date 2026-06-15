@@ -85,6 +85,14 @@ export default function useTracks(sessionId: string) {
     await pb.collection('tracks').update(trackId, { skip_votes: [...current, playerId] })
   }
 
+  const cancelSkipVote = async (trackId: string, playerId: string) => {
+    const track = tracks.value.find(t => t.id === trackId)
+    if (!track) return
+    const current: string[] = Array.isArray(track.skip_votes) ? track.skip_votes : []
+    if (!current.includes(playerId)) return
+    await pb.collection('tracks').update(trackId, { skip_votes: current.filter(id => id !== playerId) })
+  }
+
   const deleteTrack = (trackId: string) => pb.collection('tracks').delete(trackId)
 
   let unsubscribe: (() => void) | undefined
@@ -109,5 +117,5 @@ export default function useTracks(sessionId: string) {
 
   onUnmounted(() => unsubscribe?.())
 
-  return { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip, deleteTrack }
+  return { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip, cancelSkipVote, deleteTrack }
 }

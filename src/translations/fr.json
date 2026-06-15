@@ -86,6 +86,7 @@
   "room.add_track_button": "Ajouter un morceau",
   "room.skip_button": "Je passe ({votes}/{needed})",
   "room.skip_voted": "Tu as passé ✓",
+  "room.skip_voters": "Ont passé : {names}",
   "room.stop_button": "Arrêter ({votes}/{needed})",
   "room.stop_voted": "Tu as voté pour arrêter ✓",
   "room.track_equity_limit": "Équité activée : attends que les autres ajoutent un morceau.",

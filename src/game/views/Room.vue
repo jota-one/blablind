@@ -243,6 +243,11 @@
           </div>
         </div>
 
+        <!-- Skip voters info (track admin only) -->
+        <div v-if="isCurrentTrackAdmin && currentTrack && skipVoterNames.length > 0 && !isTrackSolvedAndPlaying" class="text-xs text-base-content/50 text-center">
+          <span class="i-fa-solid-forward-step text-xs mr-1"></span>{{ t('room.skip_voters', { names: skipVoterNames.join(', ') }) }}
+        </div>
+
         <!-- Orphan tracks notification (host only) -->
         <div v-if="isHost && nextOrphanOwner" class="card bg-warning/10 border border-warning/30 p-4 space-y-3">
           <p class="font-bold flex items-center gap-2 text-sm">
@@ -692,7 +697,7 @@ const props = defineProps<{
 const { players, onlinePlayers } = usePlayers(props.session.id)
 const manuallyDeletingIds = new Set<string>()
 
-const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip, deleteTrack } = useTracks(props.session.id)
+const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip, cancelSkipVote, deleteTrack } = useTracks(props.session.id)
 
 const myDuplicateTrack = computed(() =>
   tracks.value.find(t => t.is_duplicate && t.added_by === props.currentPlayer.id) ?? null
@@ -924,6 +929,11 @@ const skipVotesNeeded = computed(() => {
   return Math.max(1, onlinePlayers.value.filter(p => p.id !== trackValidatorId.value).length)
 })
 const hasVotedToSkip = computed(() => skipVoteArray.value.includes(props.currentPlayer.id))
+const skipVoterNames = computed(() =>
+  skipVoteArray.value
+    .filter(id => id !== trackValidatorId.value)
+    .map(id => getPlayerName(id))
+)
 const isTrackSolvedAndPlaying = computed(() =>
   !!currentTrack.value?.solved_by && currentTrack.value?.status === 'playing'
 )
@@ -1074,6 +1084,9 @@ const doneTracks = computed(() =>
 const submitBuzz = async () => {
   if (!isIrlMode.value && !answer.value.trim()) return
   if (!currentTrack.value) return
+  if (hasVotedToSkip.value) {
+    await cancelSkipVote(currentTrack.value.id, props.currentPlayer.id)
+  }
   await buzz(props.currentPlayer.id, answer.value.trim())
   buzzing.value = false
   answer.value = ''

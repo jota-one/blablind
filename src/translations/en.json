@@ -86,6 +86,7 @@
   "room.add_track_button": "Add a track",
   "room.skip_button": "Skip ({votes}/{needed})",
   "room.skip_voted": "You skipped ✓",
+  "room.skip_voters": "Passed: {names}",
   "room.stop_button": "Stop ({votes}/{needed})",
   "room.stop_voted": "You voted to stop ✓",
   "room.track_equity_limit": "Equity mode: wait for others to add a track first.",

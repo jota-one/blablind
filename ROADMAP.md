@@ -8,8 +8,6 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
-- Quand on a passé, on peut toujours Buzzer. Il faudrait que ça annuler le "je passe" si on rebuzz.
-
 ## New Features
 
 ### Mode autonome
@@ -21,6 +19,8 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 
 ## History (done)
+
+- [2026-06-15] Skip/rebuzz UX — buzzing cancels a player's own skip vote; track owner sees which players have passed on their track.
 
 - [2026-06-13] Equity margin & offline player exclusion — offline players excluded from equity calculation; new `equity_margin` setting (default 1) configurable in the wizard, admin panel, user preferences, and in-game settings modal.
 
