@@ -8,17 +8,30 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
+
+
 ## New Features
+
+### Création de blindtest "asynchrone"
+
 
 ### Mode autonome
 Pour l'instant, lorsque N joueurs jouent à blablind, pour chaque morceau il y a un maître et N-1 joueurs. Le maître juge quel autre joueur a répondu juste.
 
-Dans la mesure où l'on va pouvoir fournir des blindtests déjà créés (par un admin ou un autre membre du site), on peut imaginer qu'un groupe de joueur crée une partie et charge l'un de ces blindtests. Dans ce cas, il n'y a plus de maître. Tout le monde peut participer. En gros c'est comme un blindtest sur YouTube où tout le monde essaie de deviner et au bout d'un temps déterminé, la réponse est fournie par l'application.
+Dans la mesure où l'on va pouvoir fournir des blindtests déjà créés (par un admin ou un autre membre du site), on peut imaginer qu'un groupe de joueurs crée une partie et charge l'un de ces blindtests. Dans ce cas, il n'y a plus de maître. Tout le monde peut participer. En gros c'est comme un blindtest sur YouTube où tout le monde essaie de deviner et au bout d'un temps déterminé, la réponse est fournie par l'application.
 
-Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tracking des points. La définition du gagnant doit faire l'objet d'un consensus. Je pense qu'il faut garder la logique du BUZZ et le premier qui a buzzé
+Ces blindtests seront un peu spéciaux dans la façon de les créer, voir la feature "Création de blindtest "asynchrone"".
+
+Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tracking des points. La définition du gagnant doit faire l'objet d'un consensus. Je pense qu'il faut garder la logique du BUZZ et le premier qui a buzzé. On peut imaginer stocker l'ordre des buzz. On garde uniquement les joueurs qui ont buzzé dans le temps imparti. Ensuite chaque joueur, dans l'ordre des buzz, peut proposer une réponse. Une fois que tous les joueurs élligibles ont pu répondre, on dévoile la bonne réponse. Si le premier joueur avait dit juste, les autres lui valident le point (votes à au moins 50% des autres joueurs. Exemple: s'il y a 6 joueurs, 5 vont voter et il faut 3 voix pour valider la bonne réponse du joueur candidat. S'il y a 3 joueurs, 2 joueurs vont voter et il suffit que l'un des 2 valide et ça donnera le point). Si le premier joueur n'a pas donné la bonne réponse (même système de votes, mais négatifs), on passe au 2ème joueur et ainsi de suite. Si personne n'a donné la bonne réponse, on enchaîne avec le prochain morceau.
+
+Pendant la durée des votes, on laisse tourner le morceau sur sa séquence "résultat".
 
 
 ## History (done)
+
+- [2026-06-22] Leaderboard track count — in-game scores tab and end-of-game podium now show guessed/guessable count alongside the percentage.
+
+- [2026-06-22] Host shuffle all tracks — host can shuffle all queued tracks at once (when no track is playing) with proportional interleaving across players; individual track shuffle also migrated to batch updates.
 
 - [2026-06-15] Skip/rebuzz UX — buzzing cancels a player's own skip vote; track owner sees which players have passed on their track.
 

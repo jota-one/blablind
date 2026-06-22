@@ -352,8 +352,12 @@
 
               <!-- À venir -->
               <div class="w-full shrink-0 pt-3 space-y-3">
-                <div v-if="myQueuedTracks.length >= 2" class="flex justify-end">
-                  <button class="btn btn-xs btn-ghost text-base-content/50" @click="shuffleMyTracks">
+                <div v-if="myQueuedTracks.length >= 2 || (isHost && queuedTracks.length >= 2 && !currentTrack)" class="flex justify-end gap-2">
+                  <button v-if="isHost && queuedTracks.length >= 2 && !currentTrack" class="btn btn-xs btn-ghost text-base-content/50" @click="shuffleAllTracks">
+                    <span class="i-fa6-solid-shuffle"></span>
+                    {{ t('room.shuffle_all_tracks') }}
+                  </button>
+                  <button v-if="myQueuedTracks.length >= 2" class="btn btn-xs btn-ghost text-base-content/50" @click="shuffleMyTracks">
                     <span class="i-fa6-solid-shuffle"></span>
                     {{ t('room.shuffle_my_tracks') }}
                   </button>
@@ -1045,6 +1049,16 @@ const myQueuedTracks = computed(() =>
   queuedTracks.value.filter(t => t.added_by === props.currentPlayer.id)
 )
 
+const batchUpdateOrders = async (updates: { id: string; order: number }[]) => {
+  for (let i = 0; i < updates.length; i += 45) {
+    const batch = pb.createBatch()
+    updates.slice(i, i + 45).forEach(({ id, order }) =>
+      batch.collection('tracks').update(id, { order })
+    )
+    await batch.send()
+  }
+}
+
 const shuffleMyTracks = async () => {
   const my = myQueuedTracks.value
   if (my.length < 2) return
@@ -1053,9 +1067,37 @@ const shuffleMyTracks = async () => {
     const j = Math.floor(Math.random() * (i + 1));
     [orders[i], orders[j]] = [orders[j], orders[i]]
   }
-  await Promise.all(my.map((track, i) =>
-    pb.collection('tracks').update(track.id, { order: orders[i] }, { requestKey: null })
-  ))
+  await batchUpdateOrders(my.map((track, i) => ({ id: track.id, order: orders[i] })))
+}
+
+const shuffleAllTracks = async () => {
+  const queued = queuedTracks.value
+  if (queued.length < 2) return
+
+  const byPlayer = new Map<string, any[]>()
+  for (const track of queued) {
+    if (!byPlayer.has(track.added_by)) byPlayer.set(track.added_by, [])
+    byPlayer.get(track.added_by)!.push(track)
+  }
+
+  for (const playerTracks of byPlayer.values()) {
+    for (let i = playerTracks.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[playerTracks[i], playerTracks[j]] = [playerTracks[j], playerTracks[i]]
+    }
+  }
+
+  // Fractional position (i + rand) / count → homogeneous interleaving across players
+  const withPos: { track: any; pos: number }[] = []
+  for (const playerTracks of byPlayer.values()) {
+    playerTracks.forEach((track, i) => {
+      withPos.push({ track, pos: (i + Math.random()) / playerTracks.length })
+    })
+  }
+  withPos.sort((a, b) => a.pos - b.pos)
+
+  const orders = queued.map(t => t.order).sort((a, b) => a - b)
+  await batchUpdateOrders(withPos.map(({ track }, i) => ({ id: track.id, order: orders[i] })))
 }
 
 const getPlayerName = (playerId: string) => players.value.find(p => p.id === playerId)?.name ?? t('room.unknown_player')

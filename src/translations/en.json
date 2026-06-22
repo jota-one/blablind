@@ -99,6 +99,7 @@
   "room.no_upcoming": "No upcoming tracks",
   "room.delete_track": "Remove this track",
   "room.shuffle_my_tracks": "Shuffle my tracks",
+  "room.shuffle_all_tracks": "Shuffle all tracks",
   "room.buzz_won": "Your turn to answer!",
   "room.duplicate_title": "Duplicate detected",
   "room.duplicate_body": "Your track « {title} » is already in the session. You can remove it or keep it.",

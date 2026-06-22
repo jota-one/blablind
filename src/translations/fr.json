@@ -99,6 +99,7 @@
   "room.no_upcoming": "Aucun morceau à venir",
   "room.delete_track": "Supprimer ce morceau",
   "room.shuffle_my_tracks": "Mélanger mes morceaux",
+  "room.shuffle_all_tracks": "Mélanger tous les morceaux",
   "room.buzz_won": "À toi de parler !",
   "room.duplicate_title": "Doublon détecté",
   "room.duplicate_body": "Ton morceau « {title} » est déjà présent dans la session. Tu peux le supprimer ou le garder.",
