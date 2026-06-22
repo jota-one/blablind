@@ -452,9 +452,14 @@
                     <span class="flex-1 text-sm font-medium truncate" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.name }}</span>
                     <span v-if="p.id === session.host" class="text-xs" title="Host">👑</span>
                     <span v-if="isIrlMode && p.id === session.dj_player" title="DJ" class="text-base">🎵</span>
-                    <span class="font-mono font-bold text-primary tabular-nums" :class="!isOnline(p) ? 'opacity-40' : ''">
-                      {{ playerRatio(p).guessable === 0 ? '—' : `${parseFloat((playerRatio(p).ratio * 100).toFixed(2))}%` }}
-                    </span>
+                    <div class="flex flex-col items-end tabular-nums" :class="!isOnline(p) ? 'opacity-40' : ''">
+                      <span class="font-mono font-bold text-primary">
+                        {{ playerRatio(p).guessable === 0 ? '—' : `${parseFloat((playerRatio(p).ratio * 100).toFixed(2))}%` }}
+                      </span>
+                      <span v-if="playerRatio(p).guessable > 0" class="font-mono text-xs text-base-content/40">
+                        {{ playerRatio(p).guessed }}/{{ playerRatio(p).guessable }}
+                      </span>
+                    </div>
                     <span v-if="!isOnline(p)" class="w-2 h-2 rounded-full bg-base-content/20 shrink-0" :title="t('room.offline')"></span>
                     <span v-else-if="activeBuzz?.player === p.id" class="i-fa-solid-bell text-warning animate-bounce text-xs"></span>
                     <button

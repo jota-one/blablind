@@ -75,7 +75,7 @@ const scoreLabel = (player: any) => {
   if (!player) return ''
   const { guessed, guessable, ratio } = playerRatio(player)
   if (guessable === 0) return '—'
-  return `${parseFloat((ratio * 100).toFixed(2))}%`
+  return `${parseFloat((ratio * 100).toFixed(2))}% (${guessed}/${guessable})`
 }
 
 const sorted = computed(() =>
