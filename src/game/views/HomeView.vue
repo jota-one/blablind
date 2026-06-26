@@ -146,6 +146,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import { pb } from '@game/pb'
+import { ONLINE_WINDOW_MS } from '@game/utils'
 import CreateSessionWizard from '@game/components/CreateSessionWizard.vue'
 
 const { t } = useI36n()
@@ -218,7 +219,7 @@ const feedbackSent = ref(false)
 const sendingFeedback = ref(false)
 
 onMounted(async () => {
-  const threshold = new Date(Date.now() - 30_000).toISOString().replace('T', ' ')
+  const threshold = new Date(Date.now() - ONLINE_WINDOW_MS).toISOString().replace('T', ' ')
   const [sessionsRes, playersRes, tracksRes] = await Promise.all([
     pb.collection('sessions').getList(1, 1, { requestKey: null }),
     pb.collection('players').getList(1, 1, {

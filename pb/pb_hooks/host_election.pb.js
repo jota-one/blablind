@@ -17,7 +17,8 @@ onRecordAfterUpdateSuccess((e) => {
     return
   }
 
-  const ONLINE_WINDOW_MS = 30 * 1000
+  // Keep in sync with ONLINE_WINDOW_MS in src/game/utils.ts.
+  const ONLINE_WINDOW_MS = 45 * 1000
   const thresholdIso = new Date(Date.now() - ONLINE_WINDOW_MS)
     .toISOString()
     .replace('T', ' ')

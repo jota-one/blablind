@@ -8,9 +8,14 @@ export function generateSlug(length = 6): string {
   return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }
 
+// A player is considered online if their last heartbeat is within this window.
+// Heartbeat interval is 15s, so this tolerates ~2 missed beats (mobile tab
+// throttling). Keep in sync with ONLINE_WINDOW_MS in pb/pb_hooks/host_election.pb.js.
+export const ONLINE_WINDOW_MS = 45_000
+
 export function isOnline(player: any): boolean {
   if (!player?.last_seen) return true
-  return Date.now() - new Date(player.last_seen).getTime() < 30_000
+  return Date.now() - new Date(player.last_seen).getTime() < ONLINE_WINDOW_MS
 }
 
 export function normalizeSearch(s: string): string {

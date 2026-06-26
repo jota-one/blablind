@@ -20,6 +20,7 @@ import useSession from '@game/composables/useSession'
 import { pb } from '@game/pb'
 import Join from '@game/views/Join.vue'
 import Room from '@game/views/Room.vue'
+import { ONLINE_WINDOW_MS } from '@game/utils'
 
 // Register v-focus directive for the game SPA
 const app = getCurrentInstance()?.appContext.app
@@ -39,7 +40,16 @@ const startHeartbeat = async (playerId: string) => {
     pb.collection('players').update(playerId, { last_seen: new Date().toISOString() }).catch(() => {})
   await tick()
   const id = setInterval(tick, 15_000)
-  stopHeartbeat = () => clearInterval(id)
+  // Mobile browsers throttle/suspend timers for backgrounded tabs, so beat
+  // immediately when the tab returns to the foreground to avoid a false offline.
+  const onVisible = () => { if (document.visibilityState === 'visible') tick() }
+  document.addEventListener('visibilitychange', onVisible)
+  window.addEventListener('focus', onVisible)
+  stopHeartbeat = () => {
+    clearInterval(id)
+    document.removeEventListener('visibilitychange', onVisible)
+    window.removeEventListener('focus', onVisible)
+  }
 }
 
 onUnmounted(() => stopHeartbeat?.())
@@ -112,7 +122,7 @@ const onJoined = async (name: string) => {
   player.value = { ...record, secret }
   saveLastSession()
   await startHeartbeat(record.id)
-  const threshold = new Date(Date.now() - 30_000).toISOString().replace('T', ' ')
+  const threshold = new Date(Date.now() - ONLINE_WINDOW_MS).toISOString().replace('T', ' ')
   const activeOthers = await pb.collection('players').getList(1, 1, {
     filter: `session="${session.value.id}" && id != "${record.id}" && last_seen >= "${threshold}"`,
     requestKey: null,
