@@ -930,19 +930,9 @@ const sessionStatusLabel = computed(
 )
 const isHost = computed(() => props.session.host === props.currentPlayer.id)
 
-watch(
-  [() => props.session.host, onlinePlayers],
-  ([hostId, online]) => {
-    if (online.length === 0) return
-    const hostOnline = !!hostId && online.some(p => p.id === hostId)
-    if (hostOnline) return
-    const elected = [...online].sort((a, b) => a.created.localeCompare(b.created))[0]
-    if (elected.id === props.currentPlayer.id) {
-      pb.collection('sessions').update(props.session.id, { host: elected.id })
-    }
-  },
-  { immediate: true },
-)
+// Host election is handled server-side (pb/pb_hooks/host_election.pb.js):
+// when the current host goes offline, a heartbeat from any remaining player
+// triggers reassignment to the earliest-created online player.
 
 const canClaim = computed(() => isHost.value && isAuthenticated.value && user.value?.id && !props.session.owner)
 
