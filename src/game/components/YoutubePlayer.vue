@@ -11,6 +11,7 @@ const props = defineProps<{
   videoId: string | null
   startSeconds: number
   paused: boolean
+  autoplay?: boolean
 }>()
 
 const emit = defineEmits<{ playing: [] }>()
@@ -42,9 +43,9 @@ const createPlayer = (videoId: string) => {
   playerReadyPromise = new Promise((resolve) => { playerReadyResolve = resolve })
   ytPlayer = new (window as any).YT.Player(container, {
     videoId,
-    playerVars: { start: props.startSeconds, autoplay: 0, controls: 1, rel: 0, modestbranding: 1, playsinline: 1 },
+    playerVars: { start: props.startSeconds, autoplay: props.autoplay ? 1 : 0, controls: 1, rel: 0, modestbranding: 1, playsinline: 1 },
     events: {
-      onReady: () => { playerReadyResolve?.() },
+      onReady: () => { playerReadyResolve?.(); if (props.autoplay) ytPlayer?.playVideo() },
       onStateChange: (e: any) => {
         if (e.data === 1) emit('playing')
       },
@@ -70,4 +71,11 @@ watch(() => props.paused, (paused) => {
 })
 
 onUnmounted(() => { ytPlayer?.destroy(); ytPlayer = null })
+
+defineExpose({
+  getCurrentTime: () => ytPlayer?.getCurrentTime() ?? 0,
+  seekTo: (seconds: number) => ytPlayer?.seekTo(seconds, true),
+  pauseVideo: () => ytPlayer?.pauseVideo(),
+  playVideo: () => ytPlayer?.playVideo(),
+})
 </script>

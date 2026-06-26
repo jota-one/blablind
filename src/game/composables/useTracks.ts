@@ -53,6 +53,8 @@ export default function useTracks(sessionId: string) {
     artist?: string
     duration?: number
     start_seconds: number
+    playback_duration?: number
+    reveal_seconds?: number
     added_by: string
   }) => {
     const video = await findOrCreateVideo(data)
@@ -61,6 +63,8 @@ export default function useTracks(sessionId: string) {
       session: sessionId,
       video: video.id,
       start_seconds: data.start_seconds,
+      playback_duration: data.playback_duration || null,
+      reveal_seconds: data.reveal_seconds ?? null,
       added_by: data.added_by,
       status: 'queued',
       order: maxOrder + 1,

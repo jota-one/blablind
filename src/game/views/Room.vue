@@ -58,9 +58,10 @@
           <!-- Layer 1 : player toujours monté (invisible hors vidéo) -->
           <div class="absolute inset-0" :class="{'opacity-0 pointer-events-none': audioUnlocked || !videoId}">
             <YoutubePlayer
+              ref="youtubePlayer"
               :video-id="videoId"
               :start-seconds="currentTrack?.start_seconds ?? 0"
-              :paused="audioUnlocked && !!activeBuzz"
+              :paused="audioUnlocked && (!!activeBuzz || pausedByDuration)"
               @playing="onPlaying"
             />
           </div>
@@ -645,6 +646,10 @@
             <div class="flex-1">
               <input v-model.number="newTrack.start_seconds" type="number" :placeholder="t('room.start_placeholder')" class="input input-bordered w-full" min="0" />
             </div>
+            <div class="flex gap-2">
+              <input v-model.number="newTrack.playback_duration" type="number" :placeholder="t('track.playback_duration_title')" class="input input-bordered flex-1" min="1" :title="t('track.playback_duration_title')" />
+              <input v-model.number="newTrack.reveal_seconds" type="number" :placeholder="t('track.reveal_seconds_title')" class="input input-bordered flex-1" min="0" :title="t('track.reveal_seconds_title')" />
+            </div>
             <div class="flex-1 relative">
               <input v-model="newTrack.title" type="text" :placeholder="t('room.title_placeholder')" class="input input-bordered w-full" />
               <span v-if="fetchingMeta" class="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2 text-base-content/30"></span>
@@ -677,7 +682,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted, useTemplateRef } from 'vue'
+import { ref, computed, watch, nextTick, onUnmounted, useTemplateRef } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import Sortable from 'sortablejs'
 import { useSwipe } from '@vueuse/core'
@@ -706,6 +711,7 @@ const props = defineProps<{
 const { players, onlinePlayers } = usePlayers(props.session.id)
 const manuallyDeletingIds = new Set<string>()
 
+const youtubePlayer = useTemplateRef<InstanceType<typeof YoutubePlayer>>('youtubePlayer')
 const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip, cancelSkipVote, deleteTrack } = useTracks(props.session.id)
 
 const myDuplicateTrack = computed(() =>
@@ -752,12 +758,32 @@ const { activeBuzz, canBuzz, buzzBlockReason, rebuzzRemainingSeconds, remainingA
   sessionSettings,
 )
 
+// Playback duration timer
+const pausedByDuration = ref(false)
+let playbackDurationTimer: ReturnType<typeof setTimeout> | null = null
+
+const clearPlaybackTimer = () => {
+  if (playbackDurationTimer) { clearTimeout(playbackDurationTimer); playbackDurationTimer = null }
+}
+
+watch(() => currentTrack.value?.id, (newId, oldId) => {
+  if (newId === oldId) return
+  clearPlaybackTimer()
+  pausedByDuration.value = false
+  const track = currentTrack.value
+  if (track?.playback_duration) {
+    playbackDurationTimer = setTimeout(() => {
+      pausedByDuration.value = true
+    }, track.playback_duration * 1000)
+  }
+})
+
 // UI state
 const buzzing = ref(false)
 const answer = ref('')
 const addingTrack = ref(false)
 const addMode = ref<'search' | 'single'>('search')
-const newTrack = ref({ youtube_url: '', start_seconds: 0, title: '', artist: '' })
+const newTrack = ref({ youtube_url: '', start_seconds: 0, playback_duration: 0, reveal_seconds: 0, title: '', artist: '' })
 const fetchingMeta = ref(false)
 const audioUnlocked = ref(false)
 const animationState = ref<{ type?: 'solved' | 'skipped'; playerName: string; playerId?: string; title: string; artist: string } | null>(null)
@@ -857,6 +883,12 @@ watch(solvedBuzz, (buzz) => {
     artist: track?.expand?.video?.artist ?? '',
   }
   setTimeout(() => { animationState.value = null }, 3000)
+  clearPlaybackTimer()
+  pausedByDuration.value = false
+  const revealSecs = track?.reveal_seconds
+  if (revealSecs) {
+    nextTick(() => { youtubePlayer.value?.seekTo(revealSecs) })
+  }
 })
 
 let metaDebounce: ReturnType<typeof setTimeout> | null = null
@@ -944,8 +976,18 @@ const skipVoterNames = computed(() =>
     .map(id => getPlayerName(id))
 )
 const isTrackSolvedAndPlaying = computed(() =>
-  !!currentTrack.value?.solved_by && currentTrack.value?.status === 'playing'
+  (!!currentTrack.value?.solved_by || !!currentTrack.value?.skip_revealed) && currentTrack.value?.status === 'playing'
 )
+
+watch(isTrackSolvedAndPlaying, (solved) => {
+  if (!solved) return
+  clearPlaybackTimer()
+  pausedByDuration.value = false
+  if (!currentTrack.value?.solved_by && currentTrack.value?.reveal_seconds) {
+    nextTick(() => { youtubePlayer.value?.seekTo(currentTrack.value!.reveal_seconds) })
+  }
+})
+
 const canAddTrack = computed(() => {
   if (!sessionSettings.value.force_equity) return true
   const myCount = queuedTracks.value.filter(t => t.added_by === props.currentPlayer.id).length
@@ -998,11 +1040,16 @@ watch(skipVoteArray, async (votes) => {
       return
     }
     const trackId = currentTrack.value.id
+    const hasReveal = !!currentTrack.value.reveal_seconds && !currentTrack.value.solved_by
     setTimeout(async () => {
       animationState.value = null
-      await finishTrack(trackId)
-      const next = queuedTracks.value[0]
-      if (next) { await playTrack(next.id) }
+      if (hasReveal) {
+        await pb.collection('tracks').update(trackId, { skip_revealed: true, skip_votes: [] })
+      } else {
+        await finishTrack(trackId)
+        const next = queuedTracks.value[0]
+        if (next) { await playTrack(next.id) }
+      }
     }, 3000)
   }
 })
@@ -1147,6 +1194,11 @@ const validateBuzz = async () => {
   const buzzer = players.value.find(p => p.id === buzzPlayerId)
   const next = queuedTracks.value[0]
 
+  // Resume immediately without waiting for subscription round-trip
+  clearPlaybackTimer()
+  pausedByDuration.value = false
+  nextTick(() => { youtubePlayer.value?.playVideo() })
+
   await Promise.all([
     pb.collection('buzzes').update(buzzId, { status: 'correct' }),
     buzzer && pb.collection('players').update(buzzer.id, { score: (buzzer.score || 0) + 1 }),
@@ -1236,7 +1288,7 @@ const resetSession = async () => {
     const allOps: Array<(b: ReturnType<typeof pb.createBatch>) => void> = [
       ...allBuzzes.map(buzz => (b: ReturnType<typeof pb.createBatch>) => b.collection('buzzes').delete(buzz.id)),
       ...players.value.map(p => (b: ReturnType<typeof pb.createBatch>) => b.collection('players').update(p.id, { score: 0 })),
-      ...tracks.value.map(t => (b: ReturnType<typeof pb.createBatch>) => b.collection('tracks').update(t.id, { status: 'queued', solved_by: null, skip_votes: [], is_duplicate: false })),
+      ...tracks.value.map(t => (b: ReturnType<typeof pb.createBatch>) => b.collection('tracks').update(t.id, { status: 'queued', solved_by: null, skip_votes: [], is_duplicate: false, skip_revealed: false })),
       (b: ReturnType<typeof pb.createBatch>) => b.collection('sessions').update(props.session.id, { status: 'waiting' }),
     ]
     for (let i = 0; i < allOps.length; i += 45) {
@@ -1286,18 +1338,20 @@ const handleAddTrack = async () => {
     await addTrack({
       video_id: vid,
       start_seconds: newTrack.value.start_seconds || 0,
+      playback_duration: newTrack.value.playback_duration || undefined,
+      reveal_seconds: newTrack.value.reveal_seconds || undefined,
       title: newTrack.value.title.trim() || undefined,
       artist: newTrack.value.artist.trim() || undefined,
       added_by: props.currentPlayer.id,
     })
-    newTrack.value = { youtube_url: '', start_seconds: 0, title: '', artist: '' }
+    newTrack.value = { youtube_url: '', start_seconds: 0, playback_duration: 0, reveal_seconds: 0, title: '', artist: '' }
     showAddTrackModal.value = false
   } finally {
     addingTrack.value = false
   }
 }
 
-const addTrackFromSearch = (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) => {
+const addTrackFromSearch = (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number; playback_duration?: number; reveal_seconds?: number }) => {
   if (!canAddTrack.value) return
   return addTrack({ ...data, start_seconds: data.start_seconds ?? 0, added_by: props.currentPlayer.id })
 }
@@ -1353,5 +1407,6 @@ onUnmounted(() => {
   if (autoRejectTimer) { clearTimeout(autoRejectTimer) }
   if (autoRejectClock) { clearInterval(autoRejectClock) }
   if (duplicateCheckTimeout) { clearTimeout(duplicateCheckTimeout) }
+  clearPlaybackTimer()
 })
 </script>

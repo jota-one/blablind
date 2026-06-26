@@ -17,13 +17,14 @@
 
     <!-- Preview player -->
     <div v-if="previewInfo" class="rounded-lg overflow-hidden aspect-video">
-      <iframe
+      <YoutubePlayer
         :key="`${previewInfo.videoId}-${previewInfo.startSeconds}`"
-        :src="`https://www.youtube.com/embed/${previewInfo.videoId}?autoplay=1&controls=1&rel=0&playsinline=1&modestbranding=1&start=${previewInfo.startSeconds}`"
-        allow="autoplay; encrypted-media"
-        allowfullscreen
-        class="w-full h-full"
-      ></iframe>
+        ref="previewPlayer"
+        :video-id="previewInfo.videoId"
+        :start-seconds="previewInfo.startSeconds"
+        :paused="false"
+        autoplay
+      />
     </div>
 
     <!-- Local results -->
@@ -36,6 +37,7 @@
             :added="addedIds.has(v.video_id)"
             :disabled="props.canAddTrack === false"
             :previewing="previewInfo?.videoId === v.video_id"
+            :get-preview-time="previewInfo?.videoId === v.video_id ? getPreviewTime : undefined"
             @add="addVideo"
             @preview="togglePreview"
           />
@@ -58,6 +60,7 @@
             :added="addedIds.has(v.videoId)"
             :disabled="props.canAddTrack === false"
             :previewing="previewInfo?.videoId === v.videoId"
+            :get-preview-time="previewInfo?.videoId === v.videoId ? getPreviewTime : undefined"
             @add="addVideo"
             @preview="togglePreview"
           />
@@ -80,18 +83,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, useTemplateRef } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import { pb } from '@game/pb'
 import { normalizeSearch } from '@game/utils'
 import TrackResultRow from '@game/components/TrackResultRow.vue'
+import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 
 const { t } = useI36n()
 
 interface SearchVideo { videoId: string; title: string; artist: string; duration: number }
 
 const props = defineProps<{
-  addTrack: (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number }) => Promise<void> | undefined
+  addTrack: (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number; playback_duration?: number; reveal_seconds?: number }) => Promise<void> | undefined
   canAddTrack?: boolean
 }>()
 
@@ -104,6 +108,9 @@ const searching = ref(false)
 const searchingYt = ref(false)
 const searched = ref(false)
 const ytError = ref('')
+
+const previewPlayer = useTemplateRef<InstanceType<typeof YoutubePlayer>>('previewPlayer')
+const getPreviewTime = () => previewPlayer.value?.getCurrentTime() ?? 0
 
 const noResults = computed(() =>
   searched.value && !searching.value && !searchingYt.value &&
@@ -165,7 +172,7 @@ const searchYoutube = async () => {
   }
 }
 
-const addVideo = async (video: SearchVideo, startSeconds: number) => {
+const addVideo = async (video: SearchVideo, startSeconds: number, playbackDuration: number | null, revealSeconds: number | null) => {
   addedIds.value = new Set([...addedIds.value, video.videoId])
   await props.addTrack({
     video_id: video.videoId,
@@ -173,6 +180,8 @@ const addVideo = async (video: SearchVideo, startSeconds: number) => {
     artist: video.artist,
     duration: video.duration,
     start_seconds: startSeconds || undefined,
+    playback_duration: playbackDuration ?? undefined,
+    reveal_seconds: revealSeconds ?? undefined,
   })
 }
 </script>

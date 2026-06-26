@@ -12,7 +12,16 @@ List of small potential improvements and refactors.
 
 ## New Features
 
-### Création de blindtest "asynchrone"
+### Création de blindtest "pros"
+Pour vraiment bien définir un morceau de blindtest, il manque encore 2-3 options. Ce qu'on a:
+- pouvoir choisir le morceau
+- pouvoir définir son timestamp de départ
+
+Ce qui manque:
+- pouvoir définir une durée de playback (à partir du timestamp de départ choisi). Pourquoi? Ca permet de vraiment cibler sur ce qu'on veut laisser écouter aux candidats.
+- pouvoir définir un 2ème timestamp de départ (optionel) pour la partie du morceau qu'on veut jouer après avoir révélé la réponse
+- Idéalement pouvoir capturer le timestamp automatiquement pendant qu'on preview le morceau, sans avoir besoin de l'entrer à la main.
+
 
 
 ### Mode autonome
@@ -20,7 +29,7 @@ Pour l'instant, lorsque N joueurs jouent à blablind, pour chaque morceau il y a
 
 Dans la mesure où l'on va pouvoir fournir des blindtests déjà créés (par un admin ou un autre membre du site), on peut imaginer qu'un groupe de joueurs crée une partie et charge l'un de ces blindtests. Dans ce cas, il n'y a plus de maître. Tout le monde peut participer. En gros c'est comme un blindtest sur YouTube où tout le monde essaie de deviner et au bout d'un temps déterminé, la réponse est fournie par l'application.
 
-Ces blindtests seront un peu spéciaux dans la façon de les créer, voir la feature "Création de blindtest "asynchrone"".
+Ces blindtests seront un peu spéciaux dans la façon de les créer, voir la feature "Création de blindtest "pros"".
 
 Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tracking des points. La définition du gagnant doit faire l'objet d'un consensus. Je pense qu'il faut garder la logique du BUZZ et le premier qui a buzzé. On peut imaginer stocker l'ordre des buzz. On garde uniquement les joueurs qui ont buzzé dans le temps imparti. Ensuite chaque joueur, dans l'ordre des buzz, peut proposer une réponse. Une fois que tous les joueurs élligibles ont pu répondre, on dévoile la bonne réponse. Si le premier joueur avait dit juste, les autres lui valident le point (votes à au moins 50% des autres joueurs. Exemple: s'il y a 6 joueurs, 5 vont voter et il faut 3 voix pour valider la bonne réponse du joueur candidat. S'il y a 3 joueurs, 2 joueurs vont voter et il suffit que l'un des 2 valide et ça donnera le point). Si le premier joueur n'a pas donné la bonne réponse (même système de votes, mais négatifs), on passe au 2ème joueur et ainsi de suite. Si personne n'a donné la bonne réponse, on enchaîne avec le prochain morceau.
 
@@ -28,6 +37,8 @@ Pendant la durée des votes, on laisse tourner le morceau sur sa séquence "rés
 
 
 ## History (done)
+
+- [2026-06-26] Pro track options — tracks can define a playback duration and a reveal-resume timestamp; both can be captured live while previewing. After a skip, the reveal section now plays (like after a correct answer).
 
 - [2026-06-22] Leaderboard track count — in-game scores tab and end-of-game podium now show guessed/guessable count alongside the percentage.
 
