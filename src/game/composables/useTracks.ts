@@ -100,12 +100,15 @@ export default function useTracks(sessionId: string) {
   const deleteTrack = (trackId: string) => pb.collection('tracks').delete(trackId)
 
   let unsubscribe: (() => void) | undefined
+  let unsubscribeReconnect: (() => void) | undefined
 
   onMounted(async () => {
     await load()
     unsubscribe = await pb.collection('tracks').subscribe('*', async e => {
       if (e.action === 'create') {
         const full = await pb.collection('tracks').getOne(e.record.id, { expand: 'video' })
+        // Guard against double-insert (e.g. event buffered across a reconnect reload)
+        if (tracks.value.some(t => t.id === full.id)) return
         tracks.value.push(full)
         sort()
       } else if (e.action === 'update') {
@@ -117,9 +120,16 @@ export default function useTracks(sessionId: string) {
         tracks.value = tracks.value.filter(t => t.id !== e.record.id)
       }
     }, { filter: `session="${sessionId}"` })
+    // Reload on SSE reconnect to recover any missed track events
+    unsubscribeReconnect = await pb.realtime.subscribe('PB_CONNECT', () => {
+      load()
+    })
   })
 
-  onUnmounted(() => unsubscribe?.())
+  onUnmounted(() => {
+    unsubscribe?.()
+    unsubscribeReconnect?.()
+  })
 
   return { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip, cancelSkipVote, deleteTrack }
 }

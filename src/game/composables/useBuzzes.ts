@@ -1,4 +1,4 @@
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import type { ComputedRef } from 'vue'
 import { pb } from '@game/pb'
 
@@ -83,6 +83,7 @@ export default function useBuzzes(
   })
 
   let unsubscribe: (() => void) | undefined
+  let unsubscribeReconnect: (() => void) | undefined
 
   const loadAndSubscribe = async (trackId: string) => {
     unsubscribe?.()
@@ -99,6 +100,8 @@ export default function useBuzzes(
       '*',
       e => {
         if (e.action === 'create') {
+          // Guard against double-insert (e.g. event buffered across a reconnect reload)
+          if (buzzes.value.some(b => b.id === e.record.id)) return
           buzzes.value.push(e.record)
         } else if (e.action === 'update') {
           const idx = buzzes.value.findIndex(b => b.id === e.record.id)
@@ -128,8 +131,18 @@ export default function useBuzzes(
     { immediate: true },
   )
 
+  // Reload the current track's buzzes on SSE reconnect to recover missed events
+  onMounted(async () => {
+    unsubscribeReconnect = await pb.realtime.subscribe('PB_CONNECT', () => {
+      if (currentTrackId.value) {
+        loadAndSubscribe(currentTrackId.value)
+      }
+    })
+  })
+
   onUnmounted(() => {
     unsubscribe?.()
+    unsubscribeReconnect?.()
     stopClock()
   })
 
