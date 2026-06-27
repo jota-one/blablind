@@ -10,12 +10,13 @@ export default function usePlayers(sessionId: string) {
     return players.value.filter(isOnline)
   })
 
-  const sort = () => players.value.sort((a, b) => b.score - a.score)
+  // Stable join order; ranking is derived from solved_by where displayed.
+  const sort = () => players.value.sort((a, b) => a.created.localeCompare(b.created))
 
   const load = async () => {
     const result = await pb.collection('players').getFullList({
       filter: `session="${sessionId}"`,
-      sort: '-score',
+      sort: 'created',
     })
     players.value = result
   }

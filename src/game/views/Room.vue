@@ -1292,7 +1292,7 @@ const resetSession = async () => {
     })
     const allOps: Array<(b: ReturnType<typeof pb.createBatch>) => void> = [
       ...allBuzzes.map(buzz => (b: ReturnType<typeof pb.createBatch>) => b.collection('buzzes').delete(buzz.id)),
-      ...players.value.map(p => (b: ReturnType<typeof pb.createBatch>) => b.collection('players').update(p.id, { score: 0 })),
+      // Scores are derived from tracks.solved_by, reset below — no player write needed.
       ...tracks.value.map(t => (b: ReturnType<typeof pb.createBatch>) => b.collection('tracks').update(t.id, { status: 'queued', solved_by: null, skip_votes: [], is_duplicate: false, skip_revealed: false })),
       (b: ReturnType<typeof pb.createBatch>) => b.collection('sessions').update(props.session.id, { status: 'waiting' }),
     ]

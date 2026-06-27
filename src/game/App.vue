@@ -113,7 +113,6 @@ const onJoined = async (name: string) => {
   const record = await pb.collection('players').create({
     session: session.value.id,
     name,
-    score: 0,
     secret,
     ...(pb.authStore.isValid && pb.authStore.record ? { auth_user: pb.authStore.record.id } : {}),
   })
