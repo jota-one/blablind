@@ -3,6 +3,7 @@
     <template v-if="!isAuthenticated">
       <button
         class="btn btn-primary px-5 py-2 font-semibold rounded-lg cursor-pointer"
+        data-testid="login-open"
         @click="openLoginModal"
       >
         {{ t('auth.login_button') }}

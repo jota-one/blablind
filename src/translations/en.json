@@ -265,5 +265,21 @@
   "track.reveal_seconds_title": "Resume timestamp after reveal (s)",
   "track.capture_start_title": "Capture current position as start timestamp",
   "track.capture_end_title": "Capture current position as end of playback",
-  "track.capture_reveal_title": "Capture current position as resume timestamp"
+  "track.capture_reveal_title": "Capture current position as resume timestamp",
+  "login.forgot_password": "Forgot your password?",
+  "login.forgot_password_title": "Reset your password",
+  "login.forgot_password_hint": "Enter your email to receive a reset link.",
+  "login.forgot_password_submit": "Send link",
+  "login.forgot_password_submit_loading": "Sending...",
+  "login.forgot_password_success": "Email sent! Check your inbox.",
+  "login.forgot_password_error": "Could not send email.",
+  "login.back_to_login": "Back to login",
+  "password_reset.title": "New password",
+  "password_reset.new_label": "New password",
+  "password_reset.confirm_label": "Confirm password",
+  "password_reset.submit": "Save",
+  "password_reset.success": "Password updated! You can now log in.",
+  "password_reset.passwords_dont_match": "Passwords don't match.",
+  "password_reset.token_expired": "This link is invalid or has expired.",
+  "password_reset.error": "Something went wrong. Please try again."
 }
