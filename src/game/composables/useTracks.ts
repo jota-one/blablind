@@ -104,22 +104,22 @@ export default function useTracks(sessionId: string) {
 
   onMounted(async () => {
     await load()
-    unsubscribe = await pb.collection('tracks').subscribe('*', async e => {
+    // expand 'video' is applied server-side to the realtime payload, so e.record
+    // already carries the relation — no per-event getOne needed.
+    unsubscribe = await pb.collection('tracks').subscribe('*', e => {
       if (e.action === 'create') {
-        const full = await pb.collection('tracks').getOne(e.record.id, { expand: 'video' })
         // Guard against double-insert (e.g. event buffered across a reconnect reload)
-        if (tracks.value.some(t => t.id === full.id)) return
-        tracks.value.push(full)
+        if (tracks.value.some(t => t.id === e.record.id)) return
+        tracks.value.push(e.record)
         sort()
       } else if (e.action === 'update') {
-        const full = await pb.collection('tracks').getOne(e.record.id, { expand: 'video' })
         const idx = tracks.value.findIndex(t => t.id === e.record.id)
-        if (idx >= 0) tracks.value[idx] = full
+        if (idx >= 0) tracks.value[idx] = e.record
         sort()
       } else if (e.action === 'delete') {
         tracks.value = tracks.value.filter(t => t.id !== e.record.id)
       }
-    }, { filter: `session="${sessionId}"` })
+    }, { filter: `session="${sessionId}"`, expand: 'video' })
     // Reload on SSE reconnect to recover any missed track events
     unsubscribeReconnect = await pb.realtime.subscribe('PB_CONNECT', () => {
       load()
