@@ -20,7 +20,6 @@ import useSession from '@game/composables/useSession'
 import { pb } from '@game/pb'
 import Join from '@game/views/Join.vue'
 import Room from '@game/views/Room.vue'
-import { ONLINE_WINDOW_MS } from '@game/utils'
 
 // Register v-focus directive for the game SPA
 const app = getCurrentInstance()?.appContext.app
@@ -123,18 +122,8 @@ const onJoined = async (name: string) => {
   localStorage.setItem(`blablind_secret_${session.value.id}`, secret)
   player.value = { ...record, secret }
   saveLastSession()
+  // First heartbeat triggers server-side host election (host_election.pb.js),
+  // which assigns the host when the session has none — no client race here.
   await startHeartbeat(record.id)
-  const threshold = new Date(Date.now() - ONLINE_WINDOW_MS).toISOString().replace('T', ' ')
-  const activeOthers = await pb.collection('players').getList(1, 1, {
-    filter: pb.filter('session = {:session} && id != {:id} && last_seen >= {:threshold}', {
-      session: session.value.id,
-      id: record.id,
-      threshold,
-    }),
-    requestKey: null,
-  })
-  if (activeOthers.totalItems === 0) {
-    await pb.collection('sessions').update(session.value.id, { host: record.id })
-  }
 }
 </script>
