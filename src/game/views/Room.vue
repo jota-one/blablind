@@ -284,7 +284,7 @@
           </button>
           <!-- host_choice : bouton "suivant" pour l'host quand morceau résolu -->
           <button
-            v-if="isTrackSolvedAndPlaying && sessionSettings.stop_method === 'host_choice' && isHost"
+            v-if="awaitingAdvance && sessionSettings.stop_method === 'host_choice' && isHost"
             class="btn btn-sm btn-primary shrink-0"
             @click="stopCurrentTrack"
           >
@@ -502,7 +502,7 @@
 
     <!-- Overlay "encore un moment" après une bonne réponse (continue_after_success + vote_unanimous) -->
     <div
-      v-if="isTrackSolvedAndPlaying && !animationState && sessionSettings.stop_method === 'vote_unanimous'"
+      v-if="awaitingAdvance && !animationState && sessionSettings.stop_method === 'vote_unanimous'"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
     >
       <div class="bg-base-100 rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl text-center max-w-xs mx-4">
@@ -968,6 +968,13 @@ const skipVoterNames = computed(() =>
 const isTrackSolvedAndPlaying = computed(() =>
   (!!currentTrack.value?.solved_by || !!currentTrack.value?.skip_revealed) && currentTrack.value?.status === 'playing'
 )
+// Whether the solved/revealed track is waiting on players (vote or host button)
+// to advance. A buzz-solved track in !continue mode auto-advances instead, so it
+// is excluded.
+const awaitingAdvance = computed(() =>
+  isTrackSolvedAndPlaying.value &&
+  (sessionSettings.value.continue_after_success || !!currentTrack.value?.skip_revealed)
+)
 
 watch(isTrackSolvedAndPlaying, (solved) => {
   if (!solved) return
@@ -1006,17 +1013,43 @@ watch(buzzBlockReason, (reason) => {
   }
 })
 
+// Single owner of "move past the current track". Host-only (the host is
+// server-elected and unique) + an in-flight lock + an idempotency guard, so
+// overlapping triggers (correct answer, skip vote, host button) on the same or
+// different clients can't double-advance or skip a track.
+let advancing = false
+const advanceFrom = async (trackId: string) => {
+  if (advancing || !isHost.value) return
+  // Only the live playing track can be advanced; if it already changed, another
+  // trigger already moved on.
+  if (currentTrack.value?.id !== trackId || currentTrack.value.status !== 'playing') return
+  advancing = true
+  try {
+    const next = queuedTracks.value[0]
+    await finishTrack(trackId)
+    if (next) { await playTrack(next.id) }
+  } finally {
+    advancing = false
+  }
+}
+
+// !continue_after_success: once a track is solved, the host advances after the
+// reveal animation has played.
+watch(() => currentTrack.value?.solved_by, (solvedBy, prev) => {
+  if (!solvedBy || solvedBy === prev) return
+  if (sessionSettings.value.continue_after_success || !isHost.value) return
+  const trackId = currentTrack.value!.id
+  setTimeout(() => { advanceFrom(trackId) }, 3000)
+})
+
 watch(skipVoteArray, async (votes) => {
   if (!currentTrack.value) return
   if (animationState.value?.type === 'skipped') return
   if (onlinePlayers.value.length > 1 && votes.length >= skipVotesNeeded.value) {
-    // Track already solved: advance silently (no "skipped" animation)
+    const trackId = currentTrack.value.id
+    // Track already solved/revealed: advance silently (no "skipped" animation)
     if (isTrackSolvedAndPlaying.value) {
-      if (!isHost.value) return
-      const trackId = currentTrack.value.id
-      await finishTrack(trackId)
-      const next = queuedTracks.value[0]
-      if (next) { await playTrack(next.id) }
+      await advanceFrom(trackId)
       return
     }
     animationState.value = {
@@ -1025,20 +1058,14 @@ watch(skipVoteArray, async (votes) => {
       title: currentTrack.value.expand?.video?.title ?? '',
       artist: currentTrack.value.expand?.video?.artist ?? '',
     }
-    if (!isHost.value) {
-      setTimeout(() => { animationState.value = null }, 3000)
-      return
-    }
-    const trackId = currentTrack.value.id
     const hasReveal = !!currentTrack.value.reveal_seconds && !currentTrack.value.solved_by
     setTimeout(async () => {
       animationState.value = null
+      if (!isHost.value) return
       if (hasReveal) {
         await pb.collection('tracks').update(trackId, { skip_revealed: true, skip_votes: [] })
       } else {
-        await finishTrack(trackId)
-        const next = queuedTracks.value[0]
-        if (next) { await playTrack(next.id) }
+        await advanceFrom(trackId)
       }
     }, 3000)
   }
@@ -1181,27 +1208,18 @@ const validateBuzz = async () => {
   const trackId = currentTrack.value.id
   const buzzId = activeBuzz.value.id
   const buzzPlayerId = activeBuzz.value.player
-  const buzzer = players.value.find(p => p.id === buzzPlayerId)
-  const next = queuedTracks.value[0]
 
   // Resume immediately without waiting for subscription round-trip
   clearPlaybackTimer()
   pausedByDuration.value = false
   nextTick(() => { youtubePlayer.value?.playVideo() })
 
+  // Idempotent: only mark the buzz correct and tag the solver. Score is derived
+  // from solved_by; track advancement is owned by the host (advanceFrom).
   await Promise.all([
     pb.collection('buzzes').update(buzzId, { status: 'correct' }),
-    buzzer && pb.collection('players').update(buzzer.id, { score: (buzzer.score || 0) + 1 }),
+    pb.collection('tracks').update(trackId, { solved_by: buzzPlayerId, skip_votes: [] }),
   ])
-
-  setTimeout(async () => {
-    if (sessionSettings.value.continue_after_success) {
-      await pb.collection('tracks').update(trackId, { solved_by: buzzPlayerId, skip_votes: [] })
-    } else {
-      await pb.collection('tracks').update(trackId, { status: 'done', solved_by: buzzPlayerId })
-      if (next) { await playTrack(next.id) }
-    }
-  }, 3000)
 }
 
 const markReady = (value: boolean) => pb.collection('players').update(props.currentPlayer.id, { ready: value })
@@ -1221,10 +1239,7 @@ const invalidateBuzz = async () => {
 
 const stopCurrentTrack = async () => {
   if (!currentTrack.value) return
-  const trackId = currentTrack.value.id
-  const next = queuedTracks.value[0]
-  await finishTrack(trackId)
-  if (next) { await playTrack(next.id) }
+  await advanceFrom(currentTrack.value.id)
 }
 
 let autoRejectTimer: ReturnType<typeof setTimeout> | null = null
