@@ -1287,7 +1287,7 @@ const resetSession = async () => {
   acknowledgedDuplicateIds.clear()
   try {
     const allBuzzes = await pb.collection('buzzes').getFullList({
-      filter: tracks.value.map(t => `track="${t.id}"`).join(' || '),
+      filter: pb.filter('track.session = {:session}', { session: props.session.id }),
       requestKey: null,
     })
     const allOps: Array<(b: ReturnType<typeof pb.createBatch>) => void> = [

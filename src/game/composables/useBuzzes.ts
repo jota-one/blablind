@@ -91,7 +91,7 @@ export default function useBuzzes(
     buzzes.value = []
 
     const result = await pb.collection('buzzes').getFullList({
-      filter: `track="${trackId}"`,
+      filter: pb.filter('track = {:track}', { track: trackId }),
       sort: 'created',
     })
     buzzes.value = result
@@ -113,7 +113,7 @@ export default function useBuzzes(
           }
         }
       },
-      { filter: `track="${trackId}"` },
+      { filter: pb.filter('track = {:track}', { track: trackId }) },
     )
   }
 

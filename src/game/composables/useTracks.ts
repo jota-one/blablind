@@ -13,7 +13,7 @@ export default function useTracks(sessionId: string) {
 
   const load = async () => {
     const result = await pb.collection('tracks').getFullList({
-      filter: `session="${sessionId}"`,
+      filter: pb.filter('session = {:session}', { session: sessionId }),
       sort: 'order,created',
       expand: 'video',
     })
@@ -27,7 +27,7 @@ export default function useTracks(sessionId: string) {
     duration?: number
   }) => {
     const existing = await pb.collection('videos').getList(1, 1, {
-      filter: `video_id="${data.video_id}"`,
+      filter: pb.filter('video_id = {:videoId}', { videoId: data.video_id }),
     })
     if (existing.items.length > 0) return existing.items[0]
     try {
@@ -41,7 +41,7 @@ export default function useTracks(sessionId: string) {
     } catch {
       // Race condition: another client created it first
       const retry = await pb.collection('videos').getList(1, 1, {
-        filter: `video_id="${data.video_id}"`,
+        filter: pb.filter('video_id = {:videoId}', { videoId: data.video_id }),
       })
       return retry.items[0]
     }
@@ -119,7 +119,7 @@ export default function useTracks(sessionId: string) {
       } else if (e.action === 'delete') {
         tracks.value = tracks.value.filter(t => t.id !== e.record.id)
       }
-    }, { filter: `session="${sessionId}"`, expand: 'video' })
+    }, { filter: pb.filter('session = {:session}', { session: sessionId }), expand: 'video' })
     // Reload on SSE reconnect to recover any missed track events
     unsubscribeReconnect = await pb.realtime.subscribe('PB_CONNECT', () => {
       load()

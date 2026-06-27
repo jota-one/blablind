@@ -15,7 +15,7 @@ export default function usePlayers(sessionId: string) {
 
   const load = async () => {
     const result = await pb.collection('players').getFullList({
-      filter: `session="${sessionId}"`,
+      filter: pb.filter('session = {:session}', { session: sessionId }),
       sort: 'created',
     })
     players.value = result
@@ -44,7 +44,7 @@ export default function usePlayers(sessionId: string) {
           players.value = players.value.filter(p => p.id !== e.record.id)
         }
       },
-      { filter: `session="${sessionId}"` },
+      { filter: pb.filter('session = {:session}', { session: sessionId }) },
     )
     // Reload on SSE reconnect to recover any missed update events (e.g. last_seen updates)
     unsubscribeReconnect = await pb.realtime.subscribe('PB_CONNECT', () => {

@@ -137,7 +137,10 @@ const search = async () => {
 
   try {
     if (tokens.length > 0) {
-      const filter = tokens.map(t => `search_text ~ "${t.replace(/"/g, '\\"')}"`).join(' && ')
+      const filter = pb.filter(
+        tokens.map((_, i) => `search_text ~ {:t${i}}`).join(' && '),
+        Object.fromEntries(tokens.map((t, i) => [`t${i}`, t])),
+      )
       const res = await pb.collection('videos').getList(1, 20, { filter })
       localResults.value = res.items
         .map(item => ({ item, score: tokens.filter(t => item.search_text?.includes(t)).length }))

@@ -30,7 +30,10 @@ export default function useVideos() {
       const tokens = normalizeSearch(query)
         .split(/\s+/)
         .filter(t => t.length >= 2)
-      const filter = tokens.map(t => `search_text ~ "${t.replace(/"/g, '\\"')}"`).join(' && ')
+      const filter = pb.filter(
+        tokens.map((_, i) => `search_text ~ {:t${i}}`).join(' && '),
+        Object.fromEntries(tokens.map((t, i) => [`t${i}`, t])),
+      )
       videos.value = await pb.collection<TVideo>('videos').getFullList({
         ...options,
         filter,

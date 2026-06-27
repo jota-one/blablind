@@ -223,7 +223,7 @@ onMounted(async () => {
   const [sessionsRes, playersRes, tracksRes] = await Promise.all([
     pb.collection('sessions').getList(1, 1, { requestKey: null }),
     pb.collection('players').getList(1, 1, {
-      filter: `last_seen >= "${threshold}"`,
+      filter: pb.filter('last_seen >= {:threshold}', { threshold }),
       requestKey: null,
     }),
     pb.collection('videos').getList(1, 1, { requestKey: null }),
@@ -243,7 +243,7 @@ const handleJoin = async () => {
   joining.value = true
   joinError.value = ''
   try {
-    await pb.collection('sessions').getFirstListItem(`slug="${code}"`, { requestKey: null })
+    await pb.collection('sessions').getFirstListItem(pb.filter('slug = {:code}', { code }), { requestKey: null })
     window.location.href = `/${code}`
   } catch {
     joinError.value = t('app.error_not_found')

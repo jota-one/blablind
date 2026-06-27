@@ -98,12 +98,12 @@ const loadSessions = async () => {
   try {
     const [owned, playerRecords] = await Promise.all([
       pb.collection('sessions').getFullList({
-        filter: `owner="${user.value.id}"`,
+        filter: pb.filter('owner = {:owner}', { owner: user.value.id }),
         sort: '-created',
         requestKey: null,
       }),
       pb.collection('players').getFullList({
-        filter: `auth_user="${user.value.id}"`,
+        filter: pb.filter('auth_user = {:authUser}', { authUser: user.value.id }),
         expand: 'session',
         requestKey: null,
       }),

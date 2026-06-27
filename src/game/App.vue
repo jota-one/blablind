@@ -77,7 +77,10 @@ const restorePlayer = async (sessionId: string) => {
   if (pb.authStore.isValid && pb.authStore.record) {
     try {
       const existing = await pb.collection('players').getFirstListItem(
-        `session="${sessionId}" && auth_user="${pb.authStore.record.id}"`,
+        pb.filter('session = {:session} && auth_user = {:authUser}', {
+          session: sessionId,
+          authUser: pb.authStore.record.id,
+        }),
         { requestKey: null },
       )
       const secret = localStorage.getItem(`blablind_secret_${sessionId}`) ?? ''
@@ -123,7 +126,11 @@ const onJoined = async (name: string) => {
   await startHeartbeat(record.id)
   const threshold = new Date(Date.now() - ONLINE_WINDOW_MS).toISOString().replace('T', ' ')
   const activeOthers = await pb.collection('players').getList(1, 1, {
-    filter: `session="${session.value.id}" && id != "${record.id}" && last_seen >= "${threshold}"`,
+    filter: pb.filter('session = {:session} && id != {:id} && last_seen >= {:threshold}', {
+      session: session.value.id,
+      id: record.id,
+      threshold,
+    }),
     requestKey: null,
   })
   if (activeOthers.totalItems === 0) {
