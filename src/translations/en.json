@@ -149,6 +149,8 @@
   "track.start_title": "Start (seconds)",
   "track.add": "Add",
   "track.added": "Added",
+  "track.undo": "Undo",
+  "track.undo_title": "Undo add (removes the track)",
   "login.title": "Login",
   "login.email_label": "Email",
   "login.email_placeholder": "your@email.com",

@@ -392,7 +392,9 @@
                       </p>
                       <p v-if="isMyTrack(track) && track.expand?.video?.artist" class="text-xs text-base-content/50">{{ track.expand?.video?.artist }}</p>
                       <p v-if="!isMyTrack(track)" class="text-xs text-base-content/40 mt-0.5">{{ t('room.added_by', { player: getPlayerName(track.added_by) }) }}</p>
+                      <TrackTimingBadges v-if="isMyTrack(track)" :track="track" class="sm:hidden mt-0.5" />
                     </div>
+                    <TrackTimingBadges v-if="isMyTrack(track)" :track="track" class="hidden sm:flex shrink-0" />
                     <template v-if="isMyTrack(track) && track.status === 'queued'">
                       <button
                         v-if="confirmDeleteId !== track.id"
@@ -641,7 +643,7 @@
             {{ t('room.add_tab_url') }}
           </button>
         </div>
-        <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromSearch" :can-add-track="canAddTrack" />
+        <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromSearch" :remove-track="deleteTrack" :can-add-track="canAddTrack" />
         <template v-else-if="addMode === 'single'">
           <input v-model="newTrack.youtube_url" type="url" :placeholder="t('room.url_placeholder')" class="input input-bordered w-full" />
           <div class="flex flex-col gap-2">
@@ -693,6 +695,7 @@ import useTracks from '@game/composables/useTracks'
 import useBuzzes from '@game/composables/useBuzzes'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 import TrackSearch from '@game/components/TrackSearch.vue'
+import TrackTimingBadges from '@game/components/TrackTimingBadges.vue'
 import ShareQR from '@game/components/ShareQR.vue'
 import GameOver from '@game/components/GameOver.vue'
 import SolvedOverlay from '@game/components/SolvedOverlay.vue'

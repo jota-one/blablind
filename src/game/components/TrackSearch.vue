@@ -39,6 +39,7 @@
             :previewing="previewInfo?.videoId === v.video_id"
             :get-preview-time="previewInfo?.videoId === v.video_id ? getPreviewTime : undefined"
             @add="addVideo"
+            @remove="removeVideo"
             @preview="togglePreview"
           />
         </li>
@@ -62,6 +63,7 @@
             :previewing="previewInfo?.videoId === v.videoId"
             :get-preview-time="previewInfo?.videoId === v.videoId ? getPreviewTime : undefined"
             @add="addVideo"
+            @remove="removeVideo"
             @preview="togglePreview"
           />
         </li>
@@ -95,7 +97,8 @@ const { t } = useI36n()
 interface SearchVideo { videoId: string; title: string; artist: string; duration: number }
 
 const props = defineProps<{
-  addTrack: (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number; playback_duration?: number; reveal_seconds?: number }) => Promise<void> | undefined
+  addTrack: (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number; playback_duration?: number; reveal_seconds?: number }) => Promise<{ id: string } | void> | undefined
+  removeTrack: (trackId: string) => Promise<void>
   canAddTrack?: boolean
 }>()
 
@@ -103,6 +106,7 @@ const query = ref('')
 const localResults = ref<any[]>([])
 const ytResults = ref<SearchVideo[]>([])
 const addedIds = ref(new Set<string>())
+const addedTrackIds = new Map<string, string>()
 const previewInfo = ref<{ videoId: string; startSeconds: number } | null>(null)
 const searching = ref(false)
 const searchingYt = ref(false)
@@ -177,7 +181,10 @@ const searchYoutube = async () => {
 
 const addVideo = async (video: SearchVideo, startSeconds: number, playbackDuration: number | null, revealSeconds: number | null) => {
   addedIds.value = new Set([...addedIds.value, video.videoId])
-  await props.addTrack({
+  if (previewInfo.value?.videoId === video.videoId) {
+    previewInfo.value = null
+  }
+  const track = await props.addTrack({
     video_id: video.videoId,
     title: video.title,
     artist: video.artist,
@@ -186,5 +193,20 @@ const addVideo = async (video: SearchVideo, startSeconds: number, playbackDurati
     playback_duration: playbackDuration ?? undefined,
     reveal_seconds: revealSeconds ?? undefined,
   })
+  if (track) {
+    addedTrackIds.set(video.videoId, track.id)
+  }
+}
+
+const removeVideo = async (video: SearchVideo) => {
+  const trackId = addedTrackIds.get(video.videoId)
+  if (!trackId) {
+    return
+  }
+  await props.removeTrack(trackId)
+  addedTrackIds.delete(video.videoId)
+  const next = new Set(addedIds.value)
+  next.delete(video.videoId)
+  addedIds.value = next
 }
 </script>

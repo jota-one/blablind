@@ -149,6 +149,8 @@
   "track.start_title": "Départ (secondes)",
   "track.add": "Ajouter",
   "track.added": "Ajouté",
+  "track.undo": "Annuler",
+  "track.undo_title": "Annuler l'ajout (supprime le morceau)",
   "login.title": "Connexion",
   "login.email_label": "Email",
   "login.email_placeholder": "votre@email.com",

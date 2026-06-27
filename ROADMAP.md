@@ -26,6 +26,7 @@ Pendant la durée des votes, on laisse tourner le morceau sur sa séquence "rés
 
 ## History (done)
 
+- [2026-06-27] Track add UX — you can undo a just-added track from the search list, its timing options lock once added (preview stays available to check the start), and a track's start/duration/reveal timings now show in the upcoming list.
 - [2026-06-27] Track preview sizing — the preview player now fills its frame correctly and stays a comfortable size on both mobile and desktop.
 - [2026-06-27] Password reset — users can request a reset link from the login modal and set a new password from a dedicated page.
 - [2026-06-27] Session stats on dashboard — each blindtest row now shows track count and player count.

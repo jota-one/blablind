@@ -22,9 +22,10 @@
           placeholder="0s"
           class="input input-xs w-16 text-center shrink-0"
           :title="t('track.start_title')"
+          :disabled="added"
         />
         <button
-          v-if="getPreviewTime && previewing"
+          v-if="getPreviewTime && previewing && !added"
           class="btn btn-xs btn-ghost shrink-0 text-primary"
           :title="t('track.capture_start_title')"
           @click="captureStart"
@@ -39,13 +40,24 @@
           <span :class="previewing ? 'i-fa-solid-stop' : 'i-fa-solid-play'"></span>
         </button>
         <button
-          class="btn btn-xs shrink-0"
-          :class="added ? 'btn-success btn-outline' : 'btn-primary'"
-          :disabled="added || disabled"
+          v-if="added"
+          class="btn btn-xs btn-success btn-outline shrink-0 group"
+          :title="t('track.undo_title')"
+          @click="$emit('remove', video)"
+        >
+          <span class="i-fa-solid-check group-hover:hidden"></span>
+          <span class="i-fa-solid-xmark hidden group-hover:inline"></span>
+          <span class="group-hover:hidden">{{ t('track.added') }}</span>
+          <span class="hidden group-hover:inline">{{ t('track.undo') }}</span>
+        </button>
+        <button
+          v-else
+          class="btn btn-xs btn-primary shrink-0"
+          :disabled="disabled"
           @click="$emit('add', video, startSeconds, playbackDuration || null, revealSeconds || null)"
         >
-          <span :class="added ? 'i-fa-solid-check' : 'i-fa-solid-plus'"></span>
-          <span>{{ added ? t('track.added') : t('track.add') }}</span>
+          <span class="i-fa-solid-plus"></span>
+          <span>{{ t('track.add') }}</span>
         </button>
       </div>
       <div class="flex items-center gap-1.5 text-xs">
@@ -57,9 +69,10 @@
           class="input input-xs w-16 text-center shrink-0"
           :placeholder="t('track.playback_duration_placeholder')"
           :title="t('track.playback_duration_title')"
+          :disabled="added"
         />
         <button
-          v-if="getPreviewTime && previewing"
+          v-if="getPreviewTime && previewing && !added"
           class="btn btn-xs btn-ghost shrink-0 text-base-content/50"
           :title="t('track.capture_end_title')"
           @click="captureEnd"
@@ -75,9 +88,10 @@
           class="input input-xs w-16 text-center shrink-0"
           :placeholder="t('track.reveal_seconds_placeholder')"
           :title="t('track.reveal_seconds_title')"
+          :disabled="added"
         />
         <button
-          v-if="getPreviewTime && previewing"
+          v-if="getPreviewTime && previewing && !added"
           class="btn btn-xs btn-ghost shrink-0 text-base-content/50"
           :title="t('track.capture_reveal_title')"
           @click="captureReveal"
@@ -108,6 +122,7 @@ type Props = {
 const props = defineProps<Props>()
 defineEmits<{
   add: [video: SearchVideo, startSeconds: number, playbackDuration: number | null, revealSeconds: number | null]
+  remove: [video: SearchVideo]
   preview: [video: SearchVideo, startSeconds: number]
 }>()
 
