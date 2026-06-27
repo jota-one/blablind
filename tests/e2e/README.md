@@ -10,6 +10,22 @@ host validates, and with `continue_after_success` off the host must advance to t
 next track **exactly once**. Asserts convergence both server-side (track statuses
 in PocketBase) and client-side (every context shows one "done" track).
 
+`specs/password-reset.spec.ts`: requests a reset link from the login modal, opens
+the link from the caught email (Mailpit), sets a new password, and verifies the
+new credentials authenticate (and the old ones don't). Needs Mailpit + superuser
+creds; skips cleanly otherwise.
+
+### Mailpit (password-reset spec)
+
+```bash
+brew install mailpit
+mailpit            # web/API on :8025, SMTP on :1025
+```
+
+The spec points PocketBase mail at Mailpit and sets the public app URL via the
+superuser settings API, then restores both afterwards — no manual PB config
+needed.
+
 ## How it works
 
 - **Seeding** (`helpers/seed.ts`): creates the session mid-game via the PocketBase

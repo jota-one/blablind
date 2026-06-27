@@ -21,7 +21,13 @@ async function main() {
     console.log('deleted video', v.video_id)
   }
 
-  console.log(`done — removed ${sessions.length} session(s), ${videos.length} video(s)`)
+  const users = await pb.collection('users').getFullList({ filter: "email ~ 'e2e-' && email ~ '@local.test'" })
+  for (const u of users) {
+    await pb.collection('users').delete(u.id)
+    console.log('deleted user', u.email)
+  }
+
+  console.log(`done — removed ${sessions.length} session(s), ${videos.length} video(s), ${users.length} user(s)`)
 }
 
 main().catch((e) => {

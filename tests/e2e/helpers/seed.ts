@@ -133,3 +133,49 @@ export async function cleanup(scenario: Scenario): Promise<void> {
 export async function getTrack(id: string) {
   return pb.collection('tracks').getOne(id)
 }
+
+// ─── Users + mail settings (password-reset spec) ────────────────────────────
+
+export type SeededUser = { id: string; email: string; password: string }
+
+/** Creates a verified user via superuser (users.authRule requires verified). */
+export async function seedUser(): Promise<SeededUser> {
+  await ensureAdmin()
+  const email = `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@local.test`
+  const password = 'e2ePassw0rd!'
+  const rec = await pb.collection('users').create({
+    email,
+    password,
+    passwordConfirm: password,
+    name: 'E2E User',
+    verified: true,
+  })
+  return { id: rec.id, email, password }
+}
+
+export async function deleteUser(user: SeededUser): Promise<void> {
+  if (!(await ensureAdmin())) return
+  await pb.collection('users').delete(user.id).catch(() => {})
+}
+
+/**
+ * Points PocketBase mail at Mailpit (SMTP :1025) and sets the public app URL so
+ * the reset link targets the app under test. Returns the previous settings so
+ * the caller can restore them afterwards.
+ */
+export async function configureMailForTests(appUrl: string): Promise<Record<string, any>> {
+  await ensureAdmin()
+  const current = await pb.settings.getAll()
+  // Clear credentials explicitly: Mailpit has no auth, and a leftover username
+  // makes PocketBase send AUTH, which Mailpit rejects (502 → no mail delivered).
+  await pb.settings.update({
+    meta: { ...current.meta, appURL: appUrl },
+    smtp: { enabled: true, host: '127.0.0.1', port: 1025, username: '', password: '', authMethod: 'PLAIN', tls: false, localName: '' },
+  })
+  return current
+}
+
+export async function restoreSettings(previous: Record<string, any>): Promise<void> {
+  if (!(await ensureAdmin())) return
+  await pb.settings.update({ meta: previous.meta, smtp: previous.smtp }).catch(() => {})
+}
