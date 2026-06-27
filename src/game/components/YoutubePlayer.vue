@@ -12,6 +12,9 @@ const props = defineProps<{
   startSeconds: number
   paused: boolean
   autoplay?: boolean
+  // Declarative seek: bump the token to seek to `seconds` (even to the same
+  // position twice). The player applies it once it is ready.
+  seekRequest?: { seconds: number; token: number } | null
 }>()
 
 const emit = defineEmits<{ playing: [] }>()
@@ -70,12 +73,18 @@ watch(() => props.paused, (paused) => {
   paused ? ytPlayer.pauseVideo() : ytPlayer.playVideo()
 })
 
+watch(() => props.seekRequest?.token, async () => {
+  const req = props.seekRequest
+  if (!req) return
+  await ytReady()
+  await playerReadyPromise
+  // seekTo(_, true) keeps the current play/pause state, owned by the paused prop.
+  ytPlayer?.seekTo(req.seconds, true)
+})
+
 onUnmounted(() => { ytPlayer?.destroy(); ytPlayer = null })
 
 defineExpose({
   getCurrentTime: () => ytPlayer?.getCurrentTime() ?? 0,
-  seekTo: (seconds: number) => ytPlayer?.seekTo(seconds, true),
-  pauseVideo: () => ytPlayer?.pauseVideo(),
-  playVideo: () => ytPlayer?.playVideo(),
 })
 </script>

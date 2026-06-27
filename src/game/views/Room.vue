@@ -58,10 +58,10 @@
           <!-- Layer 1 : player toujours monté (invisible hors vidéo) -->
           <div class="absolute inset-0" :class="{'opacity-0 pointer-events-none': audioUnlocked || !videoId}">
             <YoutubePlayer
-              ref="youtubePlayer"
               :video-id="videoId"
               :start-seconds="currentTrack?.start_seconds ?? 0"
               :paused="audioUnlocked && (!!activeBuzz || pausedByDuration)"
+              :seek-request="seekRequest"
               @playing="onPlaying"
             />
           </div>
@@ -682,7 +682,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onUnmounted, useTemplateRef } from 'vue'
+import { ref, computed, watch, onUnmounted, useTemplateRef } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import Sortable from 'sortablejs'
 import { useSwipe } from '@vueuse/core'
@@ -711,7 +711,10 @@ const props = defineProps<{
 const { players, onlinePlayers } = usePlayers(props.session.id)
 const manuallyDeletingIds = new Set<string>()
 
-const youtubePlayer = useTemplateRef<InstanceType<typeof YoutubePlayer>>('youtubePlayer')
+// Declarative seek toward the YoutubePlayer; bump the token to (re)trigger.
+const seekRequest = ref<{ seconds: number; token: number } | null>(null)
+let seekToken = 0
+const requestSeek = (seconds: number) => { seekRequest.value = { seconds, token: ++seekToken } }
 const { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip, cancelSkipVote, deleteTrack } = useTracks(props.session.id)
 
 const myDuplicateTrack = computed(() =>
@@ -887,7 +890,7 @@ watch(solvedBuzz, (buzz) => {
   pausedByDuration.value = false
   const revealSecs = track?.reveal_seconds
   if (revealSecs) {
-    nextTick(() => { youtubePlayer.value?.seekTo(revealSecs) })
+    requestSeek(revealSecs)
   }
 })
 
@@ -981,7 +984,7 @@ watch(isTrackSolvedAndPlaying, (solved) => {
   clearPlaybackTimer()
   pausedByDuration.value = false
   if (!currentTrack.value?.solved_by && currentTrack.value?.reveal_seconds) {
-    nextTick(() => { youtubePlayer.value?.seekTo(currentTrack.value!.reveal_seconds) })
+    requestSeek(currentTrack.value.reveal_seconds)
   }
 })
 
@@ -1209,10 +1212,9 @@ const validateBuzz = async () => {
   const buzzId = activeBuzz.value.id
   const buzzPlayerId = activeBuzz.value.player
 
-  // Resume immediately without waiting for subscription round-trip
+  // Resume is driven reactively by the paused prop once the buzz clears.
   clearPlaybackTimer()
   pausedByDuration.value = false
-  nextTick(() => { youtubePlayer.value?.playVideo() })
 
   // Idempotent: only mark the buzz correct and tag the solver. Score is derived
   // from solved_by; track advancement is owned by the host (advanceFrom).
