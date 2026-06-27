@@ -4,6 +4,13 @@
   </div>
 </template>
 
+<style scoped>
+.aspect-video :deep(iframe) {
+  width: 100%;
+  height: 100%;
+}
+</style>
+
 <script setup lang="ts">
 import { watch, onMounted, onUnmounted, useTemplateRef } from 'vue'
 

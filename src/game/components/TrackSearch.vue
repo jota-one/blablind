@@ -16,7 +16,7 @@
     </form>
 
     <!-- Preview player -->
-    <div v-if="previewInfo" class="rounded-lg overflow-hidden aspect-video">
+    <div v-if="previewInfo" class="rounded-lg overflow-hidden aspect-video max-w-md mx-auto">
       <YoutubePlayer
         :key="`${previewInfo.videoId}-${previewInfo.startSeconds}`"
         ref="previewPlayer"
