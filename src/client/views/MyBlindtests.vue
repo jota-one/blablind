@@ -20,6 +20,16 @@
             <p class="text-sm font-medium truncate">{{ session.name }}</p>
             <p class="text-xs text-base-content/40">{{ formatDate(session.created) }}</p>
           </div>
+          <div class="flex items-center gap-3 text-xs text-base-content/40 shrink-0">
+            <span class="flex items-center gap-1">
+              <span class="i-fa-solid-music"></span>
+              {{ trackCounts[session.id] ?? 0 }}
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="i-fa-solid-users"></span>
+              {{ playerCounts[session.id] ?? 0 }}
+            </span>
+          </div>
           <span
             :class="[
               'badge badge-xs shrink-0',
@@ -59,6 +69,16 @@
             <p class="text-sm font-medium truncate">{{ session.name }}</p>
             <p class="text-xs text-base-content/40">{{ formatDate(session.created) }}</p>
           </div>
+          <div class="flex items-center gap-3 text-xs text-base-content/40 shrink-0">
+            <span class="flex items-center gap-1">
+              <span class="i-fa-solid-music"></span>
+              {{ trackCounts[session.id] ?? 0 }}
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="i-fa-solid-users"></span>
+              {{ playerCounts[session.id] ?? 0 }}
+            </span>
+          </div>
           <span
             :class="[
               'badge badge-xs shrink-0',
@@ -90,6 +110,8 @@ const { user, pb } = useAuth()
 
 const sessions = ref<any[]>([])
 const participatedSessions = ref<any[]>([])
+const trackCounts = ref<Record<string, number>>({})
+const playerCounts = ref<Record<string, number>>({})
 const loading = ref(false)
 
 const loadSessions = async () => {
@@ -111,10 +133,30 @@ const loadSessions = async () => {
     sessions.value = owned
     const ownedIds = new Set(owned.map((s: any) => s.id))
     const seen = new Set<string>()
-    participatedSessions.value = playerRecords
+    const participated = playerRecords
       .map((p: any) => p.expand?.session)
       .filter((s: any) => s && !ownedIds.has(s.id) && !seen.has(s.id) && seen.add(s.id))
       .sort((a: any, b: any) => b.created.localeCompare(a.created))
+    participatedSessions.value = participated
+
+    const allSessionIds = [
+      ...owned.map((s: any) => s.id),
+      ...participated.map((s: any) => s.id),
+    ]
+
+    if (allSessionIds.length > 0) {
+      const sessionFilter = allSessionIds.map(id => `session = "${id}"`).join(' || ')
+      const [tracksResult, playersResult] = await Promise.all([
+        pb.collection('tracks').getFullList({ filter: sessionFilter, fields: 'session', requestKey: null }),
+        pb.collection('players').getFullList({ filter: sessionFilter, fields: 'session', requestKey: null }),
+      ])
+      const tc: Record<string, number> = {}
+      const pc: Record<string, number> = {}
+      for (const track of tracksResult) { tc[track.session] = (tc[track.session] || 0) + 1 }
+      for (const player of playersResult) { pc[player.session] = (pc[player.session] || 0) + 1 }
+      trackCounts.value = tc
+      playerCounts.value = pc
+    }
   } finally {
     loading.value = false
   }

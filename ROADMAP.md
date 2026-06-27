@@ -12,18 +12,6 @@ List of small potential improvements and refactors.
 
 ## New Features
 
-### Création de blindtest "pros"
-Pour vraiment bien définir un morceau de blindtest, il manque encore 2-3 options. Ce qu'on a:
-- pouvoir choisir le morceau
-- pouvoir définir son timestamp de départ
-
-Ce qui manque:
-- pouvoir définir une durée de playback (à partir du timestamp de départ choisi). Pourquoi? Ca permet de vraiment cibler sur ce qu'on veut laisser écouter aux candidats.
-- pouvoir définir un 2ème timestamp de départ (optionel) pour la partie du morceau qu'on veut jouer après avoir révélé la réponse
-- Idéalement pouvoir capturer le timestamp automatiquement pendant qu'on preview le morceau, sans avoir besoin de l'entrer à la main.
-
-
-
 ### Mode autonome
 Pour l'instant, lorsque N joueurs jouent à blablind, pour chaque morceau il y a un maître et N-1 joueurs. Le maître juge quel autre joueur a répondu juste.
 
@@ -39,6 +27,7 @@ Pendant la durée des votes, on laisse tourner le morceau sur sa séquence "rés
 ## History (done)
 
 - [2026-06-27] Password reset — users can request a reset link from the login modal and set a new password from a dedicated page.
+- [2026-06-27] Session stats on dashboard — each blindtest row now shows track count and player count.
 
 - [2026-06-27] Realtime robustness pass — game state now recovers after a connection drop, the host is reassigned reliably when a player leaves, backgrounded phones are no longer wrongly shown offline, and a track can no longer be skipped twice or score double-counted when players act at the same time. Snappier track lists and more reliable reveal playback.
 
