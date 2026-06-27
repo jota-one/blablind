@@ -38,6 +38,8 @@ Pendant la durée des votes, on laisse tourner le morceau sur sa séquence "rés
 
 ## History (done)
 
+- [2026-06-27] Realtime robustness pass — game state now recovers after a connection drop, the host is reassigned reliably when a player leaves, backgrounded phones are no longer wrongly shown offline, and a track can no longer be skipped twice or score double-counted when players act at the same time. Snappier track lists and more reliable reveal playback.
+
 - [2026-06-26] Pro track options — tracks can define a playback duration and a reveal-resume timestamp; both can be captured live while previewing. After a skip, the reveal section now plays (like after a correct answer).
 
 - [2026-06-22] Leaderboard track count — in-game scores tab and end-of-game podium now show guessed/guessable count alongside the percentage.
