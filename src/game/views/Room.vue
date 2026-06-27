@@ -186,13 +186,14 @@
               <input
                 v-model="answer"
                 v-focus
+                data-testid="buzz-answer"
                 type="text"
                 :placeholder="t('room.buzz_placeholder')"
                 class="input input-bordered w-full"
                 @keyup.enter="submitBuzz"
               />
               <div class="flex gap-2">
-                <button class="btn btn-primary flex-1" :disabled="!answer.trim()" @click="submitBuzz">
+                <button class="btn btn-primary flex-1" data-testid="buzz-send" :disabled="!answer.trim()" @click="submitBuzz">
                   <span class="i-fa-solid-paper-plane"></span>
                   {{ t('room.buzz_send') }}
                 </button>
@@ -202,6 +203,7 @@
             <template v-else-if="canBuzz">
               <button
                 class="btn btn-error w-full h-20 text-2xl font-bold shadow-lg hover:scale-[1.02] transition-transform"
+                data-testid="buzz-button"
                 @click="isIrlMode ? submitBuzz() : (buzzing = true)"
               >
                 <span class="i-fa-solid-bell text-3xl"></span>
@@ -233,11 +235,11 @@
             <span class="font-mono bg-base-300 px-3 py-1 rounded">{{ activeBuzz.answer }}</span>
           </p>
           <div class="flex gap-2">
-            <button class="btn btn-success flex-1" @click="validateBuzz">
+            <button class="btn btn-success flex-1" data-testid="validate-correct" @click="validateBuzz">
               <span class="i-fa-solid-check"></span>
               {{ t('room.validate_correct') }}
             </button>
-            <button class="btn btn-error flex-1" @click="invalidateBuzz">
+            <button class="btn btn-error flex-1" data-testid="validate-wrong" @click="invalidateBuzz">
               <span class="i-fa-solid-times"></span>
               {{ t('room.validate_wrong') }}
             </button>
@@ -322,7 +324,7 @@
               @click="activeTab = 'done'"
             >
               {{ t('room.tab_done') }}
-              <span v-if="doneTracks.length" class="badge badge-xs">{{ doneTracks.length }}</span>
+              <span v-if="doneTracks.length" class="badge badge-xs" data-testid="done-count">{{ doneTracks.length }}</span>
             </button>
             <button
               :class="['flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-t-lg border select-none transition-colors',

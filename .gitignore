@@ -28,3 +28,9 @@ pb/pb_data
 pb/pb_public
 pb/pocketbase
 pb/pocketbase.custom
+
+# playwright e2e
+test-results/
+tests/e2e/reports/
+tests/e2e/.env
+.cache/ms-playwright
