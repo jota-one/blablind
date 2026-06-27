@@ -523,7 +523,18 @@
         >
           {{ t('room.still_playing_stop') }}
         </button>
-        <p v-else class="text-sm text-success font-medium">{{ t('room.still_playing_voted') }}</p>
+        <template v-else>
+          <p class="text-sm text-success font-medium">{{ t('room.still_playing_voted') }}</p>
+          <button
+            class="btn btn-outline btn-primary w-full"
+            :disabled="!canAddTrack"
+            :title="!canAddTrack ? t('room.track_equity_limit') : undefined"
+            @click="showAddTrackModal = true"
+          >
+            <span class="i-fa-solid-plus"></span>
+            {{ t('room.add_track_button') }}
+          </button>
+        </template>
         <p class="text-xs text-base-content/40">{{ t('room.still_playing_votes', { votes: skipVoteCount, needed: skipVotesNeeded }) }}</p>
       </div>
     </div>
