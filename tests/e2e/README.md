@@ -43,6 +43,12 @@ without `PB_ADMIN_EMAIL`/`PB_ADMIN_PASSWORD` the test still passes but leaves it
 seeded records behind. Create a throwaway superuser with
 `cd pb && ./pocketbase superuser upsert <email> <pass>`.
 
+To delete any leftover `e2e-*` records (with admin creds set):
+
+```bash
+pnpm test:e2e:clean
+```
+
 > Tests mutate the dev PocketBase. Fine in pre-prod; use a throwaway DB if that
 > changes.
 
