@@ -26,6 +26,7 @@ Pendant la durée des votes, on laisse tourner le morceau sur sa séquence "rés
 
 ## History (done)
 
+- [2026-06-28] Simpler top bar with a menu — the cluttered row of icons is gone; a single menu drawer gathers roles, participants list, share, settings, IRL mode and reset. The host can pause/resume a playing track by tapping the status badge, and the game can only be reset when it isn't mid-track.
 - [2026-06-28] No answer leak in Now Playing — the OS/browser "Now Playing" widget no longer shows the current track's title and cover art when switching tabs, so the DJ can't accidentally peek at the answer.
 - [2026-06-28] Consistent "next track" prompt — in host-decides mode, the host now gets the same centered prompt used for the group vote (with the track info and an add-track shortcut) instead of a small inline button.
 - [2026-06-28] Absent player's track — when the next track belongs to someone who has left, the game now pauses instead of playing it and mis-crediting the host; the host can take the track, push it back one or five spots, or delete it, then play resumes.

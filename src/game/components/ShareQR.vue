@@ -1,5 +1,5 @@
 <template>
-  <button class="btn btn-xs btn-ghost" :title="t('share.title')" @click="open = true">
+  <button v-if="!hideTrigger" class="btn btn-xs btn-ghost" :title="t('share.title')" @click="open = true">
     <span class="i-fa-solid-qrcode text-lg"></span>
   </button>
 
@@ -28,9 +28,10 @@ import { useI36n } from '@jota-one/i36n'
 
 const { t } = useI36n()
 
-const props = defineProps<{ slug: string }>()
+const props = defineProps<{ slug: string; hideTrigger?: boolean }>()
 
 const open = ref(false)
+defineExpose({ open: () => { open.value = true } })
 const copied = ref(false)
 const qrContainer = useTemplateRef<HTMLElement>('qrContainer')
 const url = typeof window !== 'undefined' ? `${window.location.origin}/${props.slug}` : ''

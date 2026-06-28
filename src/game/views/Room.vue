@@ -3,52 +3,44 @@
 
     <!-- Header -->
     <header class="shrink-0 bg-base-100/90 backdrop-blur border-b border-base-300">
-      <!-- Ligne 1 : identité + navigation -->
+      <!-- Ligne 1 : identité + menu -->
       <div class="px-4 py-3 flex items-center gap-3">
         <a href="/" class="text-base-content/40 hover:text-base-content transition-colors">
           <span class="i-fa-solid-home text-lg"></span>
         </a>
         <h1 class="font-bold text-lg font-display flex-1 truncate">{{ session.name }}</h1>
-        <span v-if="isAuthenticated && session.owner === user?.id" class="i-fa-solid-user-check text-primary shrink-0" :title="t('room.session_owned')"></span>
-        <span
-          :class="['badge badge-sm', session.status === 'playing' ? 'badge-success' : session.status === 'finished' ? 'badge-neutral' : 'badge-warning']"
-        >{{ sessionStatusLabel }}</span>
-      </div>
-      <!-- Ligne 2 : contexte + actions -->
-      <div class="px-4 py-1.5 flex items-center gap-3 border-t border-base-200 text-sm">
         <button
+          v-if="isHost && session.status === 'playing'"
           type="button"
-          class="flex items-center gap-2 flex-1 min-w-0 text-left hover:opacity-70 transition-opacity"
-          :title="rolesTitle"
-          @click="showRolesModal = true"
-        >
-          <span v-if="isIrlMode" class="badge badge-xs badge-accent shrink-0">IRL</span>
-          <span v-if="isIrlMode && djPlayer" class="text-xs text-base-content/50 truncate">🎵 {{ djPlayer.name }}</span>
-          <span v-if="hostPlayer" class="text-xs text-base-content/40 truncate">👑 {{ hostPlayer.name }}</span>
-          <span class="i-fa-solid-chevron-down text-[0.55rem] text-base-content/30 shrink-0"></span>
-          <span v-if="hasPendingRoleRequest" class="relative flex h-2 w-2 shrink-0">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-error"></span>
-          </span>
-        </button>
-        <span class="text-base-content/50 shrink-0">
-          <span class="i-fa-solid-users text-xs"></span> {{ onlinePlayers.length }}
-        </span>
-        <ShareQR :slug="session.slug" />
-        <button v-if="isHost" class="btn btn-xs btn-ghost text-warning" :title="t('room.reset')" @click="showResetModal = true">
-          <span class="i-fa6-solid-rotate-left"></span>
-        </button>
-        <button class="btn btn-xs btn-ghost text-base-content/40" :title="t('room.settings')" @click="openSettingsModal">
-          <span class="i-fa6-solid-gear"></span>
-        </button>
-        <button v-if="isHost" :class="['btn btn-xs btn-ghost', isIrlMode ? 'text-accent' : 'text-base-content/40']" :title="t('room.irl_mode')" @click="toggleIrlMode">
-          <span class="i-fa6-solid-people-group"></span>
-        </button>
-        <button v-if="canClaim" class="btn btn-xs btn-outline btn-primary" @click="claimSession">
-          <span class="i-fa-solid-link text-xs"></span>
-          {{ t('room.claim_session') }}
+          :disabled="!canTogglePause"
+          :class="['badge badge-sm border-none', isPaused ? 'badge-warning' : 'badge-success', canTogglePause ? 'cursor-pointer' : 'cursor-default']"
+          :title="isPaused ? t('room.resume') : t('room.pause')"
+          @click="togglePause"
+        >{{ isPaused ? t('room.status_paused') : sessionStatusLabel }}</button>
+        <span
+          v-else
+          :class="['badge badge-sm', isPaused ? 'badge-warning' : session.status === 'playing' ? 'badge-success' : session.status === 'finished' ? 'badge-neutral' : 'badge-warning']"
+        >{{ isPaused ? t('room.status_paused') : sessionStatusLabel }}</span>
+        <button type="button" class="btn btn-sm btn-ghost relative shrink-0" :title="t('room.menu')" @click="showMenuDrawer = true">
+          <span class="i-fa6-solid-bars text-base"></span>
+          <span v-if="hasPendingRoleRequest" class="absolute top-1 right-1 h-2 w-2 rounded-full bg-error"></span>
         </button>
       </div>
+      <!-- Ligne 2 : contexte slim (info, ouvre le menu) -->
+      <button
+        type="button"
+        class="w-full px-4 py-1.5 flex items-center gap-2 border-t border-base-200 text-xs text-base-content/50 hover:bg-base-200/50 transition-colors"
+        @click="showMenuDrawer = true"
+      >
+        <span v-if="isIrlMode" class="badge badge-xs badge-accent shrink-0">IRL</span>
+        <span v-if="isIrlMode && djPlayer" class="truncate">🎵 {{ djPlayer.name }}</span>
+        <span v-if="hostPlayer" class="truncate">👑 {{ hostPlayer.name }}</span>
+        <span class="flex items-center gap-1 shrink-0"><span class="i-fa-solid-users text-[0.65rem]"></span>{{ onlinePlayers.length }}</span>
+        <span v-if="hasPendingRoleRequest" class="ml-auto relative flex h-2 w-2 shrink-0">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-error"></span>
+        </span>
+      </button>
     </header>
 
     <!-- Main -->
@@ -70,7 +62,7 @@
             <YoutubePlayer
               :video-id="videoId"
               :start-seconds="currentTrack?.start_seconds ?? 0"
-              :paused="audioUnlocked && (!!activeBuzz || pausedByDuration)"
+              :paused="audioUnlocked && (!!activeBuzz || pausedByDuration || isPaused)"
               :seek-request="seekRequest"
               @playing="onPlaying"
             />
@@ -853,6 +845,100 @@
     </div>
   </div>
 
+  <!-- Hidden QR share (opened from the menu drawer) -->
+  <ShareQR ref="shareQr" :slug="session.slug" hide-trigger />
+
+  <!-- Menu drawer (slides from the right) -->
+  <Transition name="fade">
+    <div v-if="showMenuDrawer" class="fixed inset-0 z-40 bg-black/40" @click="showMenuDrawer = false"></div>
+  </Transition>
+  <Transition name="drawer-slide">
+    <aside v-if="showMenuDrawer" class="fixed top-0 right-0 bottom-0 z-50 w-72 max-w-[85vw] bg-base-100 shadow-xl flex flex-col">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-base-200">
+        <span class="font-bold font-display">{{ t('room.menu') }}</span>
+        <button class="btn btn-sm btn-ghost btn-circle" @click="showMenuDrawer = false">
+          <span class="i-fa6-solid-xmark"></span>
+        </button>
+      </div>
+      <nav class="flex-1 overflow-y-auto p-2 flex flex-col gap-1">
+        <button class="btn btn-ghost justify-start gap-3" @click="showMenuDrawer = false; showRolesModal = true">
+          <span class="text-base">👑</span>
+          <span class="flex-1 text-left">{{ rolesTitle }}</span>
+          <span v-if="hasPendingRoleRequest" class="h-2 w-2 rounded-full bg-error"></span>
+        </button>
+        <button class="btn btn-ghost justify-start gap-3" @click="showMenuDrawer = false; showParticipantsModal = true">
+          <span class="i-fa-solid-users text-base text-base-content/60"></span>
+          <span class="flex-1 text-left">{{ t('room.participants') }}</span>
+          <span class="badge badge-sm">{{ onlinePlayers.length }}</span>
+        </button>
+        <button class="btn btn-ghost justify-start gap-3" @click="showMenuDrawer = false; shareQr?.open()">
+          <span class="i-fa-solid-qrcode text-base text-base-content/60"></span>
+          <span class="flex-1 text-left">{{ t('share.title') }}</span>
+        </button>
+        <button class="btn btn-ghost justify-start gap-3" @click="showMenuDrawer = false; openSettingsModal()">
+          <span class="i-fa6-solid-gear text-base text-base-content/60"></span>
+          <span class="flex-1 text-left">{{ t('room.settings') }}</span>
+        </button>
+
+        <template v-if="isHost">
+          <div class="divider my-1"></div>
+          <label class="btn btn-ghost justify-start gap-3 cursor-pointer">
+            <span class="i-fa6-solid-people-group text-base" :class="isIrlMode ? 'text-accent' : 'text-base-content/60'"></span>
+            <span class="flex-1 text-left">{{ t('room.irl_mode') }}</span>
+            <input type="checkbox" class="toggle toggle-sm toggle-accent" :checked="isIrlMode" @change="toggleIrlMode" />
+          </label>
+          <button
+            v-if="canReset"
+            class="btn btn-ghost justify-start gap-3 text-warning"
+            @click="showMenuDrawer = false; showResetModal = true"
+          >
+            <span class="i-fa6-solid-rotate-left text-base"></span>
+            <span class="flex-1 text-left">{{ t('room.reset') }}</span>
+          </button>
+        </template>
+
+        <button v-if="canClaim" class="btn btn-ghost justify-start gap-3 text-primary" @click="showMenuDrawer = false; claimSession()">
+          <span class="i-fa-solid-link text-base"></span>
+          <span class="flex-1 text-left">{{ t('room.claim_session') }}</span>
+        </button>
+      </nav>
+    </aside>
+  </Transition>
+
+  <!-- Modale participants -->
+  <div :class="['modal', showParticipantsModal ? 'modal-open' : '']">
+    <div class="modal-box max-w-sm">
+      <h3 class="font-bold text-lg mb-4">{{ t('room.participants') }}</h3>
+      <ul class="space-y-1.5">
+        <li
+          v-for="p in lobbyPlayers"
+          :key="p.id"
+          class="flex items-center gap-2.5 rounded-lg bg-base-200 px-3 py-2"
+          :class="!isOnline(p) ? 'opacity-40' : ''"
+        >
+          <img
+            v-if="avatarUrl(p)"
+            :src="avatarUrl(p)"
+            :alt="p.name"
+            class="w-8 h-8 shrink-0 rounded-full object-cover bg-base-300"
+          />
+          <span v-else class="w-8 h-8 shrink-0 rounded-full bg-primary/15 text-primary text-sm font-bold flex items-center justify-center">{{ initial(p.name) }}</span>
+          <span class="flex-1 min-w-0 truncate font-medium text-sm">
+            {{ p.name }}
+            <span v-if="p.id === currentPlayer.id" class="text-xs text-base-content/40">({{ t('room.you') }})</span>
+          </span>
+          <span v-if="p.id === session.host" title="Host">👑</span>
+          <span v-if="isIrlMode && p.id === session.dj_player" title="DJ">🎵</span>
+          <span v-if="!isOnline(p)" class="w-2 h-2 rounded-full bg-base-content/20 shrink-0" :title="t('room.offline')"></span>
+        </li>
+      </ul>
+      <div class="modal-action">
+        <button class="btn btn-ghost btn-sm" @click="showParticipantsModal = false">{{ t('room.reset_cancel') }}</button>
+      </div>
+    </div>
+    <div class="modal-backdrop" @click="showParticipantsModal = false"></div>
+  </div>
+
   <!-- Snackbar (auto-dismiss 3s) -->
   <Transition name="toast-slide">
     <div v-if="toastMessage" class="toast toast-bottom toast-center z-50">
@@ -977,6 +1063,9 @@ const animationState = ref<{ type?: 'solved' | 'skipped'; playerName: string; pl
 const showResetModal = ref(false)
 const showAddTrackModal = ref(false)
 const showRolesModal = ref(false)
+const showMenuDrawer = ref(false)
+const showParticipantsModal = ref(false)
+const shareQr = useTemplateRef<{ open: () => void }>('shareQr')
 
 // Bottom snackbar shown to everyone, auto-dismissed after 3s.
 const toastMessage = ref('')
@@ -1140,6 +1229,22 @@ const sessionStatusLabel = computed(
   })[props.session.status as string] ?? props.session.status,
 )
 const isHost = computed(() => props.session.host === props.currentPlayer.id)
+
+// Host can pause/resume playback while a track is actually playing (not mid-buzz).
+const isPaused = computed(() => !!props.session.paused)
+const canTogglePause = computed(() => currentTrack.value?.status === 'playing' && !activeBuzz.value)
+const togglePause = () => {
+  if (!isHost.value || !canTogglePause.value) return
+  pb.collection('sessions').update(props.session.id, { paused: !isPaused.value })
+}
+// Reset is allowed except mid-action (a track actively playing and not paused).
+const canReset = computed(() => currentTrack.value?.status !== 'playing' || isPaused.value)
+// A fresh track must never start paused — clear the flag when the track changes.
+watch(() => currentTrack.value?.id, (id, prev) => {
+  if (id && id !== prev && isHost.value && isPaused.value) {
+    pb.collection('sessions').update(props.session.id, { paused: false })
+  }
+})
 
 // Host election is handled server-side (pb/pb_hooks/host_election.pb.js):
 // when the current host goes offline, a heartbeat from any remaining player
@@ -1733,6 +1838,24 @@ onUnmounted(() => {
 .toast-slide-enter-from,
 .toast-slide-leave-to {
   transform: translateY(120%);
+  opacity: 0;
+}
+
+.drawer-slide-enter-active,
+.drawer-slide-leave-active {
+  transition: transform 0.25s ease;
+}
+.drawer-slide-enter-from,
+.drawer-slide-leave-to {
+  transform: translateX(100%);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 </style>
