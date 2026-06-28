@@ -16,11 +16,21 @@
       </div>
       <!-- Ligne 2 : contexte + actions -->
       <div class="px-4 py-1.5 flex items-center gap-3 border-t border-base-200 text-sm">
-        <div class="flex items-center gap-2 flex-1 min-w-0">
+        <button
+          type="button"
+          class="flex items-center gap-2 flex-1 min-w-0 text-left hover:opacity-70 transition-opacity"
+          :title="rolesTitle"
+          @click="showRolesModal = true"
+        >
           <span v-if="isIrlMode" class="badge badge-xs badge-accent shrink-0">IRL</span>
           <span v-if="isIrlMode && djPlayer" class="text-xs text-base-content/50 truncate">🎵 {{ djPlayer.name }}</span>
           <span v-if="hostPlayer" class="text-xs text-base-content/40 truncate">👑 {{ hostPlayer.name }}</span>
-        </div>
+          <span class="i-fa-solid-chevron-down text-[0.55rem] text-base-content/30 shrink-0"></span>
+          <span v-if="hasPendingRoleRequest" class="relative flex h-2 w-2 shrink-0">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-error"></span>
+          </span>
+        </button>
         <span class="text-base-content/50 shrink-0">
           <span class="i-fa-solid-users text-xs"></span> {{ onlinePlayers.length }}
         </span>
@@ -80,7 +90,7 @@
             :class="[
               'flex items-center justify-center bg-base-200 rounded-xl',
               videoId ? 'absolute inset-0' : '',
-              isCurrentTrackAdmin ? 'flex-col gap-4 p-6' : 'flex-row gap-3 p-4',
+              (isCurrentTrackAdmin || !currentTrack) ? 'flex-col gap-4 p-6' : 'flex-row gap-3 p-4',
               (!audioUnlocked && videoId) ? 'bg-transparent pointer-events-none' : '',
             ]"
           >
@@ -116,16 +126,39 @@
             <!-- Phase d'attente : lobby -->
             <template v-if="session.status === 'waiting'">
               <span class="text-5xl">🎮</span>
-              <template v-if="isHost">
-                <p class="font-semibold text-center">{{ t('room.host_title') }}</p>
-                <ul v-if="nonHostPlayers.length > 0" class="space-y-1 w-full max-w-xs text-sm">
-                  <li v-for="p in nonHostPlayers" :key="p.id" class="flex items-center gap-2">
-                    <span :class="p.ready ? 'text-success' : 'text-base-content/30'">{{ p.ready ? '✓' : '○' }}</span>
-                    <span>{{ p.name }}</span>
+              <p v-if="isHost" class="font-semibold text-center">{{ t('room.host_title') }}</p>
+
+              <!-- Participant list (visible to everyone) -->
+              <div class="w-full max-w-xs space-y-2">
+                <p class="text-xs uppercase tracking-wide font-semibold text-base-content/40 px-1">{{ t('room.participants') }}</p>
+                <ul class="space-y-1.5">
+                  <li
+                    v-for="p in lobbyPlayers"
+                    :key="p.id"
+                    class="flex items-center gap-2.5 rounded-lg bg-base-100 px-3 py-2 shadow-sm"
+                    :class="!isOnline(p) ? 'opacity-40' : ''"
+                  >
+                    <img
+                      v-if="avatarUrl(p)"
+                      :src="avatarUrl(p)"
+                      :alt="p.name"
+                      class="w-8 h-8 shrink-0 rounded-full object-cover bg-base-200"
+                      loading="lazy"
+                    />
+                    <span v-else class="w-8 h-8 shrink-0 rounded-full bg-primary/15 text-primary text-sm font-bold flex items-center justify-center">{{ initial(p.name) }}</span>
+                    <span class="flex-1 min-w-0 truncate font-medium text-sm">
+                      {{ p.name }}
+                      <span v-if="p.id === currentPlayer.id" class="text-xs text-base-content/40">({{ t('room.you') }})</span>
+                    </span>
+                    <span v-if="p.id === session.host" class="badge badge-warning badge-sm gap-1">👑 {{ t('room.host_badge') }}</span>
+                    <span v-else-if="p.ready" class="badge badge-success badge-sm gap-1"><span class="i-fa-solid-check text-[0.6rem]"></span>{{ t('room.ready_badge') }}</span>
+                    <span v-else class="badge badge-ghost badge-sm text-base-content/50">{{ t('room.player_waiting') }}</span>
                   </li>
                 </ul>
-                <p v-else class="text-sm text-base-content/40">{{ t('room.waiting_players') }}</p>
-                <button class="btn btn-primary btn-lg" :disabled="!canLaunch" @click="launchSession">
+              </div>
+
+              <template v-if="isHost">
+                <button class="btn btn-primary btn-lg max-w-full" :disabled="!canLaunch" @click="launchSession">
                   <span class="i-fa-solid-play"></span>
                   {{ t('room.launch_button') }}
                 </button>
@@ -134,15 +167,11 @@
                 </p>
               </template>
               <template v-else>
-                <p class="text-base-content/50 text-center text-sm">{{ t('room.waiting_host') }}</p>
-                <button v-if="!isReady" class="btn btn-primary btn-lg" @click="markReady(true)">
+                <button v-if="!isReady" class="btn btn-primary btn-lg max-w-full" @click="markReady(true)">
                   {{ t('room.ready_button') }}
                 </button>
-                <div v-else class="flex items-center gap-3">
-                  <div class="badge badge-success badge-lg gap-2">
-                    <span class="i-fa-solid-check"></span>
-                    {{ t('room.ready_badge') }}
-                  </div>
+                <div v-else class="flex flex-col items-center gap-2">
+                  <p class="text-base-content/50 text-center text-sm">{{ t('room.waiting_host') }}</p>
                   <button class="btn btn-xs btn-ghost" @click="markReady(false)">{{ t('room.ready_cancel') }}</button>
                 </div>
               </template>
@@ -348,7 +377,7 @@
               </div>
             </div>
             <!-- DJ candidate notification (host only) -->
-            <div v-if="isIrlMode && isHost && djCandidate" class="alert alert-info mt-3 flex items-center justify-between gap-2">
+            <div v-if="isIrlMode && isDJ && djCandidate" class="alert alert-info mt-3 flex items-center justify-between gap-2">
               <span class="text-sm">{{ t('room.dj_candidate_banner', { name: djCandidate.name }) }}</span>
               <div class="flex gap-2 shrink-0">
                 <button class="btn btn-xs btn-success" @click="approveDJ">{{ t('room.dj_accept') }}</button>
@@ -465,7 +494,16 @@
                     :key="p.id"
                     :class="['flex items-center gap-3 rounded-lg px-3 py-2', p.id === currentPlayer.id ? 'bg-primary/10 border border-primary/30' : 'bg-base-200']"
                   >
-                    <span :class="['text-sm font-bold w-5 text-center', i === 0 ? 'text-warning' : 'text-base-content/40']">{{ i + 1 }}</span>
+                    <span :class="['text-sm font-bold w-5 text-center shrink-0', i === 0 ? 'text-warning' : 'text-base-content/40']">{{ i + 1 }}</span>
+                    <img
+                      v-if="avatarUrl(p)"
+                      :src="avatarUrl(p)"
+                      :alt="p.name"
+                      class="w-7 h-7 shrink-0 rounded-full object-cover bg-base-200"
+                      :class="!isOnline(p) ? 'opacity-40' : ''"
+                      loading="lazy"
+                    />
+                    <span v-else class="w-7 h-7 shrink-0 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center" :class="!isOnline(p) ? 'opacity-40' : ''">{{ initial(p.name) }}</span>
                     <span class="flex-1 text-sm font-medium truncate" :class="!isOnline(p) ? 'opacity-40' : ''">{{ p.name }}</span>
                     <span v-if="p.id === session.host" class="text-xs" title="Host">👑</span>
                     <span v-if="isIrlMode && p.id === session.dj_player" title="DJ" class="text-base">🎵</span>
@@ -479,26 +517,6 @@
                     </div>
                     <span v-if="!isOnline(p)" class="w-2 h-2 rounded-full bg-base-content/20 shrink-0" :title="t('room.offline')"></span>
                     <span v-else-if="activeBuzz?.player === p.id" class="i-fa-solid-bell text-warning animate-bounce text-xs"></span>
-                    <button
-                      v-if="p.id === currentPlayer.id && p.id !== session.host && session.host_candidate !== currentPlayer.id"
-                      class="btn btn-xs btn-ghost text-primary"
-                      @click="proposeHost"
-                    >
-                      {{ isOwner ? t('room.reclaim_host') : t('room.become_host') }}
-                    </button>
-                    <span v-else-if="p.id === currentPlayer.id && session.host_candidate === currentPlayer.id" class="text-xs text-base-content/40">
-                      {{ t('room.host_pending') }}
-                    </span>
-                    <button
-                      v-if="isIrlMode && p.id === currentPlayer.id && p.id !== session.dj_player && session.dj_candidate !== currentPlayer.id"
-                      class="btn btn-xs btn-ghost text-accent"
-                      @click="proposeDJ"
-                    >
-                      {{ t('room.become_dj') }}
-                    </button>
-                    <span v-else-if="isIrlMode && p.id === currentPlayer.id && session.dj_candidate === currentPlayer.id" class="text-xs text-base-content/40">
-                      {{ t('room.dj_pending') }}
-                    </span>
                   </li>
                 </ul>
                 <p v-if="players.length === 0" class="text-base-content/40 text-sm text-center py-4">{{ t('room.no_players') }}</p>
@@ -555,6 +573,87 @@
         </template>
         <p class="text-xs text-base-content/40">{{ t('room.still_playing_votes', { votes: skipVoteCount, needed: skipVotesNeeded }) }}</p>
       </div>
+    </div>
+
+    <!-- Modale rôles (host / DJ) -->
+    <div :class="['modal', showRolesModal ? 'modal-open' : '']">
+      <div class="modal-box max-w-sm">
+        <h3 class="font-bold text-lg mb-4">{{ rolesTitle }}</h3>
+
+        <!-- Host -->
+        <div class="space-y-2">
+          <p class="text-xs uppercase tracking-wide font-semibold text-base-content/40">{{ t('room.host_badge') }}</p>
+          <div class="flex items-center gap-3">
+            <img
+              v-if="hostPlayer && avatarUrl(hostPlayer)"
+              :src="avatarUrl(hostPlayer)"
+              :alt="hostPlayer.name"
+              class="w-9 h-9 shrink-0 rounded-full object-cover bg-base-200"
+            />
+            <span v-else class="w-9 h-9 shrink-0 rounded-full bg-primary/15 text-primary text-sm font-bold flex items-center justify-center">{{ initial(hostPlayer?.name ?? '?') }}</span>
+            <span class="flex-1 min-w-0 truncate font-medium">👑 {{ hostPlayer?.name ?? '—' }}</span>
+          </div>
+          <!-- Pending request (host sees accept/reject) -->
+          <div v-if="isHost && hostCandidate" class="alert alert-info py-2 text-sm flex items-center justify-between gap-2">
+            <span>{{ t('room.host_candidate_banner', { name: hostCandidate.name }) }}</span>
+            <div class="flex gap-2 shrink-0">
+              <button class="btn btn-xs btn-success" @click="approveHost(); showRolesModal = false">{{ t('room.host_accept') }}</button>
+              <button class="btn btn-xs btn-ghost" @click="rejectHost">{{ t('room.host_reject') }}</button>
+            </div>
+          </div>
+          <!-- Request / reclaim host -->
+          <button
+            v-if="!isHost && session.host_candidate !== currentPlayer.id"
+            class="btn btn-primary btn-sm w-full"
+            @click="proposeHost(); showRolesModal = false"
+          >
+            {{ isOwner ? t('room.reclaim_host') : t('room.become_host') }}
+          </button>
+          <p v-else-if="!isHost && session.host_candidate === currentPlayer.id" class="text-sm text-base-content/50 text-center">
+            {{ t('room.host_pending') }}
+          </p>
+        </div>
+
+        <!-- DJ (IRL mode only) -->
+        <template v-if="isIrlMode">
+          <div class="divider my-3"></div>
+          <div class="space-y-2">
+            <p class="text-xs uppercase tracking-wide font-semibold text-base-content/40">DJ 🎵</p>
+            <div class="flex items-center gap-3">
+              <img
+                v-if="djPlayer && avatarUrl(djPlayer)"
+                :src="avatarUrl(djPlayer)"
+                :alt="djPlayer.name"
+                class="w-9 h-9 shrink-0 rounded-full object-cover bg-base-200"
+              />
+              <span v-else class="w-9 h-9 shrink-0 rounded-full bg-accent/15 text-accent text-sm font-bold flex items-center justify-center">{{ initial(djPlayer?.name ?? '?') }}</span>
+              <span class="flex-1 min-w-0 truncate font-medium">🎵 {{ djPlayer?.name ?? '—' }}</span>
+            </div>
+            <div v-if="isDJ && djCandidate" class="alert alert-info py-2 text-sm flex items-center justify-between gap-2">
+              <span>{{ t('room.dj_candidate_banner', { name: djCandidate.name }) }}</span>
+              <div class="flex gap-2 shrink-0">
+                <button class="btn btn-xs btn-success" @click="approveDJ(); showRolesModal = false">{{ t('room.dj_accept') }}</button>
+                <button class="btn btn-xs btn-ghost" @click="rejectDJ">{{ t('room.dj_reject') }}</button>
+              </div>
+            </div>
+            <button
+              v-if="!isDJ && session.dj_candidate !== currentPlayer.id"
+              class="btn btn-accent btn-sm w-full"
+              @click="proposeDJ(); showRolesModal = false"
+            >
+              {{ t('room.become_dj') }}
+            </button>
+            <p v-else-if="!isDJ && session.dj_candidate === currentPlayer.id" class="text-sm text-base-content/50 text-center">
+              {{ t('room.dj_pending') }}
+            </p>
+          </div>
+        </template>
+
+        <div class="modal-action">
+          <button class="btn btn-ghost btn-sm" @click="showRolesModal = false">{{ t('room.reset_cancel') }}</button>
+        </div>
+      </div>
+      <div class="modal-backdrop" @click="showRolesModal = false"></div>
     </div>
 
     <!-- Modale settings -->
@@ -712,6 +811,15 @@
       </div>
     </div>
   </div>
+
+  <!-- Snackbar (auto-dismiss 3s) -->
+  <Transition name="toast-slide">
+    <div v-if="toastMessage" class="toast toast-bottom toast-center z-50">
+      <div class="alert alert-info shadow-lg">
+        <span>{{ toastMessage }}</span>
+      </div>
+    </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -731,6 +839,7 @@ import SolvedOverlay from '@game/components/SolvedOverlay.vue'
 import { pb } from '@game/pb'
 import { getVideoId, isOnline } from '@game/utils'
 import useAuth from '@admin/composables/useAuth'
+import config from '@config'
 
 const { t } = useI36n()
 const { isAuthenticated, user, refreshAuth } = useAuth()
@@ -826,6 +935,30 @@ const audioUnlocked = ref(false)
 const animationState = ref<{ type?: 'solved' | 'skipped'; playerName: string; playerId?: string; title: string; artist: string } | null>(null)
 const showResetModal = ref(false)
 const showAddTrackModal = ref(false)
+const showRolesModal = ref(false)
+
+// Bottom snackbar shown to everyone, auto-dismissed after 3s.
+const toastMessage = ref('')
+let toastTimer: ReturnType<typeof setTimeout> | undefined
+const showToast = (message: string) => {
+  toastMessage.value = message
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { toastMessage.value = '' }, 3000)
+}
+
+// Notify everyone when the host changes.
+watch(() => props.session.host, (newId, oldId) => {
+  if (!oldId || !newId || newId === oldId) return
+  const name = players.value.find(p => p.id === newId)?.name ?? ''
+  showToast(t('room.host_changed', { name }))
+})
+
+// Notify everyone when the DJ changes (only relevant in IRL mode).
+watch(() => props.session.dj_player, (newId, oldId) => {
+  if (!newId || newId === oldId || !props.session.irl_mode) return
+  const name = players.value.find(p => p.id === newId)?.name ?? ''
+  showToast(t('room.dj_changed', { name }))
+})
 const resetting = ref(false)
 const nextOrphanOwner = computed(() => {
   if (!queuedTracks.value.length) return null
@@ -984,6 +1117,26 @@ const isDJ = computed(() => props.session.dj_player === props.currentPlayer.id)
 const djPlayer = computed(() => players.value.find((p: any) => p.id === props.session.dj_player))
 const djCandidate = computed(() => players.value.find((p: any) => p.id === props.session.dj_candidate))
 const nonHostPlayers = computed(() => onlinePlayers.value.filter(p => p.id !== props.session.host))
+const rolesTitle = computed(() => isIrlMode.value ? t('room.roles_title') : t('room.roles_title_host_only'))
+// A pending role request the host should address — drives the red dot on the topbar.
+const hasPendingRoleRequest = computed(() =>
+  (isHost.value && !!hostCandidate.value) || (isIrlMode.value && isDJ.value && !!djCandidate.value),
+)
+// Lobby roster shown to everyone, host first.
+const lobbyPlayers = computed(() =>
+  [...players.value].sort((a, b) => {
+    if (a.id === props.session.host) return -1
+    if (b.id === props.session.host) return 1
+    return 0
+  }),
+)
+const initial = (name: string) => (name?.trim()?.charAt(0) ?? '?').toUpperCase()
+// Avatars are denormalized onto the player record server-side
+// (pb/pb_hooks/player_avatar.pb.js), so guests can see them too.
+const avatarUrl = (p: any) =>
+  p.avatar && p.auth_user
+    ? `${config.apiBaseUrl}/api/files/_pb_users_auth_/${p.auth_user}/${p.avatar}`
+    : ''
 const allNonHostPlayersReady = computed(() =>
   nonHostPlayers.value.length === 0 || nonHostPlayers.value.every(p => p.ready),
 )
@@ -1308,11 +1461,16 @@ watch([activeBuzz, isCurrentTrackAdmin], ([buzz, isAdmin]) => {
 
 const toggleIrlMode = async () => {
   const enabling = !props.session.irl_mode
-  await pb.collection('sessions').update(props.session.id, {
-    irl_mode: enabling,
-    dj_player: enabling ? props.currentPlayer.id : null,
-    dj_candidate: null,
-  })
+  const update: Record<string, unknown> = { irl_mode: enabling, dj_candidate: null }
+  if (enabling) {
+    // Restore the DJ assigned earlier if they're still around, otherwise fall
+    // back to the host. Disabling keeps dj_player untouched so it can be
+    // restored on re-enable.
+    const existingDj = props.session.dj_player
+    const stillPresent = existingDj && players.value.some(p => p.id === existingDj)
+    update.dj_player = stillPresent ? existingDj : props.session.host
+  }
+  await pb.collection('sessions').update(props.session.id, update)
 }
 const proposeDJ = () =>
   pb.collection('sessions').update(props.session.id, { dj_candidate: props.currentPlayer.id })
@@ -1468,3 +1626,16 @@ onUnmounted(() => {
   clearPlaybackTimer()
 })
 </script>
+
+<style scoped>
+/* daisyUI .toast only positions; the slide-in is ours. */
+.toast-slide-enter-active,
+.toast-slide-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.toast-slide-enter-from,
+.toast-slide-leave-to {
+  transform: translateY(120%);
+  opacity: 0;
+}
+</style>
