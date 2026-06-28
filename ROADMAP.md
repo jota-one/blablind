@@ -23,6 +23,19 @@ Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tra
 
 Pendant la durée des votes, on laisse tourner le morceau sur sa séquence "résultat".
 
+### Notifications push (Web Push)
+Prévenir les joueurs même app fermée / onglet en arrière-plan : "la partie démarre", "c'est ton tour de faire deviner", "tu as été invité". Prérequis déjà en place : l'app est installable (manifest + service worker), ce qui est obligatoire pour le push sur iOS (16.4+).
+
+Architecture retenue : **build PocketBase custom en Go** (hybride — le plugin `jsvm` est conservé, donc tous les hooks/migrations JS actuels continuent de tourner). Le push part directement d'un hook Go via la lib `webpush-go` (chiffrement aes128gcm + JWT VAPID gérés nativement), ce qui évite un sidecar Node ou une réimplémentation crypto en JSVM.
+
+À faire :
+- Générer une paire de clés **VAPID** (publique côté client, privée en secret serveur).
+- Collection `push_subscriptions` (endpoint + clés `p256dh`/`auth`, liée au player/user, dédup par endpoint).
+- Client : bouton opt-in → `Notification.requestPermission()` → `pushManager.subscribe(clé publique)` → envoi de la subscription à PocketBase.
+- Service worker : handlers `push` (showNotification) et `notificationclick` (ouvrir la room).
+- Hook Go : sur les déclencheurs (partie démarre / ton tour / invitation) → envoyer le push aux subscriptions ciblées.
+- Build/déploiement : scaffolding `main.go` + `go.mod`, étape CI `go build`, on déploie notre binaire au lieu du binaire officiel.
+
 
 ## History (done)
 
