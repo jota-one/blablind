@@ -81,21 +81,13 @@ export default function useTracks(sessionId: string) {
     await pb.collection('tracks').update(trackId, { status: 'done' })
   }
 
-  const voteToSkip = async (trackId: string, playerId: string) => {
-    const track = tracks.value.find(t => t.id === trackId)
-    if (!track) return
-    const current: string[] = Array.isArray(track.skip_votes) ? track.skip_votes : []
-    if (current.includes(playerId)) return
-    await pb.collection('tracks').update(trackId, { skip_votes: [...current, playerId] })
-  }
+  // Atomic toggle server-side (see pb/pb_hooks/skip_vote.pb.js) so two players
+  // voting at the same time can't clobber each other's vote.
+  const voteToSkip = (trackId: string, playerId: string) =>
+    pb.send('/api/skip-vote', { method: 'POST', body: { trackId, playerId, action: 'add' } })
 
-  const cancelSkipVote = async (trackId: string, playerId: string) => {
-    const track = tracks.value.find(t => t.id === trackId)
-    if (!track) return
-    const current: string[] = Array.isArray(track.skip_votes) ? track.skip_votes : []
-    if (!current.includes(playerId)) return
-    await pb.collection('tracks').update(trackId, { skip_votes: current.filter(id => id !== playerId) })
-  }
+  const cancelSkipVote = (trackId: string, playerId: string) =>
+    pb.send('/api/skip-vote', { method: 'POST', body: { trackId, playerId, action: 'remove' } })
 
   const deleteTrack = (trackId: string) => pb.collection('tracks').delete(trackId)
 

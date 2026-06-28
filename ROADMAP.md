@@ -26,6 +26,7 @@ Pendant la durée des votes, on laisse tourner le morceau sur sa séquence "rés
 
 ## History (done)
 
+- [2026-06-28] Reliable skip votes — voting to stop a track (including after the reveal) no longer needs a second click when two players vote at the same time; every vote now counts.
 - [2026-06-27] Add a track while waiting — after voting to skip the current track, you can open the add-a-track screen to queue a new one during the wait.
 - [2026-06-27] Search result layout — each result now shows a play/stop preview on its thumbnail and clearly labelled Start / Excerpt length / Reveal fields (with a "s" suffix) below it, with a larger add button.
 - [2026-06-27] Track add UX — you can undo a just-added track from the search list, its timing options lock once added (preview stays available to check the start), and a track's start/duration/reveal timings now show in the upcoming list.
