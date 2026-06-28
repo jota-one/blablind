@@ -26,6 +26,7 @@ Pendant la durée des votes, on laisse tourner le morceau sur sa séquence "rés
 
 ## History (done)
 
+- [2026-06-28] Installable app — BlaBlind can now be installed to the home screen on Android (with the Install prompt) and iPhone, launching full-screen like a native app.
 - [2026-06-28] App icon — installing BlaBlind to a home screen (or seeing it in a browser tab) now shows the BlaBlind play logo instead of a generic letter.
 - [2026-06-28] Simpler top bar with a menu — the cluttered row of icons is gone; a single menu drawer gathers roles, participants list, share, settings, IRL mode and reset. The host can pause/resume a playing track by tapping the status badge, and the game can only be reset when it isn't mid-track.
 - [2026-06-28] No answer leak in Now Playing — the OS/browser "Now Playing" widget no longer shows the current track's title and cover art when switching tabs, so the DJ can't accidentally peek at the answer.
