@@ -34,7 +34,7 @@ Architecture retenue : **build PocketBase custom en Go** (hybride — le plugin 
 - Client : bouton opt-in → `Notification.requestPermission()` → `pushManager.subscribe(clé publique)` → envoi de la subscription à PocketBase.
 - Service worker : handlers `push` (showNotification) et `notificationclick` (ouvrir la room).
 - Hook Go : sur les déclencheurs (partie démarre / ton tour / invitation) → envoyer le push aux subscriptions ciblées.
-- Build/déploiement : scaffolding `main.go` + `go.mod`, étape CI `go build`, on déploie notre binaire au lieu du binaire officiel.
+- Build/déploiement : scaffolding `main.go` + `go.mod`, étape CI `go build`, on déploie notre binaire au lieu du binaire officiel. L'infra de déploiement est déjà en place — s'inspirer du projet **lexlsf** qui a déjà son propre build Go custom de PocketBase.
 
 
 ## History (done)
