@@ -181,7 +181,7 @@
               <span class="text-6xl opacity-20">🎶</span>
               <p class="text-base-content/50">{{ t('room.no_track') }}</p>
               <template v-if="isHost">
-                <button v-if="queuedTracks.length > 0" class="btn btn-primary" @click="playTrack(queuedTracks[0].id)">
+                <button v-if="queuedTracks.length > 0" class="btn btn-primary" @click="startTrack(queuedTracks[0])">
                   <span class="i-fa-solid-play"></span>
                   {{ t('room.play_next') }}
                 </button>
@@ -281,7 +281,7 @@
         </div>
 
         <!-- Orphan tracks notification (host only) -->
-        <div v-if="isHost && nextOrphanOwner" class="card bg-warning/10 border border-warning/30 p-4 space-y-3">
+        <div v-if="isHost && nextOrphanOwner && !orphanDecisionTrack" class="card bg-warning/10 border border-warning/30 p-4 space-y-3">
           <p class="font-bold flex items-center gap-2 text-sm">
             <span class="i-fa-solid-user-slash text-warning shrink-0"></span>
             {{ t('room.orphan_notification', { player: nextOrphanOwner.name, n: orphanedQueuedTracks.length }) }}
@@ -572,6 +572,33 @@
           </button>
         </template>
         <p class="text-xs text-base-content/40">{{ t('room.still_playing_votes', { votes: skipVoteCount, needed: skipVotesNeeded }) }}</p>
+      </div>
+    </div>
+
+    <!-- Modale décision morceau orphelin (host only) -->
+    <div :class="['modal', isHost && orphanDecisionTrack ? 'modal-open' : '']">
+      <div class="modal-box max-w-sm">
+        <h3 class="font-bold text-lg">{{ t('room.orphan_decision_title') }}</h3>
+        <p class="py-3 text-sm">
+          {{ t('room.orphan_decision_body', { player: getPlayerName(orphanDecisionTrack?.added_by) }) }}
+        </p>
+        <p class="text-sm font-medium truncate mb-3">🎵 {{ orphanDecisionTrack?.expand?.video?.title ?? t('room.no_title') }}</p>
+        <div class="flex flex-col gap-2">
+          <button class="btn btn-sm btn-primary" @click="claimOrphanTrack">
+            <span class="i-fa-solid-hand text-xs"></span>
+            {{ t('room.orphan_claim') }}
+          </button>
+          <button class="btn btn-sm btn-ghost border border-base-300" :disabled="queuedTracks.length <= 1" @click="pushOrphanBack(1)">
+            {{ t('room.orphan_push_1') }}
+          </button>
+          <button class="btn btn-sm btn-ghost border border-base-300" :disabled="queuedTracks.length <= 1" @click="pushOrphanBack(5)">
+            {{ t('room.orphan_push_5') }}
+          </button>
+          <button class="btn btn-sm btn-error btn-outline" @click="deleteOrphanTrack">
+            <span class="i-fa6-solid-trash text-xs"></span>
+            {{ t('room.orphan_decision_delete') }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1212,6 +1239,32 @@ watch(buzzBlockReason, (reason) => {
 // overlapping triggers (correct answer, skip vote, host button) on the same or
 // different clients can't double-advance or skip a track.
 let advancing = false
+// A track whose owner has left the game shouldn't auto-play and get silently
+// (half-)attributed to the host. Instead the game pauses (no track playing) and
+// the host decides what to do with it.
+const orphanDecisionTrack = ref<any | null>(null)
+const isOrphanTrack = (track: any) => {
+  if (!track?.added_by) return false
+  const owner = players.value.find(p => p.id === track.added_by)
+  return !owner || !isOnline(owner)
+}
+const startTrack = async (track: any) => {
+  if (!track) return
+  if (isHost.value && isOrphanTrack(track)) {
+    orphanDecisionTrack.value = track
+    return
+  }
+  await playTrack(track.id)
+}
+// If the absent owner reconnects while the host is still deciding, just play it.
+watch(onlinePlayers, () => {
+  const track = orphanDecisionTrack.value
+  if (track && isHost.value && !isOrphanTrack(track)) {
+    orphanDecisionTrack.value = null
+    playTrack(track.id)
+  }
+})
+
 const advanceFrom = async (trackId: string) => {
   if (advancing || !isHost.value) return
   // Only the live playing track can be advanced; if it already changed, another
@@ -1221,7 +1274,7 @@ const advanceFrom = async (trackId: string) => {
   try {
     const next = queuedTracks.value[0]
     await finishTrack(trackId)
-    if (next) { await playTrack(next.id) }
+    if (next) { await startTrack(next) }
   } finally {
     advancing = false
   }
@@ -1284,6 +1337,38 @@ const orphanSplit = async () => {
   await Promise.all(orphanedQueuedTracks.value.map((t, i) =>
     pb.collection('tracks').update(t.id, { added_by: recipients[i % recipients.length].id })
   ))
+}
+
+// Resolutions for the orphan-track-about-to-play decision; each resumes playback.
+const pushOrphanBack = async (places: number) => {
+  const track = orphanDecisionTrack.value
+  if (!track) return
+  const queued = [...queuedTracks.value]
+  const idx = queued.findIndex(t => t.id === track.id)
+  if (idx !== -1) {
+    const target = Math.min(idx + places, queued.length - 1)
+    queued.splice(idx, 1)
+    queued.splice(target, 0, track)
+    const orders = queuedTracks.value.map(t => t.order).sort((a, b) => a - b)
+    await batchUpdateOrders(queued.map((t, i) => ({ id: t.id, order: orders[i] })))
+  }
+  orphanDecisionTrack.value = null
+  await startTrack(queued[0])
+}
+const deleteOrphanTrack = async () => {
+  const track = orphanDecisionTrack.value
+  orphanDecisionTrack.value = null
+  if (!track) return
+  const remaining = queuedTracks.value.filter(t => t.id !== track.id)
+  await deleteTrack(track.id)
+  await startTrack(remaining[0])
+}
+const claimOrphanTrack = async () => {
+  const track = orphanDecisionTrack.value
+  orphanDecisionTrack.value = null
+  if (!track) return
+  await pb.collection('tracks').update(track.id, { added_by: props.currentPlayer.id })
+  await playTrack(track.id)
 }
 
 const playerRatio = (player: any) => {
@@ -1419,10 +1504,8 @@ const markReady = (value: boolean) => pb.collection('players').update(props.curr
 
 const launchSession = async () => {
   if (!canLaunch.value) return
-  await Promise.all([
-    pb.collection('sessions').update(props.session.id, { status: 'playing' }),
-    playTrack(queuedTracks.value[0].id),
-  ])
+  await pb.collection('sessions').update(props.session.id, { status: 'playing' })
+  await startTrack(queuedTracks.value[0])
 }
 
 const invalidateBuzz = async () => {

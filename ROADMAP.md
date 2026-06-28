@@ -26,6 +26,7 @@ Pendant la durée des votes, on laisse tourner le morceau sur sa séquence "rés
 
 ## History (done)
 
+- [2026-06-28] Absent player's track — when the next track belongs to someone who has left, the game now pauses instead of playing it and mis-crediting the host; the host can take the track, push it back one or five spots, or delete it, then play resumes.
 - [2026-06-28] Host & DJ roles panel — tap the host/DJ info in the top bar to open a panel showing who holds each role and to request or hand it over; a red dot flags pending requests, and a snackbar tells everyone when the host or DJ changes. The DJ role is now handed over by the current DJ, and re-enabling IRL mode restores the previous DJ.
 - [2026-06-28] Lobby roster with avatars — everyone now sees the participant list and ready status in the lobby, with real profile pictures (or initials) shown there and in the ranking.
 - [2026-06-28] Host handover — any player can ask the current host to hand over the role, and the person who created the blindtest can reclaim host instantly.
