@@ -313,17 +313,8 @@
             <span class="i-fa-solid-plus"></span>
             {{ t('room.add_track_button') }}
           </button>
-          <!-- host_choice : bouton "suivant" pour l'host quand morceau résolu -->
-          <button
-            v-if="awaitingAdvance && sessionSettings.stop_method === 'host_choice' && isHost"
-            class="btn btn-sm btn-primary shrink-0"
-            @click="stopCurrentTrack"
-          >
-            <span class="i-fa-solid-forward-step"></span>
-            {{ t('room.play_next') }}
-          </button>
           <!-- vote_unanimous : bouton stop/skip — non-admin pour skip uniquement -->
-          <template v-else-if="currentTrack && activeBuzz?.player !== currentPlayer.id && !isTrackSolvedAndPlaying && !isCurrentTrackAdmin">
+          <template v-if="currentTrack && activeBuzz?.player !== currentPlayer.id && !isTrackSolvedAndPlaying && !isCurrentTrackAdmin">
             <button v-if="!hasVotedToSkip" class="btn btn-sm btn-neutral shrink-0" @click="voteToSkip(currentTrack.id, currentPlayer.id)">
               <span class="i-fa-solid-forward-step"></span>
               {{ t('room.skip_button', { votes: skipVoteCount, needed: skipVotesNeeded }) }}
@@ -540,9 +531,10 @@
       :is-winner="animationState.playerId === props.currentPlayer.id"
     />
 
-    <!-- Overlay "encore un moment" après une bonne réponse (continue_after_success + vote_unanimous) -->
+    <!-- Overlay "encore un moment" après une bonne réponse.
+         vote_unanimous : tout le monde vote. host_choice : seul le host décide. -->
     <div
-      v-if="awaitingAdvance && !animationState && sessionSettings.stop_method === 'vote_unanimous'"
+      v-if="awaitingAdvance && !animationState && (sessionSettings.stop_method === 'vote_unanimous' || (sessionSettings.stop_method === 'host_choice' && isHost))"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
     >
       <div class="bg-base-100 rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl text-center max-w-xs mx-4">
@@ -551,16 +543,14 @@
           <p class="text-lg font-bold font-display">{{ currentTrack?.expand?.video?.title }}</p>
           <p class="text-sm text-base-content/60">{{ currentTrack?.expand?.video?.artist }}</p>
         </div>
-        <p class="text-base-content/70 text-sm">{{ t('room.still_playing_question') }}</p>
-        <button
-          v-if="!hasVotedToSkip"
-          class="btn btn-primary w-full"
-          @click="voteToSkip(currentTrack.id, currentPlayer.id)"
-        >
-          {{ t('room.still_playing_stop') }}
-        </button>
-        <template v-else>
-          <p class="text-sm text-success font-medium">{{ t('room.still_playing_voted') }}</p>
+
+        <!-- host_choice : le host avance quand il veut -->
+        <template v-if="sessionSettings.stop_method === 'host_choice'">
+          <p class="text-base-content/70 text-sm">{{ t('room.host_choice_question') }}</p>
+          <button class="btn btn-primary w-full" @click="stopCurrentTrack">
+            <span class="i-fa-solid-forward-step"></span>
+            {{ t('room.play_next') }}
+          </button>
           <button
             class="btn btn-outline btn-primary w-full"
             :disabled="!canAddTrack"
@@ -571,7 +561,31 @@
             {{ t('room.add_track_button') }}
           </button>
         </template>
-        <p class="text-xs text-base-content/40">{{ t('room.still_playing_votes', { votes: skipVoteCount, needed: skipVotesNeeded }) }}</p>
+
+        <!-- vote_unanimous : tout le monde vote pour arrêter -->
+        <template v-else>
+          <p class="text-base-content/70 text-sm">{{ t('room.still_playing_question') }}</p>
+          <button
+            v-if="!hasVotedToSkip"
+            class="btn btn-primary w-full"
+            @click="voteToSkip(currentTrack.id, currentPlayer.id)"
+          >
+            {{ t('room.still_playing_stop') }}
+          </button>
+          <template v-else>
+            <p class="text-sm text-success font-medium">{{ t('room.still_playing_voted') }}</p>
+            <button
+              class="btn btn-outline btn-primary w-full"
+              :disabled="!canAddTrack"
+              :title="!canAddTrack ? t('room.track_equity_limit') : undefined"
+              @click="showAddTrackModal = true"
+            >
+              <span class="i-fa-solid-plus"></span>
+              {{ t('room.add_track_button') }}
+            </button>
+          </template>
+          <p class="text-xs text-base-content/40">{{ t('room.still_playing_votes', { votes: skipVoteCount, needed: skipVotesNeeded }) }}</p>
+        </template>
       </div>
     </div>
 

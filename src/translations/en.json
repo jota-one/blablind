@@ -72,6 +72,7 @@
   "room.validate_buzz": "{player} buzzed!",
   "room.play_next": "Next track",
   "room.still_playing_question": "Want to keep listening for a bit longer?",
+  "room.host_choice_question": "Move on to the next track?",
   "room.still_playing_stop": "That's enough",
   "room.still_playing_voted": "You voted to stop ✓",
   "room.still_playing_votes": "{votes}/{needed} players voted to stop",
