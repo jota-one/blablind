@@ -339,6 +339,14 @@
 
           <div class="border border-base-300 border-t-0 rounded-b-xl bg-base-100 px-3 pb-3">
           <div ref="tabs-outer" class="overflow-hidden touch-pan-y">
+            <!-- Host transfer request (host only) -->
+            <div v-if="isHost && hostCandidate" class="alert alert-info mt-3 flex items-center justify-between gap-2">
+              <span class="text-sm">{{ t('room.host_candidate_banner', { name: hostCandidate.name }) }}</span>
+              <div class="flex gap-2 shrink-0">
+                <button class="btn btn-xs btn-success" @click="approveHost">{{ t('room.host_accept') }}</button>
+                <button class="btn btn-xs btn-ghost" @click="rejectHost">{{ t('room.host_reject') }}</button>
+              </div>
+            </div>
             <!-- DJ candidate notification (host only) -->
             <div v-if="isIrlMode && isHost && djCandidate" class="alert alert-info mt-3 flex items-center justify-between gap-2">
               <span class="text-sm">{{ t('room.dj_candidate_banner', { name: djCandidate.name }) }}</span>
@@ -471,6 +479,16 @@
                     </div>
                     <span v-if="!isOnline(p)" class="w-2 h-2 rounded-full bg-base-content/20 shrink-0" :title="t('room.offline')"></span>
                     <span v-else-if="activeBuzz?.player === p.id" class="i-fa-solid-bell text-warning animate-bounce text-xs"></span>
+                    <button
+                      v-if="p.id === currentPlayer.id && p.id !== session.host && session.host_candidate !== currentPlayer.id"
+                      class="btn btn-xs btn-ghost text-primary"
+                      @click="proposeHost"
+                    >
+                      {{ isOwner ? t('room.reclaim_host') : t('room.become_host') }}
+                    </button>
+                    <span v-else-if="p.id === currentPlayer.id && session.host_candidate === currentPlayer.id" class="text-xs text-base-content/40">
+                      {{ t('room.host_pending') }}
+                    </span>
                     <button
                       v-if="isIrlMode && p.id === currentPlayer.id && p.id !== session.dj_player && session.dj_candidate !== currentPlayer.id"
                       class="btn btn-xs btn-ghost text-accent"
@@ -955,6 +973,10 @@ const isHost = computed(() => props.session.host === props.currentPlayer.id)
 
 const canClaim = computed(() => isHost.value && isAuthenticated.value && user.value?.id && !props.session.owner)
 
+// The original session creator (authenticated owner) can reclaim host instantly.
+const isOwner = computed(() => isAuthenticated.value && !!user.value?.id && props.session.owner === user.value.id)
+const hostCandidate = computed(() => players.value.find((p: any) => p.id === props.session.host_candidate))
+
 const claimSession = () =>
   pb.collection('sessions').update(props.session.id, { owner: user.value.id })
 const isIrlMode = computed(() => !!props.session.irl_mode)
@@ -1298,6 +1320,19 @@ const approveDJ = () =>
   pb.collection('sessions').update(props.session.id, { dj_player: props.session.dj_candidate, dj_candidate: null })
 const rejectDJ = () =>
   pb.collection('sessions').update(props.session.id, { dj_candidate: null })
+
+// Host transfer. The owner takes host immediately; anyone else asks the
+// current host to hand it over.
+const proposeHost = () => {
+  if (isOwner.value) {
+    return pb.collection('sessions').update(props.session.id, { host: props.currentPlayer.id, host_candidate: null })
+  }
+  return pb.collection('sessions').update(props.session.id, { host_candidate: props.currentPlayer.id })
+}
+const approveHost = () =>
+  pb.collection('sessions').update(props.session.id, { host: props.session.host_candidate, host_candidate: null })
+const rejectHost = () =>
+  pb.collection('sessions').update(props.session.id, { host_candidate: null })
 
 const resetSession = async () => {
   resetting.value = true
