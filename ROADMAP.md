@@ -8,6 +8,8 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
+- Mode "IRL" doit être le mode par défaut. Le mode "à distance" doit être activé manuellement par le host. Le host sera le DJ par défaut. Le système fonctionne pareil sinon.
+
 
 
 ## New Features
@@ -35,6 +37,20 @@ Architecture retenue : **build PocketBase custom en Go** (hybride — le plugin 
 - Service worker : handlers `push` (showNotification) et `notificationclick` (ouvrir la room).
 - Hook Go : sur les déclencheurs (partie démarre / ton tour / invitation) → envoyer le push aux subscriptions ciblées.
 - Build/déploiement : scaffolding `main.go` + `go.mod`, étape CI `go build`, on déploie notre binaire au lieu du binaire officiel. L'infra de déploiement est déjà en place — s'inspirer du projet **lexlsf** qui a déjà son propre build Go custom de PocketBase.
+
+### Morceaux favoris
+Idée de Geetha. Pendant un blindtest, si un morceau plaît à un joueur, il peut l'ajouter à ses favoris — mais uniquement une fois le morceau **révélé** (bouton non disponible avant, pour ne pas ouvrir une faille de triche via la liste de favoris). Le bouton reste aussi accessible après coup, depuis la liste des morceaux déjà joués ("Passés"), pour rattraper un ajout oublié au moment de la révélation.
+
+Les favoris sont retrouvables plus tard dans l'espace membre, dans une section dédiée. Outre titre et auteur, chaque entrée garde des infos pratiques :
+- Qui fait découvrir le morceau (le propriétaire du morceau dans la partie).
+- Dans quelle session / à quelle date il a été découvert.
+- Si le joueur avait buzzé juste dessus ou non.
+
+Pistes complémentaires à creuser :
+- Lien direct pour réécouter le morceau (YouTube) depuis la liste de favoris.
+- Export ou partage de sa liste de favoris.
+- Retirer un morceau de ses favoris.
+- Empêcher les doublons (même morceau ajouté plusieurs fois par le même joueur).
 
 
 ## History (done)
