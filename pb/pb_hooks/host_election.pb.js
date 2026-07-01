@@ -48,6 +48,11 @@ onRecordAfterUpdateSuccess((e) => {
     const elected = online[0]
     if (elected.id !== hostId) {
       session.set('host', elected.id)
+      // IRL mode is the default: the host is DJ by default too, as long as
+      // no DJ has been assigned/handed over yet.
+      if (session.get('irl_mode') && !session.get('dj_player')) {
+        session.set('dj_player', elected.id)
+      }
       e.app.save(session)
     }
   } catch (_) {

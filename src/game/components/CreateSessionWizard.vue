@@ -259,6 +259,7 @@ const createSession = async () => {
       name: form.name.trim(),
       slug,
       status: 'waiting',
+      irl_mode: true,
       settings: {
         max_buzz_attempts: form.max_buzz_attempts,
         rebuzz_delay: form.rebuzz_delay,

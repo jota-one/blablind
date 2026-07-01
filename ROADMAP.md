@@ -8,8 +8,6 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
-- Mode "IRL" doit être le mode par défaut. Le mode "à distance" doit être activé manuellement par le host. Le host sera le DJ par défaut. Le système fonctionne pareil sinon.
-
 
 
 ## New Features
@@ -55,6 +53,7 @@ Pistes complémentaires à creuser :
 
 ## History (done)
 
+- [2026-07-01] IRL mode by default — new blindtests now start in IRL mode with the host as DJ by default; remote mode must be enabled manually by the host from the menu.
 - [2026-06-28] Installable app — BlaBlind can now be installed to the home screen on Android (with the Install prompt) and iPhone, launching full-screen like a native app.
 - [2026-06-28] App icon — installing BlaBlind to a home screen (or seeing it in a browser tab) now shows the BlaBlind play logo instead of a generic letter.
 - [2026-06-28] Simpler top bar with a menu — the cluttered row of icons is gone; a single menu drawer gathers roles, participants list, share, settings, IRL mode and reset. The host can pause/resume a playing track by tapping the status badge, and the game can only be reset when it isn't mid-track.
