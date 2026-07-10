@@ -39,7 +39,9 @@ export default function useAuth() {
   const refreshAuth = async () => {
     if (!pb.authStore.isValid) return null
     try {
-      const data = await pb.collection('users').authRefresh({ expand: 'roles' })
+      // requestKey null: Join and Room can both refresh on arrival — without it
+      // the SDK auto-cancels the first identical request (AbortError noise).
+      const data = await pb.collection('users').authRefresh({ expand: 'roles', requestKey: null })
       userJwt.value = data.token
       user.value = data.record
       return data
