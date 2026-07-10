@@ -53,6 +53,8 @@ Pistes complémentaires à creuser :
 
 ## History (done)
 
+- [2026-07-10] Buzz from the add-track modal — the fullscreen search/add modal now shows the BUZZ button at the bottom, so players can buzz while browsing for tracks; buzzing closes the modal and returns to the game.
+- [2026-07-10] Shuffle all while paused — the host can now shuffle all upcoming tracks when the current track is paused, not only between tracks.
 - [2026-07-01] IRL mode by default — new blindtests now start in IRL mode with the host as DJ by default; remote mode must be enabled manually by the host from the menu.
 - [2026-06-28] Installable app — BlaBlind can now be installed to the home screen on Android (with the Install prompt) and iPhone, launching full-screen like a native app.
 - [2026-06-28] App icon — installing BlaBlind to a home screen (or seeing it in a browser tab) now shows the BlaBlind play logo instead of a generic letter.

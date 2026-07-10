@@ -375,8 +375,8 @@
 
               <!-- À venir -->
               <div class="w-full shrink-0 pt-3 space-y-3">
-                <div v-if="myQueuedTracks.length >= 2 || (isHost && queuedTracks.length >= 2 && !currentTrack)" class="flex justify-end gap-2">
-                  <button v-if="isHost && queuedTracks.length >= 2 && !currentTrack" class="btn btn-xs btn-ghost text-base-content/50" @click="shuffleAllTracks">
+                <div v-if="myQueuedTracks.length >= 2 || (isHost && queuedTracks.length >= 2 && (!currentTrack || isPaused))" class="flex justify-end gap-2">
+                  <button v-if="isHost && queuedTracks.length >= 2 && (!currentTrack || isPaused)" class="btn btn-xs btn-ghost text-base-content/50" @click="shuffleAllTracks">
                     <span class="i-fa6-solid-shuffle"></span>
                     {{ t('room.shuffle_all_tracks') }}
                   </button>
@@ -830,6 +830,16 @@
           </button>
         </template>
       </div>
+      <footer v-if="canBuzzFromModal" class="shrink-0 p-4 border-t border-base-300">
+        <button
+          class="btn btn-error w-full h-16 text-xl font-bold shadow-lg"
+          data-testid="modal-buzz-button"
+          @click="buzzFromModal"
+        >
+          <span class="i-fa-solid-bell text-2xl"></span>
+          {{ t('room.buzz_button') }}
+        </button>
+      </footer>
     </div>
   </div>
 
@@ -1588,6 +1598,20 @@ const upcomingTracks = computed(() => [
 const doneTracks = computed(() =>
   tracks.value.filter((t: any) => t.status === 'done').sort((a: any, b: any) => b.order - a.order)
 )
+
+// The fullscreen add-track modal covers the buzz zone, so it embeds its own
+// buzz button. Buzzing closes the modal to hand back to the main game view.
+const canBuzzFromModal = computed(() =>
+  !!currentTrack.value && !isCurrentTrackAdmin.value && !isTrackSolvedAndPlaying.value && !activeBuzz.value && canBuzz.value,
+)
+const buzzFromModal = () => {
+  showAddTrackModal.value = false
+  if (isIrlMode.value) {
+    submitBuzz()
+  } else {
+    buzzing.value = true
+  }
+}
 
 // Actions
 const submitBuzz = async () => {
