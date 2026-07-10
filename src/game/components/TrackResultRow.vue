@@ -152,6 +152,7 @@ type Props = {
   previewing: boolean
   disabled?: boolean
   getPreviewTime?: () => number
+  initialStart?: number
 }
 
 const props = defineProps<Props>()
@@ -161,7 +162,7 @@ defineEmits<{
   preview: [video: SearchVideo, startSeconds: number]
 }>()
 
-const startSeconds = ref(0)
+const startSeconds = ref(props.initialStart ?? 0)
 const playbackDuration = ref(0)
 const revealSeconds = ref(0)
 

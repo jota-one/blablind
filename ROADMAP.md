@@ -49,13 +49,13 @@ Idée de Geetha. Pendant un blindtest, si un morceau plaît à un joueur, il peu
 - Espace membre : section dédiée listant thumbnail, titre, artiste, qui a fait découvrir, session + date, badge si deviné juste, lien YouTube avec timestamp, retrait.
 
 Reste à faire ensuite :
-- **But ultime : ajouter facilement ses favoris à un prochain blindtest** — p.ex. onglet "Favoris" dans la modale d'ajout de morceau en partie, avec le timing de départ déjà réglé.
 - Export ou partage de sa liste de favoris.
 - Hook serveur de validation (voir Improvements / Sécurité).
 
 
 ## History (done)
 
+- [2026-07-10] Favorites tab in the add-track modal — logged-in players can add tracks to a game straight from their favorites, with the saved start timing applied.
 - [2026-07-10] Favorite tracks — logged-in players can star a revealed track (reveal overlay, "Passés" tab, end-of-game screen) and find their favorites in a new member-area section with discovery context, in-app playback (tap the thumbnail), an editable start timing (typed or captured from the preview), a YouTube link and removal; guests are invited to create an account.
 - [2026-07-10] Buzz from the add-track modal — the fullscreen search/add modal now shows the BUZZ button at the bottom, so players can buzz while browsing for tracks; buzzing closes the modal and returns to the game.
 - [2026-07-10] Shuffle all while paused — the host can now shuffle all upcoming tracks when the current track is paused, not only between tracks.

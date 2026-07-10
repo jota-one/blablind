@@ -209,4 +209,10 @@ const removeVideo = async (video: SearchVideo) => {
   next.delete(video.videoId)
   addedIds.value = next
 }
+
+const stopPreview = () => {
+  previewInfo.value = null
+}
+
+defineExpose({ stopPreview })
 </script>

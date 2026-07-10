@@ -20,6 +20,8 @@ export default function useFavorites(
     }
     favorites.value = await pb.collection('favorites').getFullList({
       filter: pb.filter('user = {:user}', { user: user.value.id }),
+      expand: 'video',
+      sort: '-created',
     })
   }
 
@@ -39,7 +41,7 @@ export default function useFavorites(
     }
     const owner = players.value.find(p => p.id === track.added_by)
     try {
-      const created = await pb.collection('favorites').create({
+      await pb.collection('favorites').create({
         user: user.value.id,
         video: track.video,
         discovered_from_name: owner?.name ?? '',
@@ -48,12 +50,13 @@ export default function useFavorites(
         guessed_right: track.solved_by === currentPlayerId,
         start_seconds: track.start_seconds ?? 0,
       })
-      favorites.value.push(created)
     } catch {
       // Unique (user, video) index: a concurrent add from another tab already
-      // saved it — resync instead of failing.
-      await loadFavorites()
+      // saved it — the reload below resyncs either way.
     }
+    // Reload instead of pushing the created record: consumers need the video
+    // expand, which a create response doesn't include.
+    await loadFavorites()
   }
 
   return { favorites, loadFavorites, isFavorite, toggleFavorite }

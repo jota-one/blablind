@@ -810,12 +810,27 @@
             <span class="i-fa-solid-magnifying-glass mr-1"></span>
             {{ t('room.add_tab_search') }}
           </button>
+          <button v-if="canFavorite" :class="['tab', addMode === 'favorites' ? 'tab-active' : '']" @click="addMode = 'favorites'">
+            <span class="i-fa-solid-star mr-1"></span>
+            {{ t('room.add_tab_favorites') }}
+          </button>
           <button :class="['tab', addMode === 'single' ? 'tab-active' : '']" @click="addMode = 'single'">
             {{ t('room.add_tab_url') }}
           </button>
         </div>
-        <TrackSearch v-if="addMode === 'search'" :add-track="addTrackFromSearch" :remove-track="deleteTrack" :can-add-track="canAddTrack" />
-        <template v-else-if="addMode === 'single'">
+        <!-- Panes use v-show so their state (search results, previews, inputs)
+             survives tab switches, like the modal itself. -->
+        <TrackSearch v-show="addMode === 'search'" ref="track-search-pane" :add-track="addTrackFromSearch" :remove-track="deleteTrack" :can-add-track="canAddTrack" />
+        <FavoritesPicker
+          v-if="canFavorite"
+          v-show="addMode === 'favorites'"
+          ref="favorites-pane"
+          :favorites="favorites"
+          :add-track="addTrackFromSearch"
+          :remove-track="deleteTrack"
+          :disabled="!canAddTrack"
+        />
+        <template v-if="addMode === 'single'">
           <input v-model="newTrack.youtube_url" type="url" :placeholder="t('room.url_placeholder')" class="input input-bordered w-full" />
           <div class="flex flex-col gap-2">
             <div class="flex-1">
@@ -979,6 +994,7 @@ import useTracks from '@game/composables/useTracks'
 import useBuzzes from '@game/composables/useBuzzes'
 import useFavorites from '@game/composables/useFavorites'
 import FavoriteButton from '@game/components/FavoriteButton.vue'
+import FavoritesPicker from '@game/components/FavoritesPicker.vue'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 import TrackSearch from '@game/components/TrackSearch.vue'
 import TrackTimingBadges from '@game/components/TrackTimingBadges.vue'
@@ -1005,7 +1021,7 @@ const manuallyDeletingIds = new Set<string>()
 
 // Favorites require an account (guests have no durable identity); a guest
 // tapping the star gets a toast inviting them to sign up.
-const { loadFavorites, isFavorite, toggleFavorite } = useFavorites(
+const { favorites, loadFavorites, isFavorite, toggleFavorite } = useFavorites(
   user,
   players,
   computed(() => props.session.name),
@@ -1099,13 +1115,32 @@ watch(() => currentTrack.value?.id, (newId, oldId) => {
 const buzzing = ref(false)
 const answer = ref('')
 const addingTrack = ref(false)
-const addMode = ref<'search' | 'single'>('search')
+const addMode = ref<'search' | 'favorites' | 'single'>('search')
+
+// Panes stay mounted (v-show) — stop the hidden pane's preview so two players
+// never play at once, and stop everything when the modal closes.
+const trackSearchPane = useTemplateRef<InstanceType<typeof TrackSearch>>('track-search-pane')
+const favoritesPane = useTemplateRef<InstanceType<typeof FavoritesPicker>>('favorites-pane')
+watch(addMode, (mode) => {
+  if (mode !== 'search') {
+    trackSearchPane.value?.stopPreview()
+  }
+  if (mode !== 'favorites') {
+    favoritesPane.value?.stopPreview()
+  }
+})
 const newTrack = ref({ youtube_url: '', start_seconds: 0, playback_duration: 0, reveal_seconds: 0, title: '', artist: '' })
 const fetchingMeta = ref(false)
 const audioUnlocked = ref(false)
 const animationState = ref<{ type?: 'solved' | 'skipped'; playerName: string; playerId?: string; title: string; artist: string } | null>(null)
 const showResetModal = ref(false)
 const showAddTrackModal = ref(false)
+watch(showAddTrackModal, (open) => {
+  if (!open) {
+    trackSearchPane.value?.stopPreview()
+    favoritesPane.value?.stopPreview()
+  }
+})
 const showRolesModal = ref(false)
 const showMenuDrawer = ref(false)
 const showParticipantsModal = ref(false)

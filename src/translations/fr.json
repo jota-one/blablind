@@ -148,6 +148,7 @@
   "room.title_placeholder": "Titre (optionnel)",
   "room.artist_placeholder": "Artiste (optionnel)",
   "room.add_button": "Ajouter",
+  "room.add_tab_favorites": "Favoris",
   "room.favorite_add": "Ajouter aux favoris",
   "room.favorite_remove": "Retirer des favoris",
   "room.favorite_login_hint": "Crée un compte pour garder tes coups de cœur !",

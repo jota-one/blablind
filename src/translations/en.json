@@ -148,6 +148,7 @@
   "room.title_placeholder": "Title (optional)",
   "room.artist_placeholder": "Artist (optional)",
   "room.add_button": "Add",
+  "room.add_tab_favorites": "Favorites",
   "room.favorite_add": "Add to favorites",
   "room.favorite_remove": "Remove from favorites",
   "room.favorite_login_hint": "Create an account to keep your favorite discoveries!",
