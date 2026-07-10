@@ -1,12 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Profile from '../views/Profile.vue'
 import MyBlindtests from '../views/MyBlindtests.vue'
+import Favorites from '../views/Favorites.vue'
 import GameSettings from '../views/GameSettings.vue'
 import useAuth from '@admin/composables/useAuth'
 
 const routes = [
   { path: '/', component: Profile },
   { path: '/blindtests', component: MyBlindtests },
+  { path: '/favorites', component: Favorites },
   { path: '/settings', component: GameSettings },
 ]
 

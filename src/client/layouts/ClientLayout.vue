@@ -29,6 +29,17 @@
           </li>
           <li>
             <RouterLink
+              to="/favorites"
+              exact-active-class="menu-active"
+              class="flex items-center gap-3"
+              @click="closeDrawer"
+            >
+              <span class="i-fa-solid-star text-xl"></span>
+              {{ t('client.nav_favorites') }}
+            </RouterLink>
+          </li>
+          <li>
+            <RouterLink
               to="/settings"
               exact-active-class="menu-active"
               class="flex items-center gap-3"

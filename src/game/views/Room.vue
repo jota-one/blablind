@@ -48,7 +48,13 @@
 
       <!-- Game over -->
       <template v-if="session.status === 'finished'">
-        <GameOver :players="players" :current-player="currentPlayer" :done-tracks="doneTracks" />
+        <GameOver
+          :players="players"
+          :current-player="currentPlayer"
+          :done-tracks="doneTracks"
+          :is-favorite="isFavorite"
+          @toggle-favorite="onFavoriteToggle"
+        />
       </template>
 
       <!-- Left column -->
@@ -464,6 +470,7 @@
                         <template v-else>{{ t('room.skipped') }}</template>
                       </p>
                     </div>
+                    <FavoriteButton :active="isFavorite(track)" @toggle="onFavoriteToggle(track)" />
                   </li>
                 </ul>
                 <p v-else class="text-sm text-center text-base-content/40 py-4">{{ t('room.no_done') }}</p>
@@ -532,7 +539,10 @@
       <div class="bg-base-100 rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl text-center max-w-xs mx-4">
         <span class="i-fa6-solid-music text-primary text-6xl"></span>
         <div class="space-y-1">
-          <p class="text-lg font-bold font-display">{{ currentTrack?.expand?.video?.title }}</p>
+          <p class="text-lg font-bold font-display">
+            {{ currentTrack?.expand?.video?.title }}
+            <FavoriteButton :active="isFavorite(currentTrack)" @toggle="onFavoriteToggle(currentTrack)" />
+          </p>
           <p class="text-sm text-base-content/60">{{ currentTrack?.expand?.video?.artist }}</p>
         </div>
 
@@ -967,6 +977,8 @@ import { useSwipe } from '@vueuse/core'
 import usePlayers from '@game/composables/usePlayers'
 import useTracks from '@game/composables/useTracks'
 import useBuzzes from '@game/composables/useBuzzes'
+import useFavorites from '@game/composables/useFavorites'
+import FavoriteButton from '@game/components/FavoriteButton.vue'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 import TrackSearch from '@game/components/TrackSearch.vue'
 import TrackTimingBadges from '@game/components/TrackTimingBadges.vue'
@@ -990,6 +1002,28 @@ const props = defineProps<{
 
 const { players, onlinePlayers } = usePlayers(props.session.id)
 const manuallyDeletingIds = new Set<string>()
+
+// Favorites require an account (guests have no durable identity); a guest
+// tapping the star gets a toast inviting them to sign up.
+const { loadFavorites, isFavorite, toggleFavorite } = useFavorites(
+  user,
+  players,
+  computed(() => props.session.name),
+  props.currentPlayer.id,
+)
+const canFavorite = computed(() => isAuthenticated.value && !!user.value?.id)
+watch(() => user.value?.id, (id) => {
+  if (id) {
+    loadFavorites()
+  }
+}, { immediate: true })
+const onFavoriteToggle = (track: any) => {
+  if (!canFavorite.value) {
+    showToast(t('room.favorite_login_hint'))
+    return
+  }
+  toggleFavorite(track)
+}
 
 // Declarative seek toward the YoutubePlayer; bump the token to (re)trigger.
 const seekRequest = ref<{ seconds: number; token: number } | null>(null)

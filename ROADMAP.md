@@ -8,6 +8,9 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
+- **Sécurité : visibilité des tracks non révélés** — la collection `tracks` est en lecture publique avec expand `video`, donc le titre/artiste du morceau en cours est déjà lisible via l'API par un tricheur motivé, avant révélation. Vraie correction : restreindre la lecture des champs sensibles (ou du expand) tant que le morceau n'est pas révélé. Chantier à part (impacte le flux de jeu temps réel).
+- **Sécurité : validation serveur des favoris** — hook JSVM sur la création d'un favori : le client passe l'id du track d'origine, le hook vérifie que le morceau est bien révélé (`status === 'done'` ou `solved_by`/`skip_revealed`) avant d'accepter. Complète le garde-fou UI. À expliquer/valider avant implémentation.
+
 
 
 ## New Features
@@ -37,22 +40,22 @@ Architecture retenue : **build PocketBase custom en Go** (hybride — le plugin 
 - Build/déploiement : scaffolding `main.go` + `go.mod`, étape CI `go build`, on déploie notre binaire au lieu du binaire officiel. L'infra de déploiement est déjà en place — s'inspirer du projet **lexlsf** qui a déjà son propre build Go custom de PocketBase.
 
 ### Morceaux favoris
-Idée de Geetha. Pendant un blindtest, si un morceau plaît à un joueur, il peut l'ajouter à ses favoris — mais uniquement une fois le morceau **révélé** (bouton non disponible avant, pour ne pas ouvrir une faille de triche via la liste de favoris). Le bouton reste aussi accessible après coup, depuis la liste des morceaux déjà joués ("Passés"), pour rattraper un ajout oublié au moment de la révélation.
+Idée de Geetha. Pendant un blindtest, si un morceau plaît à un joueur, il peut l'ajouter à ses favoris — mais uniquement une fois le morceau **révélé** (bouton non disponible avant). Le bouton reste aussi accessible après coup, depuis la liste des morceaux déjà joués ("Passés") et l'écran de fin de partie, pour rattraper un ajout oublié.
 
-Les favoris sont retrouvables plus tard dans l'espace membre, dans une section dédiée. Outre titre et auteur, chaque entrée garde des infos pratiques :
-- Qui fait découvrir le morceau (le propriétaire du morceau dans la partie).
-- Dans quelle session / à quelle date il a été découvert.
-- Si le joueur avait buzzé juste dessus ou non.
+**Spec validée (2026-07-10)** :
+- Collection `favorites` : `user` (relation) + `video` (relation, catalogue durable) + snapshots contextuels (`discovered_from_name`, `discovered_from_user`, `session_name`, `guessed_right`, `start_seconds`). Index unique `(user, video)` = anti-doublon. Règles API scopées au user connecté.
+- Réservé aux joueurs connectés ; les invités voient le bouton désactivé avec une incitation à créer un compte.
+- Retirer un favori = toggle du même bouton (in-game) ou bouton dans l'espace membre.
+- Espace membre : section dédiée listant thumbnail, titre, artiste, qui a fait découvrir, session + date, badge si deviné juste, lien YouTube avec timestamp, retrait.
 
-Pistes complémentaires à creuser :
-- Lien direct pour réécouter le morceau (YouTube) depuis la liste de favoris.
+Reste à faire ensuite :
 - Export ou partage de sa liste de favoris.
-- Retirer un morceau de ses favoris.
-- Empêcher les doublons (même morceau ajouté plusieurs fois par le même joueur).
+- Hook serveur de validation (voir Improvements / Sécurité).
 
 
 ## History (done)
 
+- [2026-07-10] Favorite tracks — logged-in players can star a revealed track (reveal overlay, "Passés" tab, end-of-game screen) and find their favorites in a new member-area section with discovery context, YouTube link and removal; guests are invited to create an account.
 - [2026-07-10] Buzz from the add-track modal — the fullscreen search/add modal now shows the BUZZ button at the bottom, so players can buzz while browsing for tracks; buzzing closes the modal and returns to the game.
 - [2026-07-10] Shuffle all while paused — the host can now shuffle all upcoming tracks when the current track is paused, not only between tracks.
 - [2026-07-01] IRL mode by default — new blindtests now start in IRL mode with the host as DJ by default; remote mode must be enabled manually by the host from the menu.

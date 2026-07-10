@@ -52,6 +52,22 @@
       </div>
     </div>
 
+    <!-- Played tracks: last chance to favorite a discovery before leaving -->
+    <div v-if="doneTracks.length > 0" class="w-full max-w-sm space-y-1 text-left">
+      <p class="text-xs text-base-content/40 uppercase tracking-wide mb-2">{{ t('gameover.tracks_title') }}</p>
+      <div
+        v-for="track in doneTracks"
+        :key="track.id"
+        class="flex items-center gap-3 rounded-lg px-3 py-2 bg-base-200"
+      >
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium truncate">{{ track.expand?.video?.title || t('room.no_title') }}</p>
+          <p v-if="track.expand?.video?.artist" class="text-xs text-base-content/50 truncate">{{ track.expand?.video?.artist }}</p>
+        </div>
+        <FavoriteButton :active="isFavorite(track)" @toggle="$emit('toggleFavorite', track)" />
+      </div>
+    </div>
+
     <a href="/" class="btn btn-ghost">{{ t('gameover.back_home') }}</a>
 
   </div>
@@ -60,10 +76,19 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI36n } from '@jota-one/i36n'
+import FavoriteButton from '@game/components/FavoriteButton.vue'
 
 const { t } = useI36n()
 
-const props = defineProps<{ players: any[]; currentPlayer: any; doneTracks: any[] }>()
+type Props = {
+  players: any[]
+  currentPlayer: any
+  doneTracks: any[]
+  isFavorite: (track: any) => boolean
+}
+
+const props = defineProps<Props>()
+defineEmits<{ toggleFavorite: [track: any] }>()
 
 const playerRatio = (player: any) => {
   const guessable = props.doneTracks.filter(t => t.added_by !== player.id).length
