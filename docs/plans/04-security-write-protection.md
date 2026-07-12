@@ -41,7 +41,7 @@ pb.beforeSend = (url, options) => {
 
 Call `setPlayerSecret(...)` in `src/game/App.vue`: in `onJoined` right after the player record is created, and in both branches of `restorePlayer` (the auth-restore branch may only have `''` — fine, rules fall back to the auth token which the SDK sends automatically).
 
-`VERIFY:` the SDK types for `beforeSend` in pocketbase ^0.26 — adjust the signature if `options.headers` is typed differently.
+Verified 2026-07-12: the installed SDK types `beforeSend?: (url: string, options: SendOptions) => BeforeSendResult | Promise<BeforeSendResult>` (`node_modules/pocketbase/dist/pocketbase.cjs.d.ts`) — the snippet above matches; return `{ url, options }`.
 
 ### 2. Hook: hide `players.secret` from all API output
 
@@ -59,7 +59,7 @@ onRecordEnrich(e => {
 }, 'players')
 ```
 
-The client never reads `secret` from the API (it merges it from localStorage — see `App.vue`), so nothing breaks. `VERIFY:` after restarting PB, `curl 'http://127.0.0.1:8093/api/collections/players/records?perPage=1'` must show no `secret` key, and joining a game must still work (create response is enriched too — the client keeps the secret it generated locally, it does not need it echoed back).
+The client never reads `secret` from the API (it merges it from localStorage — see `App.vue`), so nothing breaks. **Verified 2026-07-12 on the live dev PB (v0.39.4)**: this exact hook hides `secret` from single-record GETs, lists, and realtime payloads; PB hot-reloads `pb_hooks` on file save. Sanity-check after implementing: `curl 'http://127.0.0.1:8093/api/collections/players/records?perPage=1'` shows no `secret` key; joining a game still works (the create response is enriched too — the client keeps the secret it generated locally, it does not need it echoed back).
 
 ### 3. Migration: tighten the rules
 
@@ -71,7 +71,7 @@ Rule building blocks (PB rule syntax; header names are lowercased with `-` → `
   `X.secret = @request.headers.x_player_secret` (guests) — always AND `@request.headers.x_player_secret != ''` to avoid empty-matches-empty.
   Auth fallback: `X.auth_user = @request.auth.id && @request.auth.id != ''`.
 - For **create** rules, body relation values cannot be traversed; bind through a collection join instead: `@collection.players.id ?= @request.body.player && @collection.players.secret ?= @request.headers.x_player_secret`.
-  `VERIFY:` (critical) that multiple `?=` conditions on the same `@collection.players` reference bind to the **same** joined record in PB 0.39 (they should — one join per unique reference; aliases `@collection.players:alias` exist to force separate joins). Test with two players in one session: player A's secret + player B's id in the body must be **rejected**.
+  **Verified 2026-07-12 on the live dev PB**: multiple `?=` conditions on the same `@collection.players` reference bind to the **same** joined record. Tested with the exact `buzzes.createRule` below: no header → 400; player A's secret + player B's id in the body → 400 (forgery rejected); A's secret + A's id → created. Relation traversal in update rules was also verified live, including the 3-level `track.session.host.secret` path (host allowed, stranger 404, buzzer allowed). Keep these three curl cases as the regression check in the verification suite.
 
 Exact rules to set:
 

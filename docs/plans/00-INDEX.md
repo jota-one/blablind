@@ -14,6 +14,13 @@ _Source: [ANALYSIS-2026-07-12.md](../ANALYSIS-2026-07-12.md). These plans are wr
 | 06 | [Pause-aware buzz window](./06-pause-aware-window.md) | — | M | medium |
 | 07 | [Misc hardening & tests](./07-hardening-misc.md) | — | S | low |
 
+Feature plans (independent of the architecture sequence, pick by product priority):
+
+| # | Plan | Depends on | Size | Risk |
+|---|------|-----------|------|------|
+| 08 | [Recap page + replay](./08-recap-and-replay.md) | replay: 04 (or temp variant) | M | low |
+| 09 | [Web Push / custom Go build](./09-webpush-go.md) | — (04 patterns reused) | L | medium |
+
 Order rationale: 02 before 04 so the security refactor lands on centralized call sites instead of a 2 100-line file. If a security incident makes 04 urgent, it CAN be done first — its client changes are localized — but expect more merge friction.
 
 ## Protocol (applies to every plan)
@@ -25,7 +32,7 @@ Order rationale: 02 before 04 so the security refactor lands on centralized call
    - Propose commit breakdown + messages, wait for approval before committing.
 2. **One plan = one branch** off `develop` (`feat/…` or `refactor/…`), one PR. Inside a plan, commit at each checkpoint the plan defines.
 3. **Verification gate before every commit**: `pnpm lint && pnpm build && pnpm test:unit`. For plans touching gameplay: `pnpm test:e2e` (needs PocketBase running: `pnpm db` in another terminal; see `tests/e2e/README.md`).
-4. **`VERIFY:` markers** — the plan author was not 100 % sure of the marked behavior. You MUST confirm it empirically (curl, tiny experiment) before building on it, and adapt the step if reality differs. Do not skip these.
+4. **`VERIFY:` markers** — the plan author was not 100 % sure of the marked behavior. You MUST confirm it empirically (curl, tiny experiment) before building on it, and adapt the step if reality differs. Do not skip these. _Update 2026-07-12: the high-risk PocketBase behaviors (rule binding, enrich/expand, `original()`, realtime enrich) were resolved empirically against the live dev PB and inlined into plans 04–07 as "Verified" notes — trust those over general PB documentation._
 5. **Schema is inspectable directly**: `sqlite3 pb/pb_data/data.db "PRAGMA table_info(tracks);"` or
    `sqlite3 pb/pb_data/data.db "SELECT name, listRule, viewRule, createRule, updateRule, deleteRule FROM _collections;"` — always check reality before assuming.
 6. **PocketBase version**: v0.39.4 (see `pb/.pbversion`). JSVM docs: https://pocketbase.io/docs/js-overview/. API rules syntax: https://pocketbase.io/docs/api-rules-and-filters/.
@@ -38,3 +45,5 @@ Order rationale: 02 before 04 so the security refactor lands on centralized call
 - Realtime uses SSE via the JS SDK; `EventSource` **cannot send custom headers** — anything header-based works for CRUD calls only, never for realtime payloads.
 - PB batch API is already enabled and used (`pb.createBatch()` in Room.vue). Batch sub-operations are evaluated against collection rules with the batch request's headers.
 - The e2e seed helper (`tests/e2e/helpers/seed.ts`) writes through the public API — rule changes in plan 04 can break it; the plan says how to fix it.
+- Deleting a session cascades to its players, tracks and buzzes (verified live) — useful for test teardown; also means a session delete is highly destructive, which is why plan 04 sets `sessions.deleteRule` to `null`.
+- PB hot-reloads `pb_hooks/*.pb.js` on save (no manual restart needed in dev).

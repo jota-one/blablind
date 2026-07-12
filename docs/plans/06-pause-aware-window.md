@@ -67,7 +67,7 @@ onRecordUpdate(e => {
 }, 'sessions')
 ```
 
-`VERIFY:` hook name and `original()` availability in PB 0.39 JSVM (`onRecordUpdate` runs inside the save transaction and exposes `e.record.original()`; if not, use `onRecordUpdateRequest` and read the persisted record for comparison). Also `VERIFY:` date formatting PB expects on `set` for date fields (ISO string works via the JS SDK; in JSVM it may need `new DateTime()` — check `pb_data/types.d.ts`).
+**Verified 2026-07-12 on the live dev PB (v0.39.4)** with this exact hook shape (using a stand-in date field): `onRecordUpdate` fires on session updates, `e.record.original().getBool('paused')` correctly reports the pre-update value (flip detection works), `track.set('<date field>', new Date().toISOString())` writes a valid PB date, `set(..., null)` clears it, and the elapsed-ms accumulation on resume measured a 2 s pause as `2`. No adaptation needed.
 
 Also: `playTrack` starts a fresh track — make sure `paused_ms`/`pause_started_at` are reset when a track (re)starts. Add `paused_ms: 0, pause_started_at: null` to the `playTrack` update in `src/game/composables/useTracks.ts` (and the reset flow's track cleanup in Room.vue).
 

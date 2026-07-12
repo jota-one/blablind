@@ -48,7 +48,7 @@ Create `src/game/rules.ts` with pure functions extracted from their current home
 
 Adapt signatures pragmatically — the goal is pure inputs (arrays/numbers), no refs, no `pb`. Keep the extracted functions' behavior byte-identical; the tests encode current behavior, not desired behavior. If a test reveals a genuine bug, flag it in the PR description instead of silently changing semantics.
 
-Test file: `tests/unit/rules.test.ts`, wired into the existing `test:unit` script (make the script run both files: `node --experimental-strip-types --test tests/unit/` — `VERIFY:` the current script invokes the file directly; switching to `--test` directory mode must still run `autonomous.test.ts`'s assertions correctly).
+Test file: `tests/unit/rules.test.ts`, wired into the existing `test:unit` script. **Verified 2026-07-12**: directory mode (`--test tests/unit/`) fails with the current plain-script test style, but the glob form works — set the script to `node --experimental-strip-types --test 'tests/unit/*.test.ts'` (runs each file as one test; a non-zero exit marks it failed, which matches `autonomous.test.ts`'s `process.exit` convention — confirm the new file follows the same convention).
 
 Verification: `pnpm test:unit` green, `pnpm build` green, quick manual smoke of buzz blocking + equity in the app.
 

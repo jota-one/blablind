@@ -29,22 +29,27 @@ New file `pb/pb_hooks/track_visibility.pb.js`:
 // is exposed again (playback needs the id; reveal needs the metadata).
 onRecordEnrich(e => {
   if (e.record.getString('status') === 'queued') {
+    // hide() alone is NOT enough: ?expand=video still resolves and leaks the
+    // full video record (verified). Clearing the relation value kills the
+    // expand; enrich mutates only the serialized copy, never the DB (verified
+    // via sqlite after the request).
     e.record.hide('video')
+    e.record.set('video', '')
   }
   e.next()
 }, 'tracks')
 ```
 
-`VERIFY:` (critical) that hiding the relation field also drops its `expand.video` entry from the JSON output — test with
-`curl 'http://127.0.0.1:8093/api/collections/tracks/records?expand=video'`. If expand still leaks, additionally clear it in the hook (JSVM `Record` has expand accessors — check `e.record.expandedOne('video')` / `e.record.mergeExpand` / `SetExpand` in the PB 0.39 JSVM docs) and re-verify.
-
-`VERIFY:` realtime create/update events for queued tracks are enriched the same way (subscribe with the app open, add a track from another browser, inspect the SSE payload in devtools).
+**Verified 2026-07-12 on the live dev PB (v0.39.4)**, using this exact hook:
+- `hide('video')` alone: field gone but `expand.video` still contains the full video record → leak. `setExpand({})` does NOT fix it either.
+- `hide('video')` + `set('video', '')`: field absent, `expand: {}` on both single-record GET and list — and the DB row keeps its relation (enrich works on a serialization copy).
+- Realtime: an SSE subscription `tracks/*?options={"expand":"video"}` receives update events for queued tracks with `expand:{}` and no `video` key — enrich applies to realtime payloads.
 
 ### 2. Owner's view of their own queued tracks
 
 The upcoming list shows the owner's own titles (`Room.vue` / `RoomTabs` render `track.expand.video.title` when `isMyTrack`). After step 1 that data is gone from generic reads. Restore it owner-side only:
 
-- New endpoint in `track_visibility.pb.js`: `GET /api/game/my-tracks?session=<id>&player=<id>` with the `X-Player-Secret` header (same identity check as plan 04's endpoint: player in session + secret/auth match). Returns `[{ trackId, video: { id, video_id, title, artist, duration } }]` for that player's tracks in the session, built with `e.app.findRecordsByFilter` (server-side reads bypass enrich? `VERIFY:` — enrich applies to *serialization*; constructing the JSON manually from `videosById` avoids the question entirely, do that).
+- New endpoint in `track_visibility.pb.js`: `GET /api/game/my-tracks?session=<id>&player=<id>` with the `X-Player-Secret` header (same identity check as plan 04's endpoint: player in session + secret/auth match). Returns `[{ trackId, video: { id, video_id, title, artist, duration } }]` for that player's tracks in the session. Build the response JSON manually from `e.app.findRecordsByFilter` results (`e.json(200, payload)` with plain objects) — hand-built payloads are not record serializations, so the enrich hook above cannot interfere.
 - Client, in `useTracks`: maintain `const myVideos = ref<Record<string, VideoRecord>>({})` keyed by track id; fetch on mount, on `PB_CONNECT`, and merge locally in `addTrack` (the client already has the video object from `findOrCreateVideo` — no refetch needed). Expose a helper `videoFor(track)` that prefers `track.expand?.video` and falls back to `myVideos[track.id]`; switch the own-track display code to it.
 
 ### 3. Hide answers during the autonomous guessing window
@@ -65,8 +70,10 @@ onRecordEnrich(e => {
 }, 'buzzes')
 ```
 
+**Verified 2026-07-12 on the live dev PB**: with this exact hook, a buzz's `answer` key is absent while its track has `phase = 'guessing'` and present again once the phase moves to `voting`. The per-record `findRecordById` lookup inside enrich works and is fast enough at game scale.
+
 Client compatibility notes (all verified in code on 2026-07-12):
-- The buzzer's own draft UI reads local state (`myAnswerDraft` in `useAutonomous`), not the record — unaffected. `VERIFY:` grep `AutonomousPanel.vue` for `answer` to confirm nothing renders `myBuzz.answer` during guessing; adapt if it does.
+- **Required client change**: `AutonomousPanel.vue` renders `myBuzz.answer` during guessing (the "answer saved: X" confirmation line, and its `v-else` hint). With `answer` hidden, `myBuzz.answer` is always empty — the confirmation would never show. Fix in `useAutonomous.ts`: add a local `lastSavedAnswer = ref('')`, set it in `saveMyAnswer()` after the update succeeds, reset it when the phase returns to `guessing` (same place `myAnswerDraft` is reset). Pass it to the panel and render the confirmation from it instead of `myBuzz.answer`. Same function: the `mine.answer === text` no-op guard compares against a now-hidden value — compare against `lastSavedAnswer.value` instead.
 - When the phase leaves `guessing`, `useAutonomous` already refetches buzzes (`reloadBuzzes()` on phase change — added for an SSE race). That refetch happens when `phase !== 'guessing'`, so the visible answers arrive naturally. Do not remove that reload.
 - Classic (non-autonomous) tracks have `phase = ''` → answers stay visible, as today (the validator must read them; identity over realtime is impossible).
 
