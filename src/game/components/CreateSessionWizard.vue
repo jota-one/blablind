@@ -66,9 +66,48 @@
               :key="opt.value"
               class="flex items-center gap-3 cursor-pointer p-3 rounded-lg hover:bg-base-200"
             >
-              <input v-model="form.stop_method" type="radio" :value="opt.value" class="radio radio-primary" />
-              <span>{{ opt.label }}</span>
+              <input v-model="(form as any)[currentStep.key]" type="radio" :value="opt.value" class="radio radio-primary" />
+              <span class="flex-1">
+                {{ opt.label }}
+                <span v-if="opt.hint" class="block text-xs text-base-content/50">{{ opt.hint }}</span>
+              </span>
             </label>
+          </div>
+
+          <!-- Playlist picker -->
+          <div v-else-if="currentStep.inputType === 'playlist'" class="w-full text-left mt-2">
+            <div v-if="loadingPlaylists" class="flex justify-center py-4">
+              <span class="loading loading-spinner loading-sm"></span>
+            </div>
+            <ul v-else-if="playlists.length > 0" class="space-y-2 max-h-56 overflow-y-auto">
+              <li v-for="playlist in playlists" :key="playlist.id">
+                <label
+                  class="flex items-center gap-3 cursor-pointer p-3 rounded-lg hover:bg-base-200"
+                  :class="{ 'opacity-50 cursor-not-allowed': trackCount(playlist) === 0 }"
+                >
+                  <input
+                    v-model="form.playlistId"
+                    type="radio"
+                    :value="playlist.id"
+                    :disabled="trackCount(playlist) === 0"
+                    class="radio radio-primary radio-sm"
+                  />
+                  <span class="flex-1 min-w-0">
+                    <span class="block text-sm font-medium truncate">{{ playlist.name }}</span>
+                    <span class="block text-xs text-base-content/50 truncate">
+                      {{ t('playlists.track_count', { count: trackCount(playlist) }) }}
+                      <template v-if="playlistTags(playlist).length"> · {{ playlistTags(playlist).join(', ') }}</template>
+                    </span>
+                  </span>
+                </label>
+              </li>
+            </ul>
+            <p v-else class="text-sm text-base-content/50 text-center py-4">
+              {{ t('wizard.playlist_empty') }}
+              <a v-if="isAuthenticated" href="/profile/playlists" class="link link-primary block mt-1">
+                {{ t('wizard.playlist_create_link') }}
+              </a>
+            </p>
           </div>
         </div>
       </Transition>
@@ -122,6 +161,8 @@ const error = ref('')
 
 const form = reactive({
   name: '',
+  mode: 'classic' as 'classic' | 'autonomous',
+  playlistId: null as string | null,
   max_buzz_attempts: 5,
   rebuzz_delay: 5,
   auto_reject_delay: 8,
@@ -136,13 +177,35 @@ type WizardStep = {
   icon: string
   label: string
   hint: string
-  inputType: 'text' | 'number' | 'toggle' | 'radio'
+  inputType: 'text' | 'number' | 'toggle' | 'radio' | 'playlist'
   unit?: string
   min?: number
-  options?: { value: string; label: string }[]
+  options?: { value: string; label: string; hint?: string }[]
 }
 
 const steps = computed<WizardStep[]>(() => [
+  {
+    key: 'mode',
+    icon: 'i-fa6-solid-gamepad',
+    label: t('wizard.step_mode'),
+    hint: t('wizard.step_mode_hint'),
+    inputType: 'radio',
+    options: [
+      { value: 'classic', label: t('wizard.mode_classic'), hint: t('wizard.mode_classic_hint') },
+      { value: 'autonomous', label: t('wizard.mode_autonomous'), hint: t('wizard.mode_autonomous_hint') },
+    ],
+  },
+  ...(form.mode === 'autonomous'
+    ? [
+        {
+          key: 'playlist',
+          icon: 'i-fa-solid-list-ol',
+          label: t('wizard.step_playlist'),
+          hint: t('wizard.step_playlist_hint'),
+          inputType: 'playlist' as const,
+        },
+      ]
+    : []),
   {
     key: 'name',
     icon: 'i-fa-solid-headphones',
@@ -150,6 +213,10 @@ const steps = computed<WizardStep[]>(() => [
     hint: t('wizard.step_name_hint'),
     inputType: 'text',
   },
+  ...(form.mode === 'autonomous' ? [] : classicSettingsSteps()),
+])
+
+const classicSettingsSteps = (): WizardStep[] => [
   {
     key: 'max_buzz_attempts',
     icon: 'i-fa-solid-bullseye',
@@ -219,7 +286,34 @@ const steps = computed<WizardStep[]>(() => [
         },
       ]
     : []),
-])
+]
+
+// Playlists for the autonomous-mode picker (rules already scope to public + own)
+const playlists = ref<any[]>([])
+const loadingPlaylists = ref(false)
+const playlistsLoaded = ref(false)
+
+const trackCount = (playlist: any) => playlist.expand?.playlist_tracks_via_playlist?.length ?? 0
+const playlistTags = (playlist: any) => (Array.isArray(playlist.tags) ? playlist.tags : [])
+
+const loadPlaylists = async () => {
+  if (playlistsLoaded.value) { return }
+  loadingPlaylists.value = true
+  try {
+    const items = await pb.collection('playlists').getFullList({
+      expand: 'playlist_tracks_via_playlist',
+      sort: '-updated',
+      requestKey: null,
+    })
+    // Own playlists first
+    const mine = items.filter(p => p.owner === user.value?.id)
+    const others = items.filter(p => p.owner !== user.value?.id)
+    playlists.value = [...mine, ...others]
+    playlistsLoaded.value = true
+  } finally {
+    loadingPlaylists.value = false
+  }
+}
 
 const currentStep = computed(() => steps.value[currentStepIndex.value])
 const isLastStep = computed(() => currentStepIndex.value === steps.value.length - 1)
@@ -227,6 +321,10 @@ const transitionName = computed(() => `slide-${direction.value}`)
 
 const canProceed = computed(() => {
   if (currentStep.value?.key === 'name') { return form.name.trim().length > 0 }
+  if (currentStep.value?.key === 'playlist') {
+    const selected = playlists.value.find(p => p.id === form.playlistId)
+    return !!selected && trackCount(selected) > 0
+  }
   return true
 })
 
@@ -240,6 +338,9 @@ const handleNext = async () => {
     if (currentStep.value?.key === 'name') {
       await nextTick()
       nameInputRef.value?.focus()
+    }
+    if (currentStep.value?.key === 'playlist') {
+      loadPlaylists()
     }
   }
 }
@@ -255,22 +356,59 @@ const createSession = async () => {
   error.value = ''
   try {
     const slug = generateSlug()
-    await pb.collection('sessions').create({
-      name: form.name.trim(),
-      slug,
-      status: 'waiting',
-      irl_mode: true,
-      settings: {
-        max_buzz_attempts: form.max_buzz_attempts,
-        rebuzz_delay: form.rebuzz_delay,
-        auto_reject_delay: form.auto_reject_delay,
-        continue_after_success: form.continue_after_success,
-        stop_method: form.stop_method,
-        force_equity: form.force_equity,
-        equity_margin: form.equity_margin,
-      },
-      ...(user.value?.id ? { owner: user.value.id } : {}),
-    })
+    if (form.mode === 'autonomous') {
+      const session = await pb.collection('sessions').create({
+        name: form.name.trim(),
+        slug,
+        status: 'waiting',
+        irl_mode: true,
+        mode: 'autonomous',
+        playlist: form.playlistId,
+        settings: {
+          default_playback_duration: 30,
+        },
+        ...(user.value?.id ? { owner: user.value.id } : {}),
+      })
+      // Snapshot copy: later edits to the playlist must not affect this game
+      const playlistTracks = await pb.collection('playlist_tracks').getFullList({
+        filter: pb.filter('playlist = {:playlist}', { playlist: form.playlistId }),
+        sort: 'order,created',
+        requestKey: null,
+      })
+      for (let i = 0; i < playlistTracks.length; i += 45) {
+        const batch = pb.createBatch()
+        playlistTracks.slice(i, i + 45).forEach((pt, j) =>
+          batch.collection('tracks').create({
+            session: session.id,
+            video: pt.video,
+            start_seconds: pt.start_seconds ?? 0,
+            playback_duration: pt.playback_duration || null,
+            reveal_seconds: pt.reveal_seconds || null,
+            status: 'queued',
+            order: i + j + 1,
+          })
+        )
+        await batch.send()
+      }
+    } else {
+      await pb.collection('sessions').create({
+        name: form.name.trim(),
+        slug,
+        status: 'waiting',
+        irl_mode: true,
+        mode: 'classic',
+        settings: {
+          max_buzz_attempts: form.max_buzz_attempts,
+          rebuzz_delay: form.rebuzz_delay,
+          auto_reject_delay: form.auto_reject_delay,
+          continue_after_success: form.continue_after_success,
+          stop_method: form.stop_method,
+          force_equity: form.force_equity,
+          equity_margin: form.equity_margin,
+        },
+        ...(user.value?.id ? { owner: user.value.id } : {}),
+      })
+    }
     window.location.href = `/${slug}`
   } catch (e: any) {
     error.value = e.message || t('wizard.error')
@@ -293,6 +431,9 @@ const open = async () => {
   const effective = { ...base, ...userOverrides } as Record<string, any>
 
   form.name = ''
+  form.mode = 'classic'
+  form.playlistId = null
+  playlistsLoaded.value = false
   form.max_buzz_attempts = effective.max_buzz_attempts ?? 5
   form.rebuzz_delay = effective.rebuzz_delay ?? 5
   form.auto_reject_delay = effective.auto_reject_delay ?? 8

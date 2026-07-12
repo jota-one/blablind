@@ -88,11 +88,15 @@ export default function useBuzzes(
   const loadAndSubscribe = async (trackId: string) => {
     unsubscribe?.()
     unsubscribe = undefined
-    buzzes.value = []
 
+    // requestKey null: concurrent loads (mount, reconnect, phase-change reload)
+    // must not auto-cancel each other. The list is replaced only once the fetch
+    // resolves — clearing it upfront would let watchers observe a transiently
+    // empty list (e.g. the autonomous reconciler mistaking it for "no buzzes").
     const result = await pb.collection('buzzes').getFullList({
       filter: pb.filter('track = {:track}', { track: trackId }),
       sort: 'created',
+      requestKey: null,
     })
     buzzes.value = result
 
@@ -121,6 +125,7 @@ export default function useBuzzes(
     currentTrackId,
     async newId => {
       if (newId) {
+        buzzes.value = []
         await loadAndSubscribe(newId)
       } else {
         unsubscribe?.()
@@ -146,13 +151,27 @@ export default function useBuzzes(
     stopClock()
   })
 
-  const buzz = (playerId: string, answer: string) =>
-    pb.collection('buzzes').create({
+  const buzz = async (playerId: string, answer: string) => {
+    const record = await pb.collection('buzzes').create({
       track: currentTrackId.value,
       player: playerId,
       answer,
       status: 'pending',
     })
+    // Optimistic insert: right after page load the SSE subscription may not be
+    // fully registered server-side yet, so the create event can be missed.
+    if (!buzzes.value.some(b => b.id === record.id)) {
+      buzzes.value.push(record)
+    }
+    return record
+  }
 
-  return { buzzes, activeBuzz, canBuzz, buzzBlockReason, rebuzzRemainingSeconds, remainingAttempts, buzz, solvedBuzz }
+  // Re-fetch from the server (recovers events missed during subscription setup)
+  const reload = async () => {
+    if (currentTrackId.value) {
+      await loadAndSubscribe(currentTrackId.value)
+    }
+  }
+
+  return { buzzes, activeBuzz, canBuzz, buzzBlockReason, rebuzzRemainingSeconds, remainingAttempts, buzz, solvedBuzz, reload }
 }

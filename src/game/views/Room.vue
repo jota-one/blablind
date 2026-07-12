@@ -68,7 +68,7 @@
             <YoutubePlayer
               :video-id="videoId"
               :start-seconds="currentTrack?.start_seconds ?? 0"
-              :paused="audioUnlocked && (!!activeBuzz || pausedByDuration || isPaused)"
+              :paused="audioUnlocked && playerPaused"
               :seek-request="seekRequest"
               @playing="onPlaying"
             />
@@ -93,7 +93,7 @@
             ]"
           >
           <template v-if="currentTrack">
-            <div :class="['transition-all', activeBuzz ? 'opacity-50' : (isCurrentTrackAdmin ? 'animate-bounce' : ''), isCurrentTrackAdmin ? 'text-7xl' : 'text-3xl shrink-0']">
+            <div :class="['transition-all', (activeBuzz && !isAutonomousMode) ? 'opacity-50' : (isCurrentTrackAdmin ? 'animate-bounce' : ''), isCurrentTrackAdmin ? 'text-7xl' : 'text-3xl shrink-0']">
               🎵
             </div>
             <div :class="isCurrentTrackAdmin ? 'text-center' : 'min-w-0'">
@@ -102,11 +102,14 @@
               {{ currentTrack.expand?.video?.title || t('room.no_title') }}
                 <span v-if="currentTrack.expand?.video?.artist" class="block text-base font-normal text-base-content/60">{{ currentTrack.expand?.video?.artist }}</span>
               </template>
+              <template v-else-if="isAutonomousMode">
+                <span class="text-base-content/40">{{ t('room.auto_track_counter', autoTrackCounter) }}</span>
+              </template>
               <template v-else>
                 <span class="text-base-content/40">{{ t('room.track_by', { player: getPlayerName(currentTrack.added_by) }) }}</span>
               </template>
             </p>
-            <p v-if="activeBuzz" :class="['text-warning font-semibold animate-pulse', isCurrentTrackAdmin ? 'text-sm' : 'text-xs']">
+            <p v-if="activeBuzz && !isAutonomousMode" :class="['text-warning font-semibold animate-pulse', isCurrentTrackAdmin ? 'text-sm' : 'text-xs']">
               {{ t('room.in_pause') }}
             </p>
             <template v-else>
@@ -155,6 +158,10 @@
                 </ul>
               </div>
 
+              <p v-if="isAutonomousMode" class="text-xs text-base-content/50 max-w-xs">
+                {{ t('room.auto_lobby_info', { count: queuedTracks.length }) }}
+              </p>
+
               <template v-if="isHost">
                 <button class="btn btn-primary btn-lg max-w-full" :disabled="!canLaunch" @click="launchSession">
                   <span class="i-fa-solid-play"></span>
@@ -193,8 +200,34 @@
           </div><!-- /Layer 3 -->
         </div><!-- /aspect-video container -->
 
+        <!-- Autonomous mode: buzz + peer-vote panel (replaces buzz zone + validator panel) -->
+        <AutonomousPanel
+          v-if="isAutonomousMode && currentTrack && !isTrackSolvedAndPlaying"
+          :phase="autoPhase"
+          :is-irl-mode="isIrlMode"
+          :current-player-id="currentPlayer.id"
+          :track="currentTrack"
+          :can-buzz="canAutoBuzz"
+          :my-buzz="myAutoBuzz"
+          :ordered-candidates="autoCandidates"
+          :current-candidate="autoCandidate"
+          :candidate-index="autoCandidateIndex"
+          :can-vote="canAutoVote"
+          :i-am-candidate="iAmCandidate"
+          :yes-count="autoYesCount"
+          :no-count="autoNoCount"
+          :yes-needed="autoYesNeeded"
+          :answer-draft="autoAnswerDraft"
+          :get-player-name="getPlayerName"
+          @buzz="buzzNow"
+          @save-answer="saveMyAnswer"
+          @reveal="revealNow"
+          @vote="castAutoVote"
+          @update:answer-draft="autoAnswerDraft = $event"
+        />
+
         <!-- Buzz zone (seulement pour les non-admin du morceau, et si non résolu) -->
-        <div v-if="currentTrack && !isCurrentTrackAdmin && !isTrackSolvedAndPlaying" class="w-full">
+        <div v-if="!isAutonomousMode && currentTrack && !isCurrentTrackAdmin && !isTrackSolvedAndPlaying" class="w-full">
           <div v-if="activeBuzz && activeBuzz.player === currentPlayer.id" class="alert alert-info">
             <span class="i-fa-solid-bell text-xl"></span>
             <div>
@@ -303,6 +336,7 @@
         <!-- Actions sous le BUZZ : ajouter + passer/arrêter -->
         <div v-if="session.status !== 'finished'" class="flex items-center gap-2">
           <button
+            v-if="!isAutonomousMode"
             class="btn btn-sm btn-ghost flex-1 border border-base-300"
             :disabled="!canAddTrack"
             :title="!canAddTrack ? t('room.track_equity_limit') : undefined"
@@ -312,8 +346,12 @@
             {{ t('room.add_track_button') }}
           </button>
           <!-- vote_unanimous : bouton stop/skip — non-admin pour skip uniquement -->
-          <template v-if="currentTrack && activeBuzz?.player !== currentPlayer.id && !isTrackSolvedAndPlaying && !isCurrentTrackAdmin">
-            <button v-if="!hasVotedToSkip" class="btn btn-sm btn-neutral shrink-0" @click="voteToSkip(currentTrack.id, currentPlayer.id)">
+          <template
+            v-if="currentTrack && !isTrackSolvedAndPlaying && (isAutonomousMode
+              ? (autoPhase === 'guessing' && !myAutoBuzz)
+              : (activeBuzz?.player !== currentPlayer.id && !isCurrentTrackAdmin))"
+          >
+            <button v-if="!hasVotedToSkip" class="btn btn-sm btn-neutral shrink-0" :class="{ 'flex-1': isAutonomousMode }" @click="voteToSkip(currentTrack.id, currentPlayer.id)">
               <span class="i-fa-solid-forward-step"></span>
               {{ t('room.skip_button', { votes: skipVoteCount, needed: skipVotesNeeded }) }}
             </button>
@@ -554,6 +592,7 @@
             {{ t('room.play_next') }}
           </button>
           <button
+            v-if="!isAutonomousMode"
             class="btn btn-outline btn-primary w-full"
             :disabled="!canAddTrack"
             :title="!canAddTrack ? t('room.track_equity_limit') : undefined"
@@ -570,6 +609,7 @@
           <button
             v-if="!hasVotedToSkip"
             class="btn btn-primary w-full"
+            data-testid="still-playing-stop"
             @click="voteToSkip(currentTrack.id, currentPlayer.id)"
           >
             {{ t('room.still_playing_stop') }}
@@ -577,6 +617,7 @@
           <template v-else>
             <p class="text-sm text-success font-medium">{{ t('room.still_playing_voted') }}</p>
             <button
+              v-if="!isAutonomousMode"
               class="btn btn-outline btn-primary w-full"
               :disabled="!canAddTrack"
               :title="!canAddTrack ? t('room.track_equity_limit') : undefined"
@@ -705,6 +746,17 @@
         <h3 class="font-bold text-lg mb-4">{{ t('room.settings') }}</h3>
         <div class="space-y-3 text-sm">
 
+          <!-- Autonomous mode: only the default excerpt duration applies -->
+          <div v-if="isAutonomousMode" class="flex items-center justify-between gap-4">
+            <span class="text-base-content/70">{{ t('room.auto_default_duration_label') }}</span>
+            <div v-if="isHost" class="flex items-center gap-1">
+              <input v-model.number="editedSettings.default_playback_duration" type="number" min="5" max="120" class="input input-xs w-16 text-right" />
+              <span class="text-base-content/40 text-xs">{{ t('admin.settings_seconds') }}</span>
+            </div>
+            <span v-else class="font-mono font-bold">{{ sessionSettings.default_playback_duration }}s</span>
+          </div>
+
+          <template v-if="!isAutonomousMode">
           <div class="flex items-center justify-between gap-4">
             <span class="text-base-content/70">{{ t('admin.settings_max_buzz_attempts_label') }}</span>
             <input v-if="isHost" v-model.number="editedSettings.max_buzz_attempts" type="number" min="1" max="20" class="input input-xs w-16 text-right" />
@@ -760,6 +812,7 @@
             </div>
             <span v-else class="font-mono font-bold">{{ sessionSettings.equity_margin }}</span>
           </div>
+          </template>
 
         </div>
         <p v-if="settingsError" class="text-error text-xs mt-2">{{ settingsError }}</p>
@@ -992,6 +1045,9 @@ import { useSwipe } from '@vueuse/core'
 import usePlayers from '@game/composables/usePlayers'
 import useTracks from '@game/composables/useTracks'
 import useBuzzes from '@game/composables/useBuzzes'
+import useAnswerVotes from '@game/composables/useAnswerVotes'
+import useAutonomous from '@game/composables/useAutonomous'
+import AutonomousPanel from '@game/components/AutonomousPanel.vue'
 import useFavorites from '@game/composables/useFavorites'
 import FavoriteButton from '@game/components/FavoriteButton.vue'
 import FavoritesPicker from '@game/components/FavoritesPicker.vue'
@@ -1061,8 +1117,16 @@ const dismissDuplicate = (keep: boolean) => {
     deleteTrack(myDuplicateTrack.value.id)
   }
 }
+// Autonomous mode: no game master. Points are decided by peer votes; the host
+// remains a hidden technical coordinator (timers, phase transitions) only.
+const isAutonomousMode = computed(() => props.session.mode === 'autonomous')
+
 const trackValidatorId = computed(() => {
   if (!currentTrack.value) return null
+  // No validator in autonomous mode — without this, the null added_by would
+  // fall back to the host (validator panel, early title reveal, skewed skip
+  // thresholds).
+  if (isAutonomousMode.value) return null
   const owner = players.value.find(p => p.id === currentTrack.value.added_by)
   if (owner && isOnline(owner)) return owner.id
   return props.session.host
@@ -1082,13 +1146,18 @@ const sessionSettings = computed(() => {
     stop_method: (s.stop_method ?? 'vote_unanimous') as 'vote_unanimous' | 'host_choice',
     force_equity: s.force_equity ?? false,
     equity_margin: s.equity_margin ?? 1,
+    default_playback_duration: s.default_playback_duration ?? 30,
   }
 })
-const { activeBuzz, canBuzz, buzzBlockReason, rebuzzRemainingSeconds, remainingAttempts, buzz, solvedBuzz } = useBuzzes(
+const { buzzes, activeBuzz, canBuzz, buzzBlockReason, rebuzzRemainingSeconds, remainingAttempts, buzz, solvedBuzz, reload: reloadBuzzes } = useBuzzes(
   computed(() => currentTrack.value?.id),
   props.currentPlayer.id,
   otherEligibleCount,
   sessionSettings,
+)
+// Only wired in autonomous mode (undefined track id = no load, no subscription)
+const { votes: answerVotes, myVoteForBuzz, castVote: castAnswerVote, reload: reloadVotes } = useAnswerVotes(
+  computed(() => (isAutonomousMode.value ? currentTrack.value?.id : undefined)),
 )
 
 // Playback duration timer
@@ -1099,16 +1168,80 @@ const clearPlaybackTimer = () => {
   if (playbackDurationTimer) { clearTimeout(playbackDurationTimer); playbackDurationTimer = null }
 }
 
+// One reveal seek per track: in autonomous mode several state changes lead to
+// the reveal (voting entry, resolution, no-winner) and must not re-seek.
+let revealSeekDone = false
+const seekRevealOnce = () => {
+  if (revealSeekDone) return
+  revealSeekDone = true
+  if (currentTrack.value?.reveal_seconds) {
+    requestSeek(currentTrack.value.reveal_seconds)
+  }
+}
+
 watch(() => currentTrack.value?.id, (newId, oldId) => {
   if (newId === oldId) return
   clearPlaybackTimer()
   pausedByDuration.value = false
+  revealSeekDone = false
   const track = currentTrack.value
-  if (track?.playback_duration) {
+  // Autonomous mode: the excerpt end is the buzz window, so a duration is
+  // always armed (playlist value or session default).
+  const seconds = isAutonomousMode.value && track
+    ? (track.playback_duration || sessionSettings.value.default_playback_duration)
+    : track?.playback_duration
+  if (seconds) {
     playbackDurationTimer = setTimeout(() => {
       pausedByDuration.value = true
-    }, track.playback_duration * 1000)
+    }, seconds * 1000)
   }
+})
+
+const {
+  phase: autoPhase,
+  orderedCandidates: autoCandidates,
+  myBuzz: myAutoBuzz,
+  currentCandidate: autoCandidate,
+  candidateIndex: autoCandidateIndex,
+  canBuzzAutonomous: canAutoBuzz,
+  yesNeeded: autoYesNeeded,
+  yesCount: autoYesCount,
+  noCount: autoNoCount,
+  iAmCandidate,
+  canVote: canAutoVote,
+  myAnswerDraft: autoAnswerDraft,
+  buzzNow,
+  saveMyAnswer,
+  revealNow,
+  castVote: castAutoVote,
+} = useAutonomous({
+  session: computed(() => props.session),
+  currentPlayerId: props.currentPlayer.id,
+  onlinePlayers,
+  currentTrack,
+  queuedTracks,
+  doneTracks: computed(() => tracks.value.filter((t: any) => t.status === 'done')),
+  buzzes,
+  votes: answerVotes,
+  myVoteForBuzz,
+  castAnswerVote,
+  buzz,
+  hasVotedToSkip: computed(() => hasVotedToSkip.value),
+  cancelSkipVote,
+  pausedByDuration,
+  sessionSettings,
+  endSession: () => endSession(),
+  reloadBuzzes,
+  reloadVotes,
+})
+
+// Reveal playback starts when voting opens (the track plays its reveal segment
+// while players vote), or via the classic solved/skip watchers below.
+watch(() => isAutonomousMode.value && autoPhase.value === 'voting', (voting) => {
+  if (!voting) return
+  clearPlaybackTimer()
+  pausedByDuration.value = false
+  seekRevealOnce()
 })
 
 // UI state
@@ -1221,7 +1354,7 @@ let duplicateCheckTimeout: ReturnType<typeof setTimeout> | null = null
 const acknowledgedDuplicateIds = new Set<string>()
 
 watch(currentTrack, (newTrack, oldTrack) => {
-  if (!isHost.value) return
+  if (!isHost.value || isAutonomousMode.value) return
   if (!oldTrack) return
   if (newTrack?.id === oldTrack.id) return
   if (duplicateCheckTimeout) clearTimeout(duplicateCheckTimeout)
@@ -1245,6 +1378,9 @@ watch(activeBuzz, (buzz) => {
 })
 
 watch(activeBuzz, (newBuzz) => {
+  // Autonomous mode: buzzing doesn't win a race (everyone can buzz), the panel
+  // shows the rank instead of the fullscreen "à toi de parler" overlay.
+  if (isAutonomousMode.value) return
   if (newBuzz && newBuzz.player === props.currentPlayer.id) {
     buzzedAnimation.value = true
     setTimeout(() => { buzzedAnimation.value = false }, 2000)
@@ -1264,10 +1400,7 @@ watch(solvedBuzz, (buzz) => {
   setTimeout(() => { animationState.value = null }, 3000)
   clearPlaybackTimer()
   pausedByDuration.value = false
-  const revealSecs = track?.reveal_seconds
-  if (revealSecs) {
-    requestSeek(revealSecs)
-  }
+  seekRevealOnce()
 })
 
 let metaDebounce: ReturnType<typeof setTimeout> | null = null
@@ -1311,7 +1444,22 @@ const isHost = computed(() => props.session.host === props.currentPlayer.id)
 
 // Host can pause/resume playback while a track is actually playing (not mid-buzz).
 const isPaused = computed(() => !!props.session.paused)
-const canTogglePause = computed(() => currentTrack.value?.status === 'playing' && !activeBuzz.value)
+const canTogglePause = computed(() =>
+  currentTrack.value?.status === 'playing' && (isAutonomousMode.value || !activeBuzz.value)
+)
+// Playback pause state per mode. Classic: a pending buzz pauses the music.
+// Autonomous: buzzing never pauses; the answering phase (IRL verbal answers)
+// does, and the window end (pausedByDuration) holds until the reveal clears it.
+const playerPaused = computed(() => {
+  if (isAutonomousMode.value) {
+    return isPaused.value || autoPhase.value === 'answering' || pausedByDuration.value
+  }
+  return !!activeBuzz.value || pausedByDuration.value || isPaused.value
+})
+const autoTrackCounter = computed(() => ({
+  n: tracks.value.filter((t: any) => t.status === 'done').length + 1,
+  total: tracks.value.length,
+}))
 const togglePause = () => {
   if (!isHost.value || !canTogglePause.value) return
   pb.collection('sessions').update(props.session.id, { paused: !isPaused.value })
@@ -1399,8 +1547,8 @@ watch(isTrackSolvedAndPlaying, (solved) => {
   if (!solved) return
   clearPlaybackTimer()
   pausedByDuration.value = false
-  if (!currentTrack.value?.solved_by && currentTrack.value?.reveal_seconds) {
-    requestSeek(currentTrack.value.reveal_seconds)
+  if (!currentTrack.value?.solved_by) {
+    seekRevealOnce()
   }
 })
 
@@ -1452,7 +1600,7 @@ const startTrack = async (track: any) => {
     orphanDecisionTrack.value = track
     return
   }
-  await playTrack(track.id)
+  await playTrack(track.id, isAutonomousMode.value ? { phase: 'guessing' } : undefined)
 }
 // If the absent owner reconnects while the host is still deciding, just play it.
 watch(onlinePlayers, () => {
@@ -1799,7 +1947,7 @@ const resetSession = async () => {
     const allOps: Array<(b: ReturnType<typeof pb.createBatch>) => void> = [
       ...allBuzzes.map(buzz => (b: ReturnType<typeof pb.createBatch>) => b.collection('buzzes').delete(buzz.id)),
       // Scores are derived from tracks.solved_by, reset below — no player write needed.
-      ...tracks.value.map(t => (b: ReturnType<typeof pb.createBatch>) => b.collection('tracks').update(t.id, { status: 'queued', solved_by: null, skip_votes: [], is_duplicate: false, skip_revealed: false })),
+      ...tracks.value.map(t => (b: ReturnType<typeof pb.createBatch>) => b.collection('tracks').update(t.id, { status: 'queued', solved_by: null, skip_votes: [], is_duplicate: false, skip_revealed: false, phase: null })),
       (b: ReturnType<typeof pb.createBatch>) => b.collection('sessions').update(props.session.id, { status: 'waiting' }),
     ]
     for (let i = 0; i < allOps.length; i += 45) {

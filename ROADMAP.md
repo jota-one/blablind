@@ -8,23 +8,20 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
-- **Sécurité : visibilité des tracks non révélés** — la collection `tracks` est en lecture publique avec expand `video`, donc le titre/artiste du morceau en cours est déjà lisible via l'API par un tricheur motivé, avant révélation. Vraie correction : restreindre la lecture des champs sensibles (ou du expand) tant que le morceau n'est pas révélé. Chantier à part (impacte le flux de jeu temps réel).
+- **Sécurité : visibilité des tracks non révélés** — la collection `tracks` est en lecture publique avec expand `video`, donc le titre/artiste du morceau en cours est déjà lisible via l'API par un tricheur motivé, avant révélation. Vraie correction : restreindre la lecture des champs sensibles (ou du expand) tant que le morceau n'est pas révélé. Chantier à part (impacte le flux de jeu temps réel). Encore plus sensible en mode autonome (tous les joueurs sont devineurs, et les réponses tapées transitent dans `buzzes.answer` avant révélation).
 - **Sécurité : validation serveur des favoris** — hook JSVM sur la création d'un favori : le client passe l'id du track d'origine, le hook vérifie que le morceau est bien révélé (`status === 'done'` ou `solved_by`/`skip_revealed`) avant d'accepter. Complète le garde-fou UI. À expliquer/valider avant implémentation.
 
 
 
 ## New Features
 
-### Mode autonome
-Pour l'instant, lorsque N joueurs jouent à blablind, pour chaque morceau il y a un maître et N-1 joueurs. Le maître juge quel autre joueur a répondu juste.
-
-Dans la mesure où l'on va pouvoir fournir des blindtests déjà créés (par un admin ou un autre membre du site), on peut imaginer qu'un groupe de joueurs crée une partie et charge l'un de ces blindtests. Dans ce cas, il n'y a plus de maître. Tout le monde peut participer. En gros c'est comme un blindtest sur YouTube où tout le monde essaie de deviner et au bout d'un temps déterminé, la réponse est fournie par l'application.
-
-Ces blindtests seront un peu spéciaux dans la façon de les créer, voir la feature "Création de blindtest "pros"".
-
-Il faut maintenant trouver comment gérer ça si l'on veut pouvoir garder le tracking des points. La définition du gagnant doit faire l'objet d'un consensus. Je pense qu'il faut garder la logique du BUZZ et le premier qui a buzzé. On peut imaginer stocker l'ordre des buzz. On garde uniquement les joueurs qui ont buzzé dans le temps imparti. Ensuite chaque joueur, dans l'ordre des buzz, peut proposer une réponse. Une fois que tous les joueurs élligibles ont pu répondre, on dévoile la bonne réponse. Si le premier joueur avait dit juste, les autres lui valident le point (votes à au moins 50% des autres joueurs. Exemple: s'il y a 6 joueurs, 5 vont voter et il faut 3 voix pour valider la bonne réponse du joueur candidat. S'il y a 3 joueurs, 2 joueurs vont voter et il suffit que l'un des 2 valide et ça donnera le point). Si le premier joueur n'a pas donné la bonne réponse (même système de votes, mais négatifs), on passe au 2ème joueur et ainsi de suite. Si personne n'a donné la bonne réponse, on enchaîne avec le prochain morceau.
-
-Pendant la durée des votes, on laisse tourner le morceau sur sa séquence "résultat".
+### Mode autonome — suite (v2)
+La v1 est livrée (voir History 2026-07-12). Reste pour plus tard :
+- **Mode "simple"** : charger une playlist dont les morceaux n'ont pas de timings "pro" (durée d'extrait, reprise résultat) — aujourd'hui un défaut de 30s s'applique, mais l'expérience est pensée pour des playlists préparées.
+- **Auteur de la playlist** : il connaît les réponses — le badger ou l'exclure des candidats/votes.
+- **Galerie de playlists publiques** : aujourd'hui les playlists publiques n'apparaissent que dans le wizard ; une page de navigation (tags, recherche) serait utile.
+- **Fenêtre de buzz pause-aware** : le timer d'extrait est wall-clock ; une pause pendant l'extrait raccourcit la fenêtre effective.
+- **Export/durcissement des votes** : votes définitifs v1 (pas de changement d'avis) ; seuil recalculé sur les joueurs en ligne au moment du vote.
 
 ### Notifications push (Web Push)
 Prévenir les joueurs même app fermée / onglet en arrière-plan : "la partie démarre", "c'est ton tour de faire deviner", "tu as été invité". Prérequis déjà en place : l'app est installable (manifest + service worker), ce qui est obligatoire pour le push sur iOS (16.4+).
@@ -54,6 +51,9 @@ Reste à faire ensuite :
 
 
 ## History (done)
+
+- [2026-07-12] Autonomous mode — games with no game master: pick a pre-made playlist in the creation wizard, everyone buzzes during the excerpt (order recorded), answers are typed at buzz time (remote) or spoken aloud in buzz order at the excerpt's end (IRL), then the answer is revealed and peers vote (≥50%) to award the point, candidate by candidate in buzz order. The reveal segment plays during the votes, the session auto-finishes after the last track, and the podium works unchanged.
+- [2026-07-12] Playlists — members can build reusable blindtest playlists in their member area: YouTube search or picking from their favorite tracks (saved start timing applied), per-track start/excerpt-length/reveal timings captured from an in-app preview, drag reordering, name/description/tags metadata and a public toggle to share them with other members.
 
 - [2026-07-10] Favorites tab in the add-track modal — logged-in players can add tracks to a game straight from their favorites, with the saved start timing applied.
 - [2026-07-10] Favorite tracks — logged-in players can star a revealed track (reveal overlay, "Passés" tab, end-of-game screen) and find their favorites in a new member-area section with discovery context, in-app playback (tap the thumbnail), an editable start timing (typed or captured from the preview), a YouTube link and removal; guests are invited to create an account.
