@@ -1,6 +1,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { pb } from '@game/pb'
-import { normalizeSearch } from '@game/utils'
+import { findOrCreateVideo } from '@game/composables/useVideos'
 
 export default function useTracks(sessionId: string) {
   const tracks = ref<any[]>([])
@@ -18,33 +18,6 @@ export default function useTracks(sessionId: string) {
       expand: 'video',
     })
     tracks.value = result
-  }
-
-  const findOrCreateVideo = async (data: {
-    video_id: string
-    title?: string
-    artist?: string
-    duration?: number
-  }) => {
-    const existing = await pb.collection('videos').getList(1, 1, {
-      filter: pb.filter('video_id = {:videoId}', { videoId: data.video_id }),
-    })
-    if (existing.items.length > 0) return existing.items[0]
-    try {
-      return await pb.collection('videos').create({
-        video_id: data.video_id,
-        title: data.title,
-        artist: data.artist,
-        duration: data.duration,
-        search_text: normalizeSearch(`${data.title ?? ''} ${data.artist ?? ''}`),
-      })
-    } catch {
-      // Race condition: another client created it first
-      const retry = await pb.collection('videos').getList(1, 1, {
-        filter: pb.filter('video_id = {:videoId}', { videoId: data.video_id }),
-      })
-      return retry.items[0]
-    }
   }
 
   const addTrack = async (data: {
@@ -71,10 +44,10 @@ export default function useTracks(sessionId: string) {
     })
   }
 
-  const playTrack = async (trackId: string) => {
+  const playTrack = async (trackId: string, extra?: Record<string, any>) => {
     const playing = tracks.value.find(t => t.status === 'playing')
     if (playing) await pb.collection('tracks').update(playing.id, { status: 'done' })
-    await pb.collection('tracks').update(trackId, { status: 'playing' })
+    await pb.collection('tracks').update(trackId, { status: 'playing', ...extra })
   }
 
   const finishTrack = async (trackId: string) => {

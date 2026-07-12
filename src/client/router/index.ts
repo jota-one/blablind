@@ -3,11 +3,15 @@ import Profile from '../views/Profile.vue'
 import MyBlindtests from '../views/MyBlindtests.vue'
 import Favorites from '../views/Favorites.vue'
 import GameSettings from '../views/GameSettings.vue'
+import Playlists from '../views/Playlists.vue'
+import PlaylistEditor from '../views/PlaylistEditor.vue'
 import useAuth from '@admin/composables/useAuth'
 
 const routes = [
   { path: '/', component: Profile },
   { path: '/blindtests', component: MyBlindtests },
+  { path: '/playlists', component: Playlists },
+  { path: '/playlists/:id', component: PlaylistEditor },
   { path: '/favorites', component: Favorites },
   { path: '/settings', component: GameSettings },
 ]

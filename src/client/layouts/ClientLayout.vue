@@ -29,6 +29,17 @@
           </li>
           <li>
             <RouterLink
+              to="/playlists"
+              exact-active-class="menu-active"
+              class="flex items-center gap-3"
+              @click="closeDrawer"
+            >
+              <span class="i-fa-solid-list-ol text-xl"></span>
+              {{ t('client.nav_playlists') }}
+            </RouterLink>
+          </li>
+          <li>
+            <RouterLink
               to="/favorites"
               exact-active-class="menu-active"
               class="flex items-center gap-3"
