@@ -6,32 +6,33 @@ A real-time multiplayer music blindtest game with a buzzer system, powered by Yo
 
 - **Create or join a session** via a unique slug URL — no account required
 - **Anonymous players** — just pick a username, stored locally in `localStorage`
-- **YouTube-based tracks** — the host queues songs by YouTube URL with an optional start time
+- **Two game modes** — classic (each player queues tracks and validates answers on their own) and **autonomous** (pick a pre-made playlist, everyone buzzes, peers vote to award points — no game master)
+- **IRL mode** — in-person play: verbal answers, a single DJ device plays the music, host/DJ roles are requestable and handed over in-app
+- **YouTube-based tracks** — search (Invidious proxy) or paste a URL; per-track start / excerpt length / reveal timings
 - **Buzz to answer** — players race to buzz in; YouTube pauses automatically on a pending buzz
-- **Track validation** — the player who added a track validates or rejects buzz answers
-- **Wrong answer penalty** — a player who buzzes wrong is locked out until another player buzzes
+- **Wrong answer penalty** — a player who buzzes wrong is locked out (configurable attempts and rebuzz delay)
 - **Skip voting** — players can vote to skip a track
-- **Real-time sync** — all game state is synced live via PocketBase subscriptions
-- **Score tracking** — correct answers award points, displayed on a live leaderboard
+- **Real-time sync** — all game state is synced live via PocketBase subscriptions, with reconnection recovery
+- **Score tracking** — guessed/guessable ratio leaderboard and an end-of-game podium
+- **Member area** — profile, game preferences, session history, favorite tracks, reusable playlist builder (shareable publicly)
+- **Installable PWA** — home-screen install on Android and iOS, full-screen launch
+- **FR/EN** — auto-detected, switchable
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Framework | Astro 6 |
-| UI | Vue 3 |
-| Backend | PocketBase 0.36.6 |
+| Framework | Astro 7 (node adapter, SSR proxy routes) |
+| UI | Vue 3 (three SPAs: game, member area, admin) |
+| Backend | PocketBase 0.39 (JS migrations + JSVM hooks) |
 | Styling | Tailwind v4 + DaisyUI (themes: `blind` / `darkblind`) |
-| Components | PrimeVue (orange preset) |
+| Components | PrimeVue (orange preset, admin) |
 | Video | YouTube IFrame API |
-| Package manager | pnpm |
+| Package manager | pnpm (Node 24 via volta) |
 
 ## PocketBase Collections
 
-- **sessions** — name, slug, status (`waiting` / `playing` / `finished`), host
-- **players** — session, name, score, ready flag
-- **tracks** — session, youtube_url, start_seconds, title, artist, status (`queued` / `playing` / `done`), order, skip_votes, solved_by
-- **buzzes** — track, player, answer, status (`pending` / `correct` / `wrong`)
+`sessions`, `players`, `tracks`, `buzzes`, `videos` (shared catalog), `answer_votes` (autonomous mode), `favorites`, `playlists`, `playlist_tracks`, `users`, `roles`, `app_settings`, `feedback`. Schema history lives in `pb/pb_migrations/`.
 
 ## Commands
 
@@ -39,7 +40,18 @@ A real-time multiplayer music blindtest game with a buzzer system, powered by Yo
 |---|---|
 | `pnpm install` | Install dependencies |
 | `pnpm dev` | Start dev server at `localhost:4321` |
-| `pnpm build` | Build for production to `./dist/` |
+| `pnpm db` | Start PocketBase at `127.0.0.1:8093` |
+| `pnpm lint` / `pnpm format` | oxlint / oxfmt |
+| `pnpm test:unit` | Unit tests (node, no framework) |
+| `pnpm test:e2e` | Playwright e2e (see `tests/e2e/README.md`) |
+| `pnpm build` | Type-check + build for production into `pb/pb_public` |
 | `pnpm preview` | Preview the production build locally |
 
-PocketBase runs separately on port **8093** in local development.
+The SPA reaches PocketBase through `PUBLIC_PB_BASE_URI` (`.env.local`).
+
+## Docs
+
+- `ROADMAP.md` — planned work + shipped history
+- `docs/ANALYSIS-2026-07-12.md` — architecture review
+- `docs/plans/` — ready-to-execute implementation plans
+- `CLAUDE.md` — project conventions, architecture map, known pitfalls
