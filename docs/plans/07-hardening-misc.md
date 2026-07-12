@@ -4,6 +4,8 @@ _Size: S. Risk: low. Three independent tasks — can be done in any order, or sp
 
 ## A. Invidious instance list via env
 
+**STATUS: DONE (2026-07-12).**
+
 `src/pages/proxy/search.ts` hardcodes `INVIDIOUS_INSTANCES`. Public instances die regularly; rotating the list should not require a deploy of new code.
 
 - Read `process.env.INVIDIOUS_INSTANCES` (comma-separated URLs) at request time, falling back to the current hardcoded list. Trim entries, drop empties.
@@ -15,6 +17,8 @@ Verification: `INVIDIOUS_INSTANCES=https://inv.nadeko.net pnpm dev`, search in t
 Commit: `feat(search): configurable Invidious instance list via env`
 
 ## B. Heartbeat hook early-exit
+
+**STATUS: DONE (2026-07-12).**
 
 `pb/pb_hooks/host_election.pb.js` runs on **every** player update (heartbeats every 15 s per player) and always does: session fetch + filtered player query. Cheap win: when the updated player IS the current host, the host is obviously online — skip the election query.
 

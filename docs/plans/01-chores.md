@@ -2,6 +2,8 @@
 
 _Size: XS. Risk: none. No schema change, no behavior change._
 
+**STATUS: DONE (2026-07-12)** — executed as proposed; lint OOM noted as pre-existing (see index).
+
 ## Goal
 
 Remove unused dependencies and bring `README.md` back in sync with reality.

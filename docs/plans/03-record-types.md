@@ -8,6 +8,8 @@ Replace `any` at the data boundary with shared record types. 27 files currently 
 
 ## Step 1 — create `src/types/records.ts`
 
+**STATUS: DONE (2026-07-12)** — the file exists; skip to Step 2 (adoption).
+
 The definitions below were generated from the live schema on 2026-07-12. **Re-verify before use** (`sqlite3 pb/pb_data/data.db "PRAGMA table_info(<name>);"` or the `_collections` query in the index) and adjust if migrations landed since.
 
 ```ts

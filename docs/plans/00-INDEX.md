@@ -4,15 +4,17 @@ _Source: [ANALYSIS-2026-07-12.md](../ANALYSIS-2026-07-12.md). These plans are wr
 
 ## Execution order
 
-| # | Plan | Depends on | Size | Risk |
-|---|------|-----------|------|------|
-| 01 | [Chores: dead deps, README](./01-chores.md) | — | XS | none |
-| 02 | [Room.vue split](./02-room-split.md) | — | L | low (mechanical) |
-| 03 | [Typed PB records](./03-record-types.md) | 02 recommended | M | low |
-| 04 | [Security: write protection](./04-security-write-protection.md) | 02 (session call sites centralized) | L | medium |
-| 05 | [Security: answer leak](./05-security-answer-leak.md) | 04 | M | medium |
-| 06 | [Pause-aware buzz window](./06-pause-aware-window.md) | — | M | medium |
-| 07 | [Misc hardening & tests](./07-hardening-misc.md) | — | S | low |
+| # | Plan | Depends on | Size | Risk | Status |
+|---|------|-----------|------|------|--------|
+| 01 | [Chores: dead deps, README](./01-chores.md) | — | XS | none | **done 2026-07-12** |
+| 02 | [Room.vue split](./02-room-split.md) | — | L | low (mechanical) | open |
+| 03 | [Typed PB records](./03-record-types.md) | 02 recommended | M | low | step 1 done (`src/types/records.ts` exists) — adoption open |
+| 04 | [Security: write protection](./04-security-write-protection.md) | 02 (session call sites centralized) | L | medium | open |
+| 05 | [Security: answer leak](./05-security-answer-leak.md) | 04 | M | medium | open |
+| 06 | [Pause-aware buzz window](./06-pause-aware-window.md) | — | M | medium | open |
+| 07 | [Misc hardening & tests](./07-hardening-misc.md) | — | S | low | A & B **done 2026-07-12** — C (tests) open |
+
+Known pre-existing issue (not caused by these plans): `pnpm lint` (type-aware oxlint) dies with "Linter process terminated abnormally (possibly out of memory)" on this machine — rely on `pnpm build` (`astro check`) as the type gate until fixed.
 
 Feature plans (independent of the architecture sequence, pick by product priority):
 
