@@ -47,7 +47,11 @@ export default function useTracks(sessionId: string) {
   const playTrack = async (trackId: string, extra?: Record<string, any>) => {
     const playing = tracks.value.find(t => t.status === 'playing')
     if (playing) await pb.collection('tracks').update(playing.id, { status: 'done' })
-    await pb.collection('tracks').update(trackId, { status: 'playing', ...extra })
+    const record = await pb.collection('tracks').update(trackId, { status: 'playing', ...extra })
+    // started_at snapshots the server-side timestamp of the playing transition
+    // (updated is overwritten by later writes, so it can't serve as reference).
+    // Server clock domain — comparable to buzzes.created for buzz timings.
+    await pb.collection('tracks').update(trackId, { started_at: record.updated })
   }
 
   const finishTrack = async (trackId: string) => {

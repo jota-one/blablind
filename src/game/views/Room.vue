@@ -218,6 +218,7 @@
           :no-count="autoNoCount"
           :yes-needed="autoYesNeeded"
           :answer-draft="autoAnswerDraft"
+          :window-remaining-seconds="windowRemainingSeconds"
           :get-player-name="getPlayerName"
           @buzz="buzzNow"
           @save-answer="saveMyAnswer"
@@ -1184,6 +1185,7 @@ watch(() => currentTrack.value?.id, (newId, oldId) => {
   clearPlaybackTimer()
   pausedByDuration.value = false
   revealSeekDone = false
+  windowDeadline.value = null
   const track = currentTrack.value
   // Autonomous mode: the excerpt end is the buzz window, so a duration is
   // always armed (playlist value or session default).
@@ -1191,10 +1193,24 @@ watch(() => currentTrack.value?.id, (newId, oldId) => {
     ? (track.playback_duration || sessionSettings.value.default_playback_duration)
     : track?.playback_duration
   if (seconds) {
+    if (isAutonomousMode.value) {
+      windowDeadline.value = Date.now() + seconds * 1000
+    }
     playbackDurationTimer = setTimeout(() => {
       pausedByDuration.value = true
     }, seconds * 1000)
   }
+})
+
+// Countdown on the buzz window (autonomous guessing phase). Local wall-clock,
+// aligned with the local playback timer above — display only.
+const windowDeadline = ref<number | null>(null)
+const windowNow = ref(Date.now())
+let windowClock: ReturnType<typeof setInterval> | null = null
+
+const windowRemainingSeconds = computed(() => {
+  if (windowDeadline.value === null || pausedByDuration.value) return null
+  return Math.max(0, Math.ceil((windowDeadline.value - windowNow.value) / 1000))
 })
 
 const {
@@ -1243,6 +1259,17 @@ watch(() => isAutonomousMode.value && autoPhase.value === 'voting', (voting) => 
   pausedByDuration.value = false
   seekRevealOnce()
 })
+
+// Tick the buzz-window countdown only while it's displayed
+watch(() => isAutonomousMode.value && autoPhase.value === 'guessing' && !pausedByDuration.value, (active) => {
+  if (active && !windowClock) {
+    windowNow.value = Date.now()
+    windowClock = setInterval(() => { windowNow.value = Date.now() }, 250)
+  } else if (!active && windowClock) {
+    clearInterval(windowClock)
+    windowClock = null
+  }
+}, { immediate: true })
 
 // UI state
 const buzzing = ref(false)
@@ -2063,6 +2090,7 @@ watch(trackListEl, (el) => {
 
 onUnmounted(() => {
   sortableInstance?.destroy()
+  if (windowClock) { clearInterval(windowClock) }
   if (autoRejectTimer) { clearTimeout(autoRejectTimer) }
   if (autoRejectClock) { clearInterval(autoRejectClock) }
   if (duplicateCheckTimeout) { clearTimeout(duplicateCheckTimeout) }

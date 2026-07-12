@@ -11,7 +11,12 @@
           @click="emit('buzz')"
         >
           <span class="i-fa-solid-bell text-3xl"></span>
-          {{ t('room.buzz_button') }}
+          <span>
+            {{ t('room.buzz_button') }}
+            <span v-if="windowRemainingSeconds !== null" class="block text-sm font-normal opacity-80 tabular-nums">
+              ⏱ {{ windowRemainingSeconds }}s
+            </span>
+          </span>
         </button>
       </template>
       <template v-else>
@@ -60,6 +65,7 @@
           :class="candidate.player === currentPlayerId ? 'badge-primary' : 'badge-ghost'"
         >
           {{ i + 1 }}. {{ getPlayerName(candidate.player) }}
+          <span v-if="buzzSeconds(candidate)" class="opacity-60 tabular-nums">· {{ buzzSeconds(candidate) }}s</span>
         </span>
       </div>
     </template>
@@ -80,10 +86,11 @@
               class="flex items-center gap-2 rounded-lg bg-base-100 px-3 py-2 text-sm"
             >
               <span class="w-6 h-6 shrink-0 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center">{{ i + 1 }}</span>
-              <span class="font-medium">
+              <span class="font-medium flex-1">
                 {{ getPlayerName(candidate.player) }}
                 <span v-if="candidate.player === currentPlayerId" class="text-xs text-base-content/40">({{ t('room.you') }})</span>
               </span>
+              <span v-if="buzzSeconds(candidate)" class="text-xs text-base-content/50 tabular-nums shrink-0">{{ buzzSeconds(candidate) }}s</span>
             </li>
           </ol>
         </template>
@@ -107,6 +114,7 @@
           <div class="divider my-0"></div>
           <p class="font-bold text-sm text-center">
             {{ t('room.auto_voting_candidate', { player: getPlayerName(currentCandidate.player), i: candidateIndex, total: orderedCandidates.length }) }}
+            <span v-if="buzzSeconds(currentCandidate)" class="font-normal text-base-content/50 tabular-nums">· {{ buzzSeconds(currentCandidate) }}s</span>
           </p>
           <p v-if="!isIrlMode" class="text-lg text-center">
             <span class="font-mono bg-base-300 px-3 py-1 rounded">
@@ -160,6 +168,7 @@ type Props = {
   noCount: number
   yesNeeded: number
   answerDraft: string
+  windowRemainingSeconds: number | null
   getPlayerName: (playerId: string) => string
 }
 
@@ -178,6 +187,15 @@ const { t } = useI36n()
 const myBuzzRank = computed(() =>
   props.myBuzz ? props.orderedCandidates.findIndex(b => b.id === props.myBuzz.id) + 1 : 0,
 )
+
+// Buzz timing relative to the track's playing transition (both timestamps are
+// server-side, so no client clock skew). Null when started_at is missing.
+const buzzSeconds = (candidate: any): string | null => {
+  const startedAt = props.track?.started_at
+  if (!startedAt || !candidate?.created) return null
+  const delta = (new Date(candidate.created).getTime() - new Date(startedAt).getTime()) / 1000
+  return delta >= 0 ? delta.toFixed(2) : null
+}
 
 // Same custom directive as Room.vue's buzz answer input
 const vFocus = { mounted: (el: HTMLElement) => el.focus() }
