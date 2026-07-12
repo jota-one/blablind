@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro'
 
 export const prerender = false
 
-const INVIDIOUS_INSTANCES = [
+const DEFAULT_INVIDIOUS_INSTANCES = [
   'https://inv.nadeko.net',
   'https://yewtu.be',
   'https://invidious.nerdvpn.de',
@@ -12,9 +12,21 @@ const INVIDIOUS_INSTANCES = [
   'https://inv.tux.pizza',
 ]
 
+// Public instances die regularly; the list is overridable at runtime so a
+// rotation doesn't need a deploy. Read process.env per request (import.meta.env
+// would be inlined at build time and defeat the purpose).
+function invidiousInstances(): string[] {
+  const env = process.env.INVIDIOUS_INSTANCES
+  if (!env) {
+    return DEFAULT_INVIDIOUS_INSTANCES
+  }
+  const list = env.split(',').map(s => s.trim()).filter(Boolean)
+  return list.length > 0 ? list : DEFAULT_INVIDIOUS_INSTANCES
+}
+
 async function invidiousFetch(path: string): Promise<any> {
   const errors: string[] = []
-  for (const base of INVIDIOUS_INSTANCES) {
+  for (const base of invidiousInstances()) {
     try {
       const res = await fetch(`${base}${path}`, { signal: AbortSignal.timeout(10_000) })
       if (res.ok) return res.json()
