@@ -12,7 +12,7 @@ _Source: [ANALYSIS-2026-07-12.md](../ANALYSIS-2026-07-12.md). These plans are wr
 | 04 | [Security: write protection](./04-security-write-protection.md) | 02 (session call sites centralized) | L | medium | open |
 | 05 | [Security: answer leak](./05-security-answer-leak.md) | 04 | M | medium | open |
 | 06 | [Pause-aware buzz window](./06-pause-aware-window.md) | — | M | medium | open |
-| 07 | [Misc hardening & tests](./07-hardening-misc.md) | — | S | low | A & B **done 2026-07-12** — C (tests) open |
+| 07 | [Misc hardening & tests](./07-hardening-misc.md) | — | S | low | **done 2026-07-12** (A, B, C) |
 
 Known pre-existing issue (not caused by these plans): `pnpm lint` (type-aware oxlint) dies with "Linter process terminated abnormally (possibly out of memory)" on this machine — rely on `pnpm build` (`astro check`) as the type gate until fixed.
 

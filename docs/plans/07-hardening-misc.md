@@ -39,6 +39,8 @@ Commit: `perf(pb): skip host election on the host's own heartbeat`
 
 ## C. Targeted unit tests (extract-then-test)
 
+**STATUS: DONE (2026-07-12)** — `src/game/rules.ts` + `tests/unit/rules.test.ts`; `test:unit` switched to glob mode.
+
 The regression history of this project is concurrency/edge-case math (double skip, double score, equity). The valuable logic is currently trapped inside composables that import `pocketbase` and Vue reactivity — **extract pure functions first**, following the existing precedent (`src/game/autonomous.ts` + `tests/unit/autonomous.test.ts`, runner: `node --experimental-strip-types`, `node:test` + `node:assert`).
 
 Create `src/game/rules.ts` with pure functions extracted from their current homes (move the logic, call the function from the original spot — no behavior change):
