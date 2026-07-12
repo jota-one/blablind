@@ -1060,6 +1060,13 @@ import GameOver from '@game/components/GameOver.vue'
 import SolvedOverlay from '@game/components/SolvedOverlay.vue'
 import { pb } from '@game/pb'
 import { getVideoId, isOnline } from '@game/utils'
+import {
+  canAddTrack as canAddTrackRule,
+  canDeleteTrack as canDeleteTrackRule,
+  skipVotesNeeded as computeSkipVotesNeeded,
+  playerRatio as computePlayerRatio,
+  rankPlayers,
+} from '@game/rules'
 import useAuth from '@admin/composables/useAuth'
 import config from '@config'
 
@@ -1548,11 +1555,14 @@ const skipVoteArray = computed<string[]>(() => {
   return Array.isArray(v) ? v : []
 })
 const skipVoteCount = computed(() => skipVoteArray.value.length)
-const skipVotesNeeded = computed(() => {
-  if (!currentTrack.value) return 1
-  if (isTrackSolvedAndPlaying.value) return Math.max(1, onlinePlayers.value.length)
-  return Math.max(1, onlinePlayers.value.filter(p => p.id !== trackValidatorId.value).length)
-})
+const skipVotesNeeded = computed(() =>
+  computeSkipVotesNeeded({
+    hasTrack: !!currentTrack.value,
+    solvedAndPlaying: isTrackSolvedAndPlaying.value,
+    onlineCount: onlinePlayers.value.length,
+    onlineNonValidatorCount: onlinePlayers.value.filter(p => p.id !== trackValidatorId.value).length,
+  }),
+)
 const hasVotedToSkip = computed(() => skipVoteArray.value.includes(props.currentPlayer.id))
 const skipVoterNames = computed(() =>
   skipVoteArray.value
@@ -1579,26 +1589,21 @@ watch(isTrackSolvedAndPlaying, (solved) => {
   }
 })
 
+const equityCounts = () => ({
+  myCount: queuedTracks.value.filter(t => t.added_by === props.currentPlayer.id).length,
+  otherCounts: onlinePlayers.value
+    .filter(p => p.id !== props.currentPlayer.id)
+    .map(p => queuedTracks.value.filter(t => t.added_by === p.id).length),
+})
+
 const canAddTrack = computed(() => {
-  if (!sessionSettings.value.force_equity) return true
-  const myCount = queuedTracks.value.filter(t => t.added_by === props.currentPlayer.id).length
-  const others = onlinePlayers.value.filter(p => p.id !== props.currentPlayer.id)
-  if (others.length === 0) return true
-  const minOthers = Math.min(...others.map(p =>
-    queuedTracks.value.filter(t => t.added_by === p.id).length
-  ))
-  return myCount < minOthers + sessionSettings.value.equity_margin
+  const { myCount, otherCounts } = equityCounts()
+  return canAddTrackRule(myCount, otherCounts, sessionSettings.value)
 })
 
 const canDeleteTrack = computed(() => {
-  if (!sessionSettings.value.force_equity) return true
-  const myCount = queuedTracks.value.filter(t => t.added_by === props.currentPlayer.id).length
-  const others = onlinePlayers.value.filter(p => p.id !== props.currentPlayer.id)
-  if (others.length === 0) return true
-  const minOthers = Math.min(...others.map(p =>
-    queuedTracks.value.filter(t => t.added_by === p.id).length
-  ))
-  return myCount >= minOthers
+  const { myCount, otherCounts } = equityCounts()
+  return canDeleteTrackRule(myCount, otherCounts, sessionSettings.value)
 })
 
 watch(buzzBlockReason, (reason) => {
@@ -1744,22 +1749,11 @@ const claimOrphanTrack = async () => {
   await playTrack(track.id)
 }
 
-const playerRatio = (player: any) => {
-  const guessable = doneTracks.value.filter(t => t.added_by !== player.id).length
-  const guessed = doneTracks.value.filter(t => t.solved_by === player.id).length
-  return { guessed, guessable, ratio: guessable > 0 ? guessed / guessable : 0 }
-}
+const playerRatio = (player: any) => computePlayerRatio(doneTracks.value, player.id)
 
 const hostPlayer = computed(() => players.value.find(p => p.id === props.session.host) ?? null)
 
-const rankedPlayers = computed(() =>
-  [...players.value].sort((a, b) => {
-    const ra = playerRatio(a)
-    const rb = playerRatio(b)
-    if (rb.ratio !== ra.ratio) return rb.ratio - ra.ratio
-    return rb.guessed - ra.guessed
-  })
-)
+const rankedPlayers = computed(() => rankPlayers(players.value, doneTracks.value))
 
 const myQueuedTracks = computed(() =>
   queuedTracks.value.filter(t => t.added_by === props.currentPlayer.id)

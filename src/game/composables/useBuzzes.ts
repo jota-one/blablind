@@ -1,6 +1,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import type { ComputedRef } from 'vue'
 import { pb } from '@game/pb'
+import { buzzBlockReason as computeBuzzBlockReason } from '@game/rules'
 
 export default function useBuzzes(
   currentTrackId: ComputedRef<string | undefined>,
@@ -33,27 +34,9 @@ export default function useBuzzes(
     buzzes.value.filter(b => b.status === 'wrong' && b.player === currentPlayerId),
   )
 
-  const buzzBlockReason = computed<'max_attempts' | 'delay' | 'others' | null>(() => {
-    if (!currentPlayerId || activeBuzz.value) return null
-    const wrong = myWrongBuzzes.value
-    if (wrong.length === 0) return null
-
-    if (wrong.length >= settings.value.max_buzz_attempts) return 'max_attempts'
-
-    const lastWrong = wrong[wrong.length - 1]
-    const delayMs = settings.value.rebuzz_delay * 1000
-    if (delayMs > 0) {
-      if (now.value - new Date(lastWrong.updated).getTime() < delayMs) return 'delay'
-      return null
-    }
-
-    if (otherEligibleCount.value === 0) return null
-    const othersAfter = buzzes.value.filter(
-      b => b.player !== currentPlayerId && b.created > lastWrong.created,
-    )
-    if (othersAfter.length === 0) return 'others'
-    return null
-  })
+  const buzzBlockReason = computed<'max_attempts' | 'delay' | 'others' | null>(() =>
+    computeBuzzBlockReason(buzzes.value, currentPlayerId ?? '', settings.value, now.value, otherEligibleCount.value),
+  )
 
   const canBuzz = computed(() => {
     if (!currentPlayerId) return false
