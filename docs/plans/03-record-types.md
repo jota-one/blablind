@@ -145,7 +145,7 @@ Notes:
 
 ## Step 2 — adopt in the game SPA (priority order)
 
-1. Composables: `useTracks`, `usePlayers`, `useBuzzes`, `useSession`, `useAnswerVotes`, `useAutonomous`, `useFavorites`, `useVideos` — type the `ref<…[]>` and function signatures. The generic SDK call sites become e.g. `pb.collection('tracks').getFullList<TrackRecord>(…)`.
+1. Composables (`useTracks`, `usePlayers`, `useSession`: **done 2026-07-12** — follow their pattern): `useBuzzes`, `useAnswerVotes`, `useAutonomous`, `useFavorites`, `useVideos` — type the `ref<…[]>` and function signatures. The generic SDK call sites become e.g. `pb.collection('tracks').getFullList<TrackRecord>(…)`.
 2. `src/game/autonomous.ts`: `AutonomousSnapshot.buzzes[].status` → `BuzzStatus`, etc.
 3. Component props: `Room.vue` (`session: SessionRecord`, `currentPlayer: PlayerRecord`) and the components extracted in plan 02.
 4. `src/client/**` views, then `src/admin/**` last (lowest value).

@@ -8,7 +8,7 @@ _Source: [ANALYSIS-2026-07-12.md](../ANALYSIS-2026-07-12.md). These plans are wr
 |---|------|-----------|------|------|--------|
 | 01 | [Chores: dead deps, README](./01-chores.md) | — | XS | none | **done 2026-07-12** |
 | 02 | [Room.vue split](./02-room-split.md) | — | L | low (mechanical) | open |
-| 03 | [Typed PB records](./03-record-types.md) | 02 recommended | M | low | step 1 done (`src/types/records.ts` exists) — adoption open |
+| 03 | [Typed PB records](./03-record-types.md) | 02 recommended | M | low | step 1 done + `useTracks`/`usePlayers`/`useSession` typed — rest of adoption open |
 | 04 | [Security: write protection](./04-security-write-protection.md) | 02 (session call sites centralized) | L | medium | open |
 | 05 | [Security: answer leak](./05-security-answer-leak.md) | 04 | M | medium | open |
 | 06 | [Pause-aware buzz window](./06-pause-aware-window.md) | — | M | medium | open |
