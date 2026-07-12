@@ -1,8 +1,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { pb } from '@game/pb'
+import type { SessionRecord } from '@/types/records'
 
 export default function useSession(slug: string) {
-  const session = ref<any>(null)
+  const session = ref<SessionRecord | null>(null)
   const loading = ref(true)
   const error = ref<string | null>(null)
   let unsubscribe: (() => void) | undefined
@@ -10,7 +11,7 @@ export default function useSession(slug: string) {
 
   const load = async () => {
     try {
-      session.value = await pb.collection('sessions').getFirstListItem(pb.filter('slug = {:slug}', { slug }))
+      session.value = await pb.collection('sessions').getFirstListItem<SessionRecord>(pb.filter('slug = {:slug}', { slug }))
     } catch {
       error.value = 'app.error_not_found'
     } finally {
@@ -20,7 +21,7 @@ export default function useSession(slug: string) {
 
   const subscribe = async () => {
     if (!session.value) return
-    unsubscribe = await pb.collection('sessions').subscribe(session.value.id, e => {
+    unsubscribe = await pb.collection('sessions').subscribe<SessionRecord>(session.value.id, e => {
       if (e.action === 'update') session.value = e.record
     })
   }

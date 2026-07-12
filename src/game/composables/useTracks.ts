@@ -1,9 +1,10 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { pb } from '@game/pb'
 import { findOrCreateVideo } from '@game/composables/useVideos'
+import type { TrackRecord } from '@/types/records'
 
 export default function useTracks(sessionId: string) {
-  const tracks = ref<any[]>([])
+  const tracks = ref<TrackRecord[]>([])
   const currentTrack = computed(() => tracks.value.find(t => t.status === 'playing') ?? null)
   const queuedTracks = computed(() =>
     tracks.value.filter(t => t.status === 'queued').sort((a, b) => a.order - b.order),
@@ -12,7 +13,7 @@ export default function useTracks(sessionId: string) {
   const sort = () => tracks.value.sort((a, b) => a.order - b.order)
 
   const load = async () => {
-    const result = await pb.collection('tracks').getFullList({
+    const result = await pb.collection('tracks').getFullList<TrackRecord>({
       filter: pb.filter('session = {:session}', { session: sessionId }),
       sort: 'order,created',
       expand: 'video',
@@ -75,7 +76,7 @@ export default function useTracks(sessionId: string) {
     await load()
     // expand 'video' is applied server-side to the realtime payload, so e.record
     // already carries the relation — no per-event getOne needed.
-    unsubscribe = await pb.collection('tracks').subscribe('*', e => {
+    unsubscribe = await pb.collection('tracks').subscribe<TrackRecord>('*', e => {
       if (e.action === 'create') {
         // Guard against double-insert (e.g. event buffered across a reconnect reload)
         if (tracks.value.some(t => t.id === e.record.id)) return

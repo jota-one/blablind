@@ -1,9 +1,10 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { pb } from '@game/pb'
 import { isOnline } from '@game/utils'
+import type { PlayerRecord } from '@/types/records'
 
 export default function usePlayers(sessionId: string) {
-  const players = ref<any[]>([])
+  const players = ref<PlayerRecord[]>([])
   const now = ref(Date.now())
   const onlinePlayers = computed(() => {
     now.value // dépendance réactive pour re-évaluer isOnline
@@ -14,7 +15,7 @@ export default function usePlayers(sessionId: string) {
   const sort = () => players.value.sort((a, b) => a.created.localeCompare(b.created))
 
   const load = async () => {
-    const result = await pb.collection('players').getFullList({
+    const result = await pb.collection('players').getFullList<PlayerRecord>({
       filter: pb.filter('session = {:session}', { session: sessionId }),
       sort: 'created',
     })
@@ -30,7 +31,7 @@ export default function usePlayers(sessionId: string) {
     clockInterval = setInterval(() => {
       now.value = Date.now()
     }, 5_000)
-    unsubscribe = await pb.collection('players').subscribe(
+    unsubscribe = await pb.collection('players').subscribe<PlayerRecord>(
       '*',
       e => {
         if (e.action === 'create') {
