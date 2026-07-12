@@ -181,9 +181,16 @@ export default function useAutonomous(options: UseAutonomousOptions) {
       case 'resolve-wrong':
         await pb.collection('buzzes').update(action.buzzId, { status: 'wrong' })
         break
-      case 'repair-buzz':
+      case 'repair-buzz': {
+        // Verify against the server first: the local cache may simply be late
+        // on the buzz-correct event — blindly re-writing would emit a fresh
+        // update event on every 600ms recheck (infinite overlay replay).
+        await reloadBuzzes()
+        const target = buzzes.value.find(b => b.id === action.buzzId)
+        if (!target || target.status !== 'pending') break
         await pb.collection('buzzes').update(action.buzzId, { status: 'correct' })
         break
+      }
       case 'end-session':
         await endSession()
         break

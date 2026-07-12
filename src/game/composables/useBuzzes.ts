@@ -112,7 +112,9 @@ export default function useBuzzes(
           if (idx >= 0) {
             buzzes.value[idx] = e.record
           }
-          if (e.record.status === 'correct') {
+          // Dedupe by id: redundant updates on the winning buzz (e.g. an
+          // idempotent repair write) must not replay the solved animation.
+          if (e.record.status === 'correct' && solvedBuzz.value?.id !== e.record.id) {
             solvedBuzz.value = e.record
           }
         }
