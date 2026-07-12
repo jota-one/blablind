@@ -8,8 +8,18 @@ Recommended entry format: `- [YYYY-MM-DD] Title — short note`.
 
 List of small potential improvements and refactors.
 
+> Plans d'implémentation détaillés (prêts à exécuter, autosuffisants) pour les chantiers d'architecture : `docs/plans/00-INDEX.md`.
+
 - **Sécurité : visibilité des tracks non révélés** — la collection `tracks` est en lecture publique avec expand `video`, donc le titre/artiste du morceau en cours est déjà lisible via l'API par un tricheur motivé, avant révélation. Vraie correction : restreindre la lecture des champs sensibles (ou du expand) tant que le morceau n'est pas révélé. Chantier à part (impacte le flux de jeu temps réel). Encore plus sensible en mode autonome (tous les joueurs sont devineurs, et les réponses tapées transitent dans `buzzes.answer` avant révélation).
 - **Sécurité : validation serveur des favoris** — hook JSVM sur la création d'un favori : le client passe l'id du track d'origine, le hook vérifie que le morceau est bien révélé (`status === 'done'` ou `solved_by`/`skip_revealed`) avant d'accepter. Complète le garde-fou UI. À expliquer/valider avant implémentation.
+- **Sécurité : verrouiller les écritures gameplay** — `sessions`/`tracks`/`buzzes` sont en update/delete publics (n'importe qui peut se nommer host, valider un buzz, supprimer une session). Généraliser le `secret` joueur existant via des endpoints custom (pattern `skip-vote`) : buzz, vote, validation, avance, update session — avec vérification du rôle (host/validateur). Priorité #1 de l'analyse. Voir `docs/ANALYSIS-2026-07-12.md` §2.1.
+- **Refactor : découper Room.vue** — 2 100+ lignes : extraire RoomLobby, PlaybackCard, BuzzZone/ValidatorPanel, RoomTabs, RoomMenus + composables `useGameFlow` / `useRoomRoles`, et rapatrier les ~25 écritures PB brutes dans les composables (prérequis du chantier sécurité). Voir `docs/ANALYSIS-2026-07-12.md` §2.2.
+- **Typage des records PB** — remplacer les `any` (27 fichiers) par des types partagés `src/types/records.ts` (ou `pocketbase-typegen`), en commençant par les composables et props du jeu. Voir `docs/ANALYSIS-2026-07-12.md` §2.3.
+- **Reconciler autonome côté serveur** — une fois le build Go custom en place (Web Push), porter `computeNextAction` (fonction pure, tests unitaires = spec de portage) côté serveur pour supprimer la dépendance au navigateur du host. Voir `docs/ANALYSIS-2026-07-12.md` §2.4.
+- **Nettoyage deps & README** — `chart.js`, `pdfmake`, `vue3-markdown` sans aucun import dans `src/` (à supprimer) ; `vitest` installé mais non utilisé comme runner ; README obsolète (Astro 6, 4 collections, modes IRL/autonome absents).
+- **Couverture de tests ciblée** — unit : matrice `buzzBlockReason`, équité `canAddTrack`/`canDeleteTrack`, `skipVotesNeeded`, `playerRatio` ; e2e : flux IRL (handover DJ + buzz verbal), plus gros flux non testé.
+- **Durcissement recherche Invidious** — persister les résultats dans la collection `videos` comme premier niveau de recherche ; liste d'instances configurable par env (rotation sans déploiement).
+- **Heartbeat : amplification d'écritures** — chaque heartbeat (15s) = update `players` diffusé en SSE à tous + hook d'élection du host. OK à l'échelle actuelle ; si sessions > ~20 joueurs, endpoint dédié + early-exit du hook quand le host est en ligne.
 
 
 
@@ -20,7 +30,7 @@ La v1 est livrée (voir History 2026-07-12). Reste pour plus tard :
 - **Mode "simple"** : charger une playlist dont les morceaux n'ont pas de timings "pro" (durée d'extrait, reprise résultat) — aujourd'hui un défaut de 30s s'applique, mais l'expérience est pensée pour des playlists préparées.
 - **Auteur de la playlist** : il connaît les réponses — le badger ou l'exclure des candidats/votes.
 - **Galerie de playlists publiques** : aujourd'hui les playlists publiques n'apparaissent que dans le wizard ; une page de navigation (tags, recherche) serait utile.
-- **Fenêtre de buzz pause-aware** : le timer d'extrait est wall-clock ; une pause pendant l'extrait raccourcit la fenêtre effective.
+- **Fenêtre de buzz pause-aware** : le timer d'extrait est wall-clock ; une pause pendant l'extrait raccourcit la fenêtre effective. Piste : deadline dérivée des timestamps serveur (`started_at` + durée + `paused_ms` accumulé sur le track) — tous les clients calculent le même compte à rebours (voir `docs/ANALYSIS-2026-07-12.md` §2.4).
 - **Export/durcissement des votes** : votes définitifs v1 (pas de changement d'avis) ; seuil recalculé sur les joueurs en ligne au moment du vote.
 
 ### Notifications push (Web Push)
@@ -48,6 +58,20 @@ Idée de Geetha. Pendant un blindtest, si un morceau plaît à un joueur, il peu
 Reste à faire ensuite :
 - Export ou partage de sa liste de favoris.
 - Hook serveur de validation (voir Improvements / Sécurité).
+
+### Idées issues de l'analyse 2026-07-12
+Classées par rapport valeur/effort — détails et arbitrages dans `docs/ANALYSIS-2026-07-12.md` §3.
+
+- **Page récap partageable** : à la fin d'une partie, page publique en lecture seule `/{slug}/recap` (podium, liste des morceaux, qui a deviné) — l'artefact "à partager dans le groupe" ; deuxième chance d'ajouter un favori. Toutes les données existent déjà.
+- **Rejouer une partie** : bouton sur l'écran de fin / récap qui clone la session (nouveau slug, tracks re-queued) — même playlist pour le groupe suivant. La mécanique du reset existe déjà.
+- **Scoring dégressif à la vitesse (option)** : point plein si buzz correct sous N secondes, dégressif ensuite — les timings par buzz sont déjà enregistrés (`buzzes.created` vs `tracks.started_at`). Nécessite de passer d'un score dérivé de `solved_by` à un score stocké par track (à mutualiser avec le mode équipes).
+- **Mode équipes** : choix d'équipe au lobby (`players.team`), score agrégé par équipe, mauvaise réponse = toute l'équipe bloquée. Équité et validation inchangées.
+- **Mode TV / grand écran** : route spectateur `/{slug}/tv` sans record joueur — état du morceau (sans réponse avant révélation), ordre des buzz, compte à rebours, classement, QR code. Idéal IRL projeté sur une TV ; répond aussi au cas "l'auteur de la playlist regarde sans jouer" (v2 autonome).
+- **Partie instantanée par thème** : chemin "quick game" dans le wizard — tags/décennie → playlist assemblée depuis les `playlist_tracks` publics. S'appuie sur la galerie de playlists publiques déjà prévue (v2).
+- **Stats carrière (membres)** : page "Stats" dans l'espace membre — parties jouées, ratio dans le temps, meilleure série, artistes les plus devinés. Tout est calculable depuis `players.auth_user` + `tracks.solved_by` + `favorites`. Donne une vraie raison de créer un compte.
+- **Import playlist Spotify/Deezer** : coller un lien de playlist publique → récupération serveur de la liste → matching "artiste - titre" via le proxy de recherche existant → confirmation par morceau dans l'éditeur de playlists. (Plus tard — l'import YouTube avait été retiré, mais le contexte a changé : le builder de playlists et le mode autonome existent désormais.)
+
+Écartés volontairement (voir analyse) : app native (la PWA + Web Push couvrent le besoin), hébergement audio in-app (droits, stockage), leaderboards globaux (scores non comparables entre sessions, incite à la triche).
 
 
 ## History (done)
