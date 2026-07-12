@@ -27,6 +27,11 @@ onRecordAfterUpdateSuccess((e) => {
     const session = e.app.findRecordById('sessions', sessionId)
     const hostId = session.get('host')
 
+    // The host's own heartbeat proves the host is online — no election needed.
+    if (hostId && e.record.id === hostId) {
+      return
+    }
+
     // Earliest-created online players for this session.
     const online = e.app.findRecordsByFilter(
       'players',
