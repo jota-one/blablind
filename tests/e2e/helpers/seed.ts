@@ -117,6 +117,78 @@ export async function seedAdvanceScenario(): Promise<Scenario> {
 }
 
 /**
+ * Seeds an autonomous-mode session mid-game (remote, no game master): track1
+ * playing in the guessing phase with an 8s buzz window (each client arms its
+ * timer on page load, so the window must outlast the three sequential page
+ * boots), track2 queued, three online players. No added_by — tracks come from
+ * a playlist snapshot. The host client acts as the hidden reconciler (window
+ * close, vote resolution, auto-end).
+ */
+export async function seedAutonomousScenario(): Promise<Scenario> {
+  await ensureAdmin()
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+  const slug = `e2e-auto-${stamp}`
+
+  const video = await pb.collection('videos').create({
+    video_id: `e2e-${stamp}`,
+    title: 'E2E Track',
+    artist: 'E2E Artist',
+    duration: 213,
+    search_text: 'e2e track e2e artist',
+  })
+
+  const session = await pb.collection('sessions').create({
+    name: 'E2E Auto Room',
+    slug,
+    status: 'playing',
+    mode: 'autonomous',
+    irl_mode: false,
+    settings: {
+      default_playback_duration: 8,
+    },
+  })
+
+  const host = await createPlayer(session.id, 'Host')
+  const alice = await createPlayer(session.id, 'Alice')
+  const bob = await createPlayer(session.id, 'Bob')
+
+  await pb.collection('sessions').update(session.id, { host: host.id })
+
+  const track1 = await pb.collection('tracks').create({
+    session: session.id,
+    video: video.id,
+    status: 'playing',
+    phase: 'guessing',
+    order: 1,
+    start_seconds: 0,
+    playback_duration: 8,
+  })
+  const track2 = await pb.collection('tracks').create({
+    session: session.id,
+    video: video.id,
+    status: 'queued',
+    order: 2,
+    start_seconds: 0,
+    playback_duration: 8,
+  })
+
+  return {
+    sessionId: session.id,
+    slug,
+    videoId: video.id,
+    host,
+    alice,
+    bob,
+    track1Id: track1.id,
+    track2Id: track2.id,
+  }
+}
+
+export async function getSession(id: string) {
+  return pb.collection('sessions').getOne(id)
+}
+
+/**
  * Deleting the session cascades players, tracks and buzzes. Video is standalone.
  * Requires superuser auth (no delete rule on sessions/videos); without admin
  * creds the records are left behind and a warning is printed.
