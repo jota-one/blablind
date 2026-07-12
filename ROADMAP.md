@@ -34,6 +34,8 @@ La v1 est livrée (voir History 2026-07-12). Reste pour plus tard :
 - **Export/durcissement des votes** : votes définitifs v1 (pas de changement d'avis) ; seuil recalculé sur les joueurs en ligne au moment du vote.
 
 ### Notifications push (Web Push)
+> Plan d'implémentation détaillé : `docs/plans/09-webpush-go.md` (scaffolding calqué sur lexlsf).
+
 Prévenir les joueurs même app fermée / onglet en arrière-plan : "la partie démarre", "c'est ton tour de faire deviner", "tu as été invité". Prérequis déjà en place : l'app est installable (manifest + service worker), ce qui est obligatoire pour le push sur iOS (16.4+).
 
 Architecture retenue : **build PocketBase custom en Go** (hybride — le plugin `jsvm` est conservé, donc tous les hooks/migrations JS actuels continuent de tourner). Le push part directement d'un hook Go via la lib `webpush-go` (chiffrement aes128gcm + JWT VAPID gérés nativement), ce qui évite un sidecar Node ou une réimplémentation crypto en JSVM.
@@ -62,8 +64,8 @@ Reste à faire ensuite :
 ### Idées issues de l'analyse 2026-07-12
 Classées par rapport valeur/effort — détails et arbitrages dans `docs/ANALYSIS-2026-07-12.md` §3.
 
-- **Page récap partageable** : à la fin d'une partie, page publique en lecture seule `/{slug}/recap` (podium, liste des morceaux, qui a deviné) — l'artefact "à partager dans le groupe" ; deuxième chance d'ajouter un favori. Toutes les données existent déjà.
-- **Rejouer une partie** : bouton sur l'écran de fin / récap qui clone la session (nouveau slug, tracks re-queued) — même playlist pour le groupe suivant. La mécanique du reset existe déjà.
+- **Page récap partageable** : à la fin d'une partie, page publique en lecture seule `/{slug}/recap` (podium, liste des morceaux, qui a deviné) — l'artefact "à partager dans le groupe" ; deuxième chance d'ajouter un favori. Toutes les données existent déjà. Plan : `docs/plans/08-recap-and-replay.md`.
+- **Rejouer une partie** : bouton sur l'écran de fin / récap qui clone la session (nouveau slug, tracks re-queued, mode autonome) — même playlist pour le groupe suivant. Plan : `docs/plans/08-recap-and-replay.md`.
 - **Scoring dégressif à la vitesse (option)** : point plein si buzz correct sous N secondes, dégressif ensuite — les timings par buzz sont déjà enregistrés (`buzzes.created` vs `tracks.started_at`). Nécessite de passer d'un score dérivé de `solved_by` à un score stocké par track (à mutualiser avec le mode équipes).
 - **Mode équipes** : choix d'équipe au lobby (`players.team`), score agrégé par équipe, mauvaise réponse = toute l'équipe bloquée. Équité et validation inchangées.
 - **Mode TV / grand écran** : route spectateur `/{slug}/tv` sans record joueur — état du morceau (sans réponse avant révélation), ordre des buzz, compte à rebours, classement, QR code. Idéal IRL projeté sur une TV ; répond aussi au cas "l'auteur de la playlist regarde sans jouer" (v2 autonome).
