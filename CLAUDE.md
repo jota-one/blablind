@@ -47,3 +47,16 @@ Deploy: push to `main` → GitHub Actions → jota-one/infra. PRs target `develo
 ## Testing expectations
 
 Gate before any commit: `pnpm lint && pnpm build && pnpm test:unit`. Gameplay changes: also `pnpm test:e2e` and a two-browser manual smoke (normal + private window) — classic AND autonomous mode if the change touches shared flow. Pure logic belongs in `src/game/*.ts` modules with tests in `tests/unit/` (plain scripts, `node:test`-free style, see `autonomous.test.ts`).
+
+Known issue: `pnpm lint` (type-aware oxlint) can die with an OOM warning on this machine — `pnpm build` (`astro check`) is the reliable type gate.
+
+### Running e2e
+
+Prereqs: app (`pnpm dev`) + PB (`pnpm db`) running. Superuser credentials go in `tests/e2e/.env` (gitignored, copy from `.env.example`); there is NO dotenv auto-load — source it first:
+
+```zsh
+set -a; source tests/e2e/.env; set +a
+pnpm test:e2e
+```
+
+Without credentials the gameplay specs still run but leave seeded records behind (`pnpm test:e2e:clean` needs them too), and the password-reset spec is skipped (it additionally needs Mailpit running: `mailpit`, API :8025 / SMTP :1025). If the superuser password is unknown, reset it: `cd pb && ./pocketbase superuser upsert e2e-admin@local.test <password>` (works while the server runs). A temporary superuser created this way must be deleted afterwards (`./pocketbase superuser delete …`).
