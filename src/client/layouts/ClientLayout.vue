@@ -1,4 +1,13 @@
 <template>
+  <div
+    v-if="isImpersonating"
+    class="fixed bottom-0 inset-x-0 z-50 bg-warning text-warning-content px-4 py-2 flex items-center justify-center gap-4"
+  >
+    <span>{{ t('client.impersonation_banner', { name: user?.name || user?.email || '' }) }}</span>
+    <button class="btn btn-xs" @click="handleStopImpersonation">
+      {{ t('client.impersonation_stop') }}
+    </button>
+  </div>
   <div class="drawer lg:drawer-open h-full">
     <input id="client-drawer" type="checkbox" class="drawer-toggle" />
     <aside class="drawer-side z-40">
@@ -84,7 +93,12 @@ import { useI36n } from '@jota-one/i36n'
 import useAuth from '@admin/composables/useAuth'
 
 const { t } = useI36n()
-const { logout } = useAuth()
+const { logout, user, isImpersonating, stopImpersonation } = useAuth()
+
+const handleStopImpersonation = () => {
+  stopImpersonation()
+  window.location.href = '/admin/users'
+}
 
 const closeDrawer = () => {
   const drawer = document.getElementById('client-drawer') as HTMLInputElement | null

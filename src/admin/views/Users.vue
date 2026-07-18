@@ -72,6 +72,13 @@
                   </button>
                   <button
                     class="btn btn-xs btn-ghost"
+                    title="Sign in as this user"
+                    @click="impersonateUser(user)"
+                  >
+                    <span class="i-fa-solid-user-secret"></span>
+                  </button>
+                  <button
+                    class="btn btn-xs btn-ghost"
                     title="Merge into another account"
                     @click="openMergeModal(user)"
                   >
@@ -110,6 +117,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from 'vue'
 import dayjs from 'dayjs'
+import useAuth from '@admin/composables/useAuth'
 import useUsers, { type TUser } from '@admin/composables/useUsers'
 import UserAddModal from '@admin/components/UserAddModal.vue'
 import UserEditModal from '@admin/components/UserEditModal.vue'
@@ -117,6 +125,7 @@ import UserMergeModal from '@admin/components/UserMergeModal.vue'
 import ConfirmModal from '@components/ConfirmModal.vue'
 
 const { users, loadUsers, deleteUser, getAvatarUrl } = useUsers()
+const { impersonate } = useAuth()
 const addModalRef = useTemplateRef<InstanceType<typeof UserAddModal>>('addModalRef')
 const editModalRef = useTemplateRef<InstanceType<typeof UserEditModal>>('editModalRef')
 const mergeModalRef = useTemplateRef<InstanceType<typeof UserMergeModal>>('mergeModalRef')
@@ -135,6 +144,15 @@ const openAddModal = () => {
 const editUser = (user: TUser) => {
   editedUser.value = user
   editModalRef.value?.open(user)
+}
+
+const impersonateUser = async (user: TUser) => {
+  try {
+    await impersonate(user.id)
+    window.location.href = '/profile/'
+  } catch (error) {
+    console.error('Error impersonating user:', error)
+  }
 }
 
 const openMergeModal = (user: TUser) => {

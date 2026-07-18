@@ -288,6 +288,8 @@
   "client.nav_favorites": "My favorites",
   "client.nav_playlists": "My playlists",
   "client.nav_settings": "Game settings",
+  "client.impersonation_banner": "Signed in as {name}",
+  "client.impersonation_stop": "Back to my account",
   "playlists.title": "My playlists",
   "playlists.create": "Create",
   "playlists.name_placeholder": "Playlist name...",

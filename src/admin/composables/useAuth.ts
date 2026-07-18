@@ -6,6 +6,8 @@ import config from '../../config'
 const pb = new PocketBase(config.apiBaseUrl)
 
 const userJwt = useSessionStorage('userJwt', '')
+// admin session backup while impersonating a user ("sign in as")
+const impersonatorBackup = useSessionStorage('impersonatorBackup', '')
 
 const user = ref<any>({})
 
@@ -55,6 +57,33 @@ export default function useAuth() {
     pb.authStore.clear()
     userJwt.value = ''
     user.value = {}
+    impersonatorBackup.value = ''
+  }
+
+  const isImpersonating = computed(() => impersonatorBackup.value.length > 0)
+
+  const impersonate = async (impersonatedUserId: string) => {
+    const data = await pb.send(`/api/admin/users/${impersonatedUserId}/impersonate`, {
+      method: 'POST',
+    })
+    impersonatorBackup.value = JSON.stringify({
+      token: userJwt.value,
+      record: user.value,
+    })
+    pb.authStore.save(data.token, data.record)
+    userJwt.value = data.token
+    user.value = data.record
+  }
+
+  const stopImpersonation = () => {
+    if (!impersonatorBackup.value) {
+      return
+    }
+    const { token, record } = JSON.parse(impersonatorBackup.value)
+    impersonatorBackup.value = ''
+    pb.authStore.save(token, record)
+    userJwt.value = token
+    user.value = record
   }
 
   const isAuthenticated = computed(() => !!userJwt.value && userJwt.value.length > 0)
@@ -65,6 +94,9 @@ export default function useAuth() {
   return {
     isAuthenticated,
     isAdmin,
+    isImpersonating,
+    impersonate,
+    stopImpersonation,
     login,
     logout,
     refreshAuth,
