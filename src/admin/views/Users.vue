@@ -71,6 +71,13 @@
                     <span class="i-fa-solid-pen"></span>
                   </button>
                   <button
+                    class="btn btn-xs btn-ghost"
+                    title="Merge into another account"
+                    @click="openMergeModal(user)"
+                  >
+                    <span class="i-fa-solid-people-arrows"></span>
+                  </button>
+                  <button
                     class="btn btn-xs btn-ghost text-red-600"
                     title="Delete"
                     @click="confirmDelete(user)"
@@ -90,6 +97,7 @@
 
     <UserAddModal ref="addModalRef" @saved="loadUsers" />
     <UserEditModal ref="editModalRef" @saved="loadUsers" />
+    <UserMergeModal ref="mergeModalRef" @merged="loadUsers" />
     <ConfirmModal
       v-model="showDeleteModal"
       title="Delete user?"
@@ -105,11 +113,13 @@ import dayjs from 'dayjs'
 import useUsers, { type TUser } from '@admin/composables/useUsers'
 import UserAddModal from '@admin/components/UserAddModal.vue'
 import UserEditModal from '@admin/components/UserEditModal.vue'
+import UserMergeModal from '@admin/components/UserMergeModal.vue'
 import ConfirmModal from '@components/ConfirmModal.vue'
 
 const { users, loadUsers, deleteUser, getAvatarUrl } = useUsers()
 const addModalRef = useTemplateRef<InstanceType<typeof UserAddModal>>('addModalRef')
 const editModalRef = useTemplateRef<InstanceType<typeof UserEditModal>>('editModalRef')
+const mergeModalRef = useTemplateRef<InstanceType<typeof UserMergeModal>>('mergeModalRef')
 const showDeleteModal = ref(false)
 const editedUser = ref<TUser | null>(null)
 const deleteMessage = ref('')
@@ -125,6 +135,13 @@ const openAddModal = () => {
 const editUser = (user: TUser) => {
   editedUser.value = user
   editModalRef.value?.open(user)
+}
+
+const openMergeModal = (user: TUser) => {
+  mergeModalRef.value?.open(
+    user,
+    users.value.filter(candidate => candidate.id !== user.id),
+  )
 }
 
 const confirmDelete = (user: TUser) => {

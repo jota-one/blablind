@@ -123,6 +123,14 @@ export default function useUsers() {
     return pb.collection('users').delete(id)
   }
 
+  const mergeUsers = async (sourceId: string, targetId: string) => {
+    return pb.send('/api/admin/users/merge', {
+      method: 'POST',
+      body: JSON.stringify({ sourceId, targetId }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
   const getAvatarUrl = (user: TUser): string => {
     if (!user.avatar) return ''
     return `${config.apiBaseUrl}/api/files/_pb_users_auth_/${user.id}/${user.avatar}`
@@ -135,6 +143,7 @@ export default function useUsers() {
     addUser,
     updateUser,
     deleteUser,
+    mergeUsers,
     getAvatarUrl,
   }
 }
