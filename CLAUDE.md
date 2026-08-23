@@ -20,7 +20,7 @@ Deploy: push to `main` → GitHub Actions → jota-one/infra. PRs target `develo
 - `src/game/` — the game SPA (anonymous players). Entry `App.vue` (join/restore + 15 s heartbeat), views `Join.vue`/`Room.vue`, state in composables (`useSession`, `usePlayers`, `useTracks`, `useBuzzes`, `useAnswerVotes`, `useAutonomous`), each = load + realtime subscription + actions.
 - `src/game/autonomous.ts` — **pure** decision logic for autonomous mode (`computeNextAction(snapshot) → action`), executed by the elected host's client, level-triggered and idempotent. Unit-tested in `tests/unit/`. Follow this pattern (pure function + thin executor) for any new game-flow logic.
 - `src/client/` — member area SPA (profile, my blindtests, favorites, playlists, settings). `src/admin/` — admin SPA. Both vue-router SPAs mounted from `src/pages/*/[...slug].astro`.
-- `src/pages/proxy/search.ts` — SSR YouTube search via public Invidious instances (multi-instance fallback + in-memory LRU cache).
+- `src/pages/proxy/search.ts` — SSR YouTube search endpoint (in-memory LRU cache + inflight coalescing). Backends live in `src/lib/youtube.ts`: YouTube InnerTube (keyless, primary) → official Data API (only if `SECRETS_YOUTUBE_API_KEY` is set — the `SECRETS_` prefix is imposed by the infra `.env` generator, see `apps.yaml`) → Invidious (last resort). Response parsing is pure and unit-tested; do not make public Invidious instances primary again (see Known pitfalls).
 - `pb/pb_hooks/` — JSVM hooks: server-side host election, atomic skip-vote endpoint, avatar denormalization, admin verify. `pb/pb_migrations/` — full schema history.
 - Docs: `docs/ANALYSIS-2026-07-12.md` (architecture review), `docs/plans/` (ready-to-execute implementation plans — check before starting architecture work), `ROADMAP.md` (features + history; add a History entry when shipping a user-facing change).
 
@@ -42,6 +42,7 @@ Deploy: push to `main` → GitHub Actions → jota-one/infra. PRs target `develo
 - Timers/`setTimeout` on mobile are throttled in background tabs — the heartbeat re-ticks on `visibilitychange`; prefer deriving state from server timestamps over arming long local timers.
 - Deleting a session cascades to players/tracks/buzzes.
 - YouTube: `videos.duration = 0` means private/deleted video (filtered out). The OS "Now Playing" widget can leak the answer — already mitigated, be careful when touching the player.
+- **YouTube search**: public Invidious instances are dead as a primary backend — survivors answer datacenter IPs with an anti-bot HTML captcha under a **200** status, so always verify `content-type` is JSON before trusting a 200. Search now goes through YouTube's InnerTube endpoint (no key, no quota).
 - The `rtk` CLI proxy truncates some grep/read output — if results look wrong ("N matches in 0 files"), fall back to Read or `rtk proxy <cmd>`.
 
 ## Testing expectations

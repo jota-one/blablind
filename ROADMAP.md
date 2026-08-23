@@ -78,6 +78,7 @@ Classées par rapport valeur/effort — détails et arbitrages dans `docs/ANALYS
 
 ## History (done)
 
+- [2026-08-23] YouTube search fixed — adding a track by searching YouTube works again; searches now go straight to YouTube instead of third-party mirrors that had gone offline, so results are faster and complete.
 - [2026-07-18] Impersonation (admin) — an administrator can sign in as any user from the users list to see the app through their eyes; a banner in the member area signals the impersonation and lets the admin return to their own account.
 - [2026-07-18] Account merge (admin) — an administrator can merge two user accounts: all activity of the source account (sessions, game history, favorites, playlists) is moved to the target account, then the emptied source account is deleted.
 - [2026-07-12] Autonomous mode — games with no game master: pick a pre-made playlist in the creation wizard, everyone buzzes during the excerpt (order recorded), answers are typed at buzz time (remote) or spoken aloud in buzz order at the excerpt's end (IRL), then the answer is revealed and peers vote (≥50%) to award the point, candidate by candidate in buzz order. The reveal segment plays during the votes, the session auto-finishes after the last track, and the podium works unchanged.
