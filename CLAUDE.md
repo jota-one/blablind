@@ -8,6 +8,7 @@ Real-time multiplayer music blindtest (buzzer game) on YouTube. Astro 7 shell + 
 |---|---|
 | `pnpm dev` | App on :4321. Needs PB running. |
 | `pnpm db` | PocketBase on :8093 (`pb/pocketbase`). `PUBLIC_PB_BASE_URI` in `.env.local` points the SPA at it. |
+| `pnpm db:custom` | Same, but builds and runs our custom Go PocketBase binary (`pb/main.go`). This is what production runs — see `pb/README.md`. |
 | `pnpm lint` / `pnpm format` | oxlint (type-aware) / oxfmt |
 | `pnpm build` | Runs `astro check` (type gate) + build into `pb/pb_public` |
 | `pnpm test:unit` | `node --experimental-strip-types` scripts in `tests/unit/` (no vitest) |
