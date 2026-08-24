@@ -92,6 +92,73 @@ check('innertube results', parseInnerTubeSearch(innertube), [
 check('innertube empty payload', parseInnerTubeSearch({}), [])
 check('innertube null payload', parseInnerTubeSearch(null), [])
 
+// The parser must not depend on the path or the renderer name: MWEB nests
+// results under contents.sectionListRenderer as `videoWithContextRenderer`,
+// with a runs-based lengthText. Captured live from the MWEB client.
+const mweb = {
+  contents: {
+    sectionListRenderer: {
+      contents: [
+        {
+          itemSectionRenderer: {
+            contents: [
+              {
+                videoWithContextRenderer: {
+                  videoId: 'H0WyhJseftI',
+                  headline: { runs: [{ text: "GOJIRA - 'Flying whales'" }] },
+                  lengthText: { runs: [{ text: '7:45' }] },
+                  shortBylineText: { runs: [{ text: 'LISTENABLE RECORDS' }] },
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+  },
+}
+check('innertube MWEB shape', parseInnerTubeSearch(mweb), [
+  { videoId: 'H0WyhJseftI', title: "GOJIRA - 'Flying whales'", artist: 'LISTENABLE RECORDS', duration: 465 },
+])
+
+// watchEndpoint nodes carry a videoId but no title/duration. Walking the whole
+// tree must not mistake them for results.
+check(
+  'innertube ignores navigation endpoints',
+  parseInnerTubeSearch({
+    contents: {
+      some: {
+        future: {
+          shape: [
+            { navigationEndpoint: { watchEndpoint: { videoId: 'shouldNotAppear' } } },
+            {
+              unknownFutureRenderer: {
+                videoId: 'realvideo01',
+                title: { simpleText: 'Real' },
+                lengthSeconds: 120,
+                author: { simpleText: 'Someone' },
+                navigationEndpoint: { watchEndpoint: { videoId: 'realvideo01' } },
+              },
+            },
+          ],
+        },
+      },
+    },
+  }),
+  [{ videoId: 'realvideo01', title: 'Real', artist: 'Someone', duration: 120 }],
+)
+
+// The same video appears in several places in a real payload (thumbnails,
+// inline playback endpoints); results must be deduplicated.
+check(
+  'innertube dedupes repeated videos',
+  parseInnerTubeSearch({
+    a: { videoId: 'dup00000001', title: { simpleText: 'First' }, lengthSeconds: 60 },
+    b: { videoId: 'dup00000001', title: { simpleText: 'Copy' }, lengthSeconds: 60 },
+  }),
+  [{ videoId: 'dup00000001', title: 'First', artist: '', duration: 60 }],
+)
+
 console.log('parseInvidiousSearch')
 check(
   'invidious results',

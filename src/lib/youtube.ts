@@ -40,39 +40,89 @@ function textOf(node: any): string {
   return ''
 }
 
-/** Extract every videoRenderer from an InnerTube search payload. */
-export function parseInnerTubeSearch(data: any): SearchResult[] {
-  const sections = data?.contents?.twoColumnSearchResultsRenderer?.primaryContents
-    ?.sectionListRenderer?.contents ?? []
+// InnerTube nests results at a path that differs per declared client and that
+// YouTube reorganises without notice: `videoRenderer` under
+// twoColumnSearchResultsRenderer for WEB, `videoWithContextRenderer` under
+// sectionListRenderer for MWEB. Rather than track those paths, we walk the
+// whole tree and keep any node that *looks* like a video: an id, a title and a
+// duration on the same object. Navigation nodes (watchEndpoint) carry a videoId
+// but neither title nor duration, so the shape itself excludes them.
 
-  const renderers: any[] = []
-  for (const section of sections) {
-    for (const item of section?.itemSectionRenderer?.contents ?? []) {
-      // Search results normally come as videoRenderer; shelves nest them one
-      // level deeper under richItemRenderer.
-      if (item?.videoRenderer) {
-        renderers.push(item.videoRenderer)
-      } else if (item?.richItemRenderer?.content?.videoRenderer) {
-        renderers.push(item.richItemRenderer.content.videoRenderer)
+const TITLE_KEYS = ['title', 'headline']
+const ARTIST_KEYS = ['ownerText', 'shortBylineText', 'longBylineText', 'author']
+const DURATION_TEXT_KEYS = ['lengthText', 'lengthString', 'durationText']
+
+// Bounds the walk: search payloads sit around 300 KB / a few thousand nodes, so
+// these only ever trip on a malformed or hostile response.
+const MAX_NODES = 200_000
+const MAX_DEPTH = 100
+
+function firstText(node: any, keys: string[]): string {
+  for (const key of keys) {
+    const text = textOf(node[key])
+    if (text) {
+      return text
+    }
+  }
+  return ''
+}
+
+function durationOf(node: any): number {
+  // Some clients expose a numeric lengthSeconds instead of a formatted label.
+  const seconds = Number(node.lengthSeconds)
+  if (Number.isFinite(seconds) && seconds > 0) {
+    return seconds
+  }
+  return parseDuration(firstText(node, DURATION_TEXT_KEYS))
+}
+
+/**
+ * Collect video-like nodes anywhere in an InnerTube payload, in document order
+ * (which is relevance order), deduplicated by videoId.
+ */
+function collectVideoNodes(root: any): any[] {
+  const found: any[] = []
+  const seen = new Set<string>()
+  let budget = MAX_NODES
+
+  const walk = (node: any, depth: number): void => {
+    if (budget <= 0 || depth > MAX_DEPTH || node === null || typeof node !== 'object') {
+      return
+    }
+    budget--
+
+    if (!Array.isArray(node) && typeof node.videoId === 'string' && node.videoId !== '') {
+      const hasTitle = firstText(node, TITLE_KEYS) !== ''
+      // A node needs a title *and* a duration to count as a result: that pairing
+      // is what separates a real renderer from an endpoint or a thumbnail ref.
+      if (hasTitle && durationOf(node) > 0 && !seen.has(node.videoId)) {
+        seen.add(node.videoId)
+        found.push(node)
+        // Children of a matched renderer are its own thumbnails and endpoints —
+        // nothing else to find below.
+        return
       }
     }
+
+    for (const key of Object.keys(node)) {
+      walk(node[key], depth + 1)
+    }
   }
 
-  const results: SearchResult[] = []
-  for (const video of renderers) {
-    const duration = parseDuration(textOf(video?.lengthText))
-    // duration 0 means live, upcoming, or a private/deleted video.
-    if (!video?.videoId || duration <= 0) {
-      continue
-    }
-    results.push({
-      videoId: video.videoId,
-      title: textOf(video.title),
-      artist: textOf(video.ownerText) || textOf(video.shortBylineText),
-      duration,
-    })
-  }
-  return results
+  walk(root, 0)
+  return found
+}
+
+/** Extract every video from an InnerTube search payload, whatever its shape. */
+export function parseInnerTubeSearch(data: any): SearchResult[] {
+  // Nodes without a positive duration never reach here: live, upcoming and
+  // private/deleted videos are filtered out by collectVideoNodes.
+  return collectVideoNodes(data).map(node => ({
+    videoId: node.videoId,
+    title: firstText(node, TITLE_KEYS),
+    artist: firstText(node, ARTIST_KEYS),
+    duration: durationOf(node),
+  }))
 }
 
 /** Extract results from an Invidious /api/v1/search payload. */
@@ -265,7 +315,9 @@ export async function searchYoutube(
   // which the .env generator flattens to SECRETS_<KEY> (same as ut-astro's
   // SECRETS_MANDRILL_API_KEY). process.env is the prod path (systemd sources
   // the generated .env); import.meta.env is the local dev fallback.
-  const key = process.env.SECRETS_YOUTUBE_API_KEY ?? import.meta.env.SECRETS_YOUTUBE_API_KEY
+  // `import.meta.env` only exists once Vite has processed this module: it is
+  // undefined under plain Node (unit tests, scripts), hence the optional chain.
+  const key = process.env.SECRETS_YOUTUBE_API_KEY ?? import.meta.env?.SECRETS_YOUTUBE_API_KEY
   const providers: Array<{ name: string; run: () => Promise<SearchResult[]> }> = [
     { name: 'innertube', run: () => innertubeSearch(q) },
   ]
