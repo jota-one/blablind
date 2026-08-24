@@ -6,16 +6,18 @@ _Size: L. Risk: medium (new build/deploy shape). The architecture was validated 
 
 Web Push needs `aes128gcm` encryption + VAPID JWT — impractical in JSVM, trivial with `github.com/SherClockHolmes/webpush-go`. The hybrid approach keeps **all existing JS hooks and migrations running unchanged**: the Go binary registers the `jsvm` plugin exactly like the stock binary does.
 
-## Phase 1 — Go scaffolding (no push yet)
+## Phase 1 — Go scaffolding (no push yet) — ✅ **shipped 2026-08-24**
 
-Goal: our own binary that behaves byte-for-byte like the stock one.
+Goal: our own binary that behaves byte-for-byte like the stock one. Done — see `pb/main.go` and `pb/README.md`. Two notes for whoever continues:
 
-1. Copy the shape of `lexlsf/pb/main.go` into `pb/main.go` (module `github.com/jorinho/blablind` or the actual GitHub path): `pocketbase.New()`, `jsvm.MustRegister` (defaults — picks up `pb_hooks/` and `pb_migrations/`), `migratecmd.MustRegister` (TemplateLangJS, Automigrate), the `OnBootstrap` RunAllMigrations block, and the `apis.Static(os.DirFS("./pb_public"))` catch-all. Drop lexlsf's video/impersonate extras.
-2. `go.mod`: `github.com/pocketbase/pocketbase` pinned to the version in `pb/.pbversion` (v0.39.4 — lexlsf pins an older one, don't copy its version).
-3. Build & swap locally: `cd pb && go build -o pocketbase.custom . && ./pocketbase.custom serve --http=127.0.0.1:8093`. Full regression: app boots, migrations idempotent, a complete classic + autonomous game works, existing hooks fire (skip-vote endpoint, host election).
-4. `.gitignore`: ignore the built binary (keep committing nothing binary; CI builds it).
+- The reference used was **PocketBase's own `examples/base/main.go`** (in the module cache for the pinned version), not lexlsf's simplified `main.go`. lexlsf's version drops `indexFallback`, uses a different `hooksPool` default and adds a redundant `OnBootstrap`/`RunAllMigrations` block — `apis/serve.go` already runs migrations on serve. Copying it would have silently changed static-serving behavior.
+- The `ghupdate` plugin is deliberately **not** registered: `pocketbase update` would overwrite our custom binary with the official one.
 
-Checkpoint commit: `feat(pb): custom Go PocketBase build with jsvm (behavior-identical)`.
+What landed: `pb/main.go` (module `github.com/jota-one/blablind`), `pb/go.mod` pinned to `v0.39.4` to match `.pbversion`, `pb/go.sum`, `pb/README.md`, and a `pnpm db:custom` script. The binary is gitignored (`pb/pocketbase.custom` was already listed).
+
+Verified: all 51 app migrations apply on a fresh DB (13 collections created); re-running against a copy of the dev DB applies nothing new; JS hooks load (`/api/skip-vote` answers with its own validation error); realtime `PB_CONNECT` works; `serve --help` is flag-for-flag identical to the official binary.
+
+Also verified end-to-end (2026-08-24): a two-browser classic IRL game against the custom binary — session creation, server-side host election and re-election, realtime propagation both ways, unrevealed-title masking via `onRecordEnrich`, YouTube search through the SSR proxy, game start and buzz write. Playwright suite green, 3/3 (autonomous flow, buzz-advance, password-reset with Mailpit).
 
 ## Phase 2 — push plumbing
 
@@ -31,15 +33,15 @@ Checkpoint commit: `feat(pb): custom Go PocketBase build with jsvm (behavior-ide
 
 ## Phase 3 — CI/deploy
 
-Follow `lexlsf/pb/README.md` §Recommandation verbatim, adapted to this repo's `.github/workflows/deploy.yaml`:
-- Add `actions/setup-go` + `GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o pocketbase .` in the `build` job (workdir `pb`) **before** `Prepare artifact`.
-- Coordinate with the infra side: the "pb" bundle packaging loop must include the `pocketbase` binary (see the diff in lexlsf's README against `infra/.github/workflows/deploy-pb-db.yaml`). This part may already be done for lexlsf — check with the infra owner whether the loop change is generic or per-project.
+**No workflow change is needed in this repo** — this plan's original instructions here were stale. Verified against `jota-one/infra@c72f808` (2026-08-24): `deploy-pb-db.yaml` checks for `<pb-path>/go.mod`, reads the Go version from it, runs `actions/setup-go`, builds `GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o pocketbase .` and includes the binary in the "pb" bundle. `bin/pb_install` then skips it because a source-built binary reports version `(untracked)`.
+
+Consequence: **the switch to the custom binary happens on the first deploy after `pb/go.mod` reaches `main`** — no opt-in step.
 - Keep `.pbversion` in sync with the pinned Go dependency; it doubles as the rollback lever (see lexlsf README "Plan de rollback").
 - VAPID private key: add to the infra secret mechanism, exposed as env to the systemd service.
 
 ## Verification
 
-- Phase 1: full manual regression + both e2e specs against the custom binary.
+- Phase 1: done — server-side checks, the two-browser manual smoke and the full Playwright suite (3/3) all passed against the custom binary on 2026-08-24.
 - Phase 2: two devices (one Android Chrome, one iOS installed PWA), opt in on both, start a game from a third client → both receive the push with the app closed; tapping opens the room. Expired-subscription cleanup: subscribe, unsubscribe at the browser level, trigger a push, confirm the record is deleted.
 - Push failure must never break the triggering save (send asynchronously — goroutine, like lexlsf's post-commit ffmpeg hooks).
 
