@@ -14,11 +14,10 @@ List of small potential improvements and refactors.
 - **Sécurité : validation serveur des favoris** — hook JSVM sur la création d'un favori : le client passe l'id du track d'origine, le hook vérifie que le morceau est bien révélé (`status === 'done'` ou `solved_by`/`skip_revealed`) avant d'accepter. Complète le garde-fou UI. À expliquer/valider avant implémentation.
 - **Sécurité : verrouiller les écritures gameplay** — `sessions`/`tracks`/`buzzes` sont en update/delete publics (n'importe qui peut se nommer host, valider un buzz, supprimer une session). Généraliser le `secret` joueur existant via des endpoints custom (pattern `skip-vote`) : buzz, vote, validation, avance, update session — avec vérification du rôle (host/validateur). Priorité #1 de l'analyse. Voir `docs/ANALYSIS-2026-07-12.md` §2.1.
 - **Refactor : découper Room.vue** — 2 100+ lignes : extraire RoomLobby, PlaybackCard, BuzzZone/ValidatorPanel, RoomTabs, RoomMenus + composables `useGameFlow` / `useRoomRoles`, et rapatrier les ~25 écritures PB brutes dans les composables (prérequis du chantier sécurité). Voir `docs/ANALYSIS-2026-07-12.md` §2.2.
-- **Typage des records PB** — remplacer les `any` (27 fichiers) par des types partagés `src/types/records.ts` (ou `pocketbase-typegen`), en commençant par les composables et props du jeu. Voir `docs/ANALYSIS-2026-07-12.md` §2.3.
-- **Reconciler autonome côté serveur** — une fois le build Go custom en place (Web Push), porter `computeNextAction` (fonction pure, tests unitaires = spec de portage) côté serveur pour supprimer la dépendance au navigateur du host. Voir `docs/ANALYSIS-2026-07-12.md` §2.4.
-- **Nettoyage deps & README** — `chart.js`, `pdfmake`, `vue3-markdown` sans aucun import dans `src/` (à supprimer) ; `vitest` installé mais non utilisé comme runner ; README obsolète (Astro 6, 4 collections, modes IRL/autonome absents).
-- **Couverture de tests ciblée** — unit : matrice `buzzBlockReason`, équité `canAddTrack`/`canDeleteTrack`, `skipVotesNeeded`, `playerRatio` ; e2e : flux IRL (handover DJ + buzz verbal), plus gros flux non testé.
-- **Durcissement recherche Invidious** — persister les résultats dans la collection `videos` comme premier niveau de recherche ; liste d'instances configurable par env (rotation sans déploiement).
+- **Typage des records PB** — `src/types/records.ts` existe (16 types), mais la migration est à peine entamée : ~28 fichiers contiennent encore des `any`. Continuer par les composables et props du jeu. Voir `docs/ANALYSIS-2026-07-12.md` §2.3.
+- **Build PocketBase custom en Go** — socle partagé, sans fonctionnalité visible : scaffolding `main.go` + `go.mod`, étape CI `go build`, déploiement de notre binaire au lieu du binaire officiel. Hybride : le plugin `jsvm` est conservé, tous les hooks/migrations JS actuels continuent de tourner. **Prérequis de deux chantiers** — le reconciler autonome et les notifications push — donc sa priorité suit le premier des deux qu'on veut livrer. L'infra de déploiement est déjà en place ; **lexlsf** a déjà son propre build Go custom, à copier. Plan : `docs/plans/09-webpush-go.md`.
+- **Reconciler autonome côté serveur** — porter `computeNextAction` (fonction pure, tests unitaires = spec de portage) côté serveur pour supprimer la dépendance au navigateur du host. Prérequis : le build Go ci-dessus. Priorité relevée en présentiel : l'appareil du host est souvent celui du DJ (couplage par défaut, `host_election.pb.js`), donc un téléphone verrouillé ou throttlé bloque la partie pour toute la pièce. Voir `docs/ANALYSIS-2026-07-12.md` §2.4.
+- **Couverture de tests ciblée** — la partie unit est faite (`tests/unit/rules.test.ts` couvre `buzzBlockReason`, `canAddTrack`/`canDeleteTrack`, `skipVotesNeeded`, `playerRatio`). Reste l'e2e : flux IRL (handover DJ + buzz verbal), plus gros flux non testé.
 - **Heartbeat : amplification d'écritures** — chaque heartbeat (15s) = update `players` diffusé en SSE à tous + hook d'élection du host. OK à l'échelle actuelle ; si sessions > ~20 joueurs, endpoint dédié + early-exit du hook quand le host est en ligne.
 
 
@@ -34,44 +33,47 @@ La v1 est livrée (voir History 2026-07-12). Reste pour plus tard :
 - **Export/durcissement des votes** : votes définitifs v1 (pas de changement d'avis) ; seuil recalculé sur les joueurs en ligne au moment du vote.
 
 ### Notifications push (Web Push)
-> Plan d'implémentation détaillé : `docs/plans/09-webpush-go.md` (scaffolding calqué sur lexlsf).
+> Plan d'implémentation détaillé : `docs/plans/09-webpush-go.md`. Prérequis : *Build PocketBase custom en Go* (voir Improvements).
 
-Prévenir les joueurs même app fermée / onglet en arrière-plan : "la partie démarre", "c'est ton tour de faire deviner", "tu as été invité". Prérequis déjà en place : l'app est installable (manifest + service worker), ce qui est obligatoire pour le push sur iOS (16.4+).
+Le besoin est **présentiel**, contrairement à ce qu'on pourrait croire : le jeu impose d'avoir le téléphone en main comme buzzer, ce qui est exactement la situation où on part lire un message — l'app passe en arrière-plan *pendant* la partie. Et un onglet en fond ne peut pas s'alerter lui-même (timers throttlés sur mobile) : le push est le seul mécanisme qui atteigne une PWA en arrière-plan.
 
-Architecture retenue : **build PocketBase custom en Go** (hybride — le plugin `jsvm` est conservé, donc tous les hooks/migrations JS actuels continuent de tourner). Le push part directement d'un hook Go via la lib `webpush-go` (chiffrement aes128gcm + JWT VAPID gérés nativement), ce qui évite un sidecar Node ou une réimplémentation crypto en JSVM.
+Déclencheur prioritaire : **"c'est ton tour de faire deviner"**. Comme le validateur est le propriétaire du morceau (`added_by`), le rôle tourne entre tous les joueurs et une seule personne distraite met toute la pièce en pause — c'est un problème de gameplay, pas de confort. "La partie démarre" garde du sens (on attend sur son téléphone). "Tu as été invité" n'a pas besoin de push : un lien ou un mail suffit.
+
+Prérequis déjà en place : l'app est installable (manifest + service worker), obligatoire pour le push sur iOS (16.4+). Le push part d'un hook Go via `webpush-go` (chiffrement aes128gcm + JWT VAPID natifs), ce qui évite un sidecar Node ou une réimplémentation crypto en JSVM.
 
 À faire :
 - Générer une paire de clés **VAPID** (publique côté client, privée en secret serveur).
 - Collection `push_subscriptions` (endpoint + clés `p256dh`/`auth`, liée au player/user, dédup par endpoint).
 - Client : bouton opt-in → `Notification.requestPermission()` → `pushManager.subscribe(clé publique)` → envoi de la subscription à PocketBase.
 - Service worker : handlers `push` (showNotification) et `notificationclick` (ouvrir la room).
-- Hook Go : sur les déclencheurs (partie démarre / ton tour / invitation) → envoyer le push aux subscriptions ciblées.
-- Build/déploiement : scaffolding `main.go` + `go.mod`, étape CI `go build`, on déploie notre binaire au lieu du binaire officiel. L'infra de déploiement est déjà en place — s'inspirer du projet **lexlsf** qui a déjà son propre build Go custom de PocketBase.
+- Hook Go : sur les déclencheurs → envoyer le push aux subscriptions ciblées, en commençant par "c'est ton tour".
 
-### Morceaux favoris
-Idée de Geetha. Pendant un blindtest, si un morceau plaît à un joueur, il peut l'ajouter à ses favoris — mais uniquement une fois le morceau **révélé** (bouton non disponible avant). Le bouton reste aussi accessible après coup, depuis la liste des morceaux déjà joués ("Passés") et l'écran de fin de partie, pour rattraper un ajout oublié.
-
-**Spec validée (2026-07-10)** :
-- Collection `favorites` : `user` (relation) + `video` (relation, catalogue durable) + snapshots contextuels (`discovered_from_name`, `discovered_from_user`, `session_name`, `guessed_right`, `start_seconds`). Index unique `(user, video)` = anti-doublon. Règles API scopées au user connecté.
-- Réservé aux joueurs connectés ; les invités voient le bouton désactivé avec une incitation à créer un compte.
-- Retirer un favori = toggle du même bouton (in-game) ou bouton dans l'espace membre.
-- Espace membre : section dédiée listant thumbnail, titre, artiste, qui a fait découvrir, session + date, badge si deviné juste, lien YouTube avec timestamp, retrait.
-
-Reste à faire ensuite :
-- Export ou partage de sa liste de favoris.
-- Hook serveur de validation (voir Improvements / Sécurité).
+### Morceaux favoris — suite
+Idée de Geetha. La v1 est livrée (voir History 2026-07-10) : ajout depuis la révélation, l'onglet "Passés" et l'écran de fin, section dédiée dans l'espace membre, réservé aux joueurs connectés. Reste :
+- **Export ou partage** de sa liste de favoris.
+- Le hook serveur de validation est suivi dans *Improvements / Sécurité*.
 
 ### Idées issues de l'analyse 2026-07-12
-Classées par rapport valeur/effort — détails et arbitrages dans `docs/ANALYSIS-2026-07-12.md` §3.
+Reclassées **présentiel d'abord** (2026-08-24) : le blindtest à distance n'est plus une cible — `irl_mode` est le défaut et le distant n'est plus investi. Détails et arbitrages dans `docs/ANALYSIS-2026-07-12.md` §3.
+
+Priorité haute — servent directement la soirée en présence :
+
+- **Mode TV / grand écran** : route spectateur `/{slug}/tv` sans record joueur — état du morceau (sans réponse avant révélation), ordre des buzz, compte à rebours, classement, QR code. L'écran commun autour duquel la soirée s'organise ; répond aussi au cas "l'auteur de la playlist regarde sans jouer" (v2 autonome).
+- **Mode équipes** : choix d'équipe au lobby (`players.team`), score agrégé par équipe, mauvaise réponse = toute l'équipe bloquée. Équité et validation inchangées. Des équipes autour d'une table est la forme naturelle d'un blindtest de soirée.
+- **Partie instantanée par thème** : chemin "quick game" dans le wizard — tags/décennie → playlist assemblée depuis les `playlist_tracks` publics. Sert le DJ qui improvise sur place. S'appuie sur la galerie de playlists publiques déjà prévue (v2).
+
+Priorité moyenne :
 
 - **Page récap partageable** : à la fin d'une partie, page publique en lecture seule `/{slug}/recap` (podium, liste des morceaux, qui a deviné) — l'artefact "à partager dans le groupe" ; deuxième chance d'ajouter un favori. Toutes les données existent déjà. Plan : `docs/plans/08-recap-and-replay.md`.
 - **Rejouer une partie** : bouton sur l'écran de fin / récap qui clone la session (nouveau slug, tracks re-queued, mode autonome) — même playlist pour le groupe suivant. Plan : `docs/plans/08-recap-and-replay.md`.
+- **Import playlist Spotify/Deezer** : coller un lien de playlist publique → récupération serveur de la liste → matching "artiste - titre" via le proxy de recherche existant → confirmation par morceau dans l'éditeur de playlists. Vaut aussi comme **mesure** : la qualité réelle du matching Spotify→YouTube dira si une intégration Spotify plus large a du sens (voir note ci-dessous).
+
+Priorité basse — indifférents au présentiel :
+
 - **Scoring dégressif à la vitesse (option)** : point plein si buzz correct sous N secondes, dégressif ensuite — les timings par buzz sont déjà enregistrés (`buzzes.created` vs `tracks.started_at`). Nécessite de passer d'un score dérivé de `solved_by` à un score stocké par track (à mutualiser avec le mode équipes).
-- **Mode équipes** : choix d'équipe au lobby (`players.team`), score agrégé par équipe, mauvaise réponse = toute l'équipe bloquée. Équité et validation inchangées.
-- **Mode TV / grand écran** : route spectateur `/{slug}/tv` sans record joueur — état du morceau (sans réponse avant révélation), ordre des buzz, compte à rebours, classement, QR code. Idéal IRL projeté sur une TV ; répond aussi au cas "l'auteur de la playlist regarde sans jouer" (v2 autonome).
-- **Partie instantanée par thème** : chemin "quick game" dans le wizard — tags/décennie → playlist assemblée depuis les `playlist_tracks` publics. S'appuie sur la galerie de playlists publiques déjà prévue (v2).
 - **Stats carrière (membres)** : page "Stats" dans l'espace membre — parties jouées, ratio dans le temps, meilleure série, artistes les plus devinés. Tout est calculable depuis `players.auth_user` + `tracks.solved_by` + `favorites`. Donne une vraie raison de créer un compte.
-- **Import playlist Spotify/Deezer** : coller un lien de playlist publique → récupération serveur de la liste → matching "artiste - titre" via le proxy de recherche existant → confirmation par morceau dans l'éditeur de playlists. (Plus tard — l'import YouTube avait été retiré, mais le contexte a changé : le builder de playlists et le mode autonome existent désormais.)
+
+> **Spotify comme source audio — étudié le 2026-08-24, écarté comme remplacement.** En présentiel un seul appareil diffuse, donc un seul Premium serait nécessaire (l'API Connect piloterait l'app Spotify du DJ ; la recherche passe par un token applicatif serveur, sans compte joueur). Deux obstacles décisifs : le **catalogue** licencié de Spotify est bien plus étroit que YouTube, or "chacun fait deviner *ses* morceaux" est le principe fondateur — un morceau absent exclut son joueur ; et `dj_candidate` permet le handover, donc plusieurs personnes devraient être Premium. Reste envisageable comme **option** pour un DJ qui a Premium, jamais comme socle : la permissivité de YouTube *est* le produit.
 
 Écartés volontairement (voir analyse) : app native (la PWA + Web Push couvrent le besoin), hébergement audio in-app (droits, stockage), leaderboards globaux (scores non comparables entre sessions, incite à la triche).
 
