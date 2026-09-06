@@ -28,14 +28,9 @@ export default defineConfig({
     ...(process.env.NODE_ENV === 'production'
       ? {
           ssr: {
-            noExternal: [
-              'vue',
-              'pocketbase',
-              '@primevue/themes',
-              '@primeuix/themes',
-              'marked',
-              'dayjs',
-            ],
+            // The deploy artifact ships only pb/ (no node_modules), so the SSR
+            // bundle must be fully self-contained.
+            noExternal: true,
           },
         }
       : {}),
