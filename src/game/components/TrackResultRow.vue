@@ -34,7 +34,7 @@
         <div class="flex items-center gap-2 sm:flex-col sm:items-start sm:gap-0.5">
           <span class="text-xs text-base-content/50 w-28 sm:w-auto shrink-0">{{ t('track.start_label') }}</span>
           <div class="flex items-center gap-1">
-            <label class="input input-xs w-20 shrink-0" :class="{ 'opacity-60': added }">
+            <label class="input input-xs w-20 px-2 shrink-0" :class="{ 'opacity-60': added }">
               <input
                 v-model.number="startSeconds"
                 type="number"
@@ -61,7 +61,7 @@
         <div class="flex items-center gap-2 sm:flex-col sm:items-start sm:gap-0.5">
           <span class="text-xs text-base-content/50 w-28 sm:w-auto shrink-0">{{ t('track.playback_duration_label') }}</span>
           <div class="flex items-center gap-1">
-            <label class="input input-xs w-20 shrink-0" :class="{ 'opacity-60': added }">
+            <label class="input input-xs w-20 px-2 shrink-0" :class="{ 'opacity-60': added }">
               <input
                 v-model.number="playbackDuration"
                 type="number"
@@ -88,7 +88,7 @@
         <div class="flex items-center gap-2 sm:flex-col sm:items-start sm:gap-0.5">
           <span class="text-xs text-base-content/50 w-28 sm:w-auto shrink-0">{{ t('track.reveal_seconds_label') }}</span>
           <div class="flex items-center gap-1">
-            <label class="input input-xs w-20 shrink-0" :class="{ 'opacity-60': added }">
+            <label class="input input-xs w-20 px-2 shrink-0" :class="{ 'opacity-60': added }">
               <input
                 v-model.number="revealSeconds"
                 type="number"

@@ -132,8 +132,8 @@
               :key="field.key"
               class="flex items-center gap-1.5"
             >
-              <span class="text-xs text-base-content/50 whitespace-nowrap">{{ t(field.label) }}</span>
-              <label class="input input-xs w-16 shrink-0">
+              <span class="text-xs text-base-content/50 w-28 shrink-0">{{ t(field.label) }}</span>
+              <label class="input input-xs w-20 px-2 shrink-0">
                 <input
                   v-model.number="favorite[field.key]"
                   type="number"

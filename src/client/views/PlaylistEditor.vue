@@ -110,8 +110,8 @@
             </p>
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
               <div class="flex items-center gap-1">
-                <span class="text-xs text-base-content/50">{{ t('track.start_label') }}</span>
-                <label class="input input-xs w-18 shrink-0">
+                <span class="text-xs text-base-content/50 w-28 shrink-0">{{ t('track.start_label') }}</span>
+                <label class="input input-xs w-20 px-2 shrink-0">
                   <input
                     v-model.number="row.start_seconds"
                     type="number"
@@ -133,8 +133,8 @@
                 </button>
               </div>
               <div class="flex items-center gap-1">
-                <span class="text-xs text-base-content/50">{{ t('track.playback_duration_label') }}</span>
-                <label class="input input-xs w-18 shrink-0">
+                <span class="text-xs text-base-content/50 w-28 shrink-0">{{ t('track.playback_duration_label') }}</span>
+                <label class="input input-xs w-20 px-2 shrink-0">
                   <input
                     v-model.number="row.playback_duration"
                     type="number"
@@ -156,8 +156,8 @@
                 </button>
               </div>
               <div class="flex items-center gap-1">
-                <span class="text-xs text-base-content/50">{{ t('track.reveal_seconds_label') }}</span>
-                <label class="input input-xs w-18 shrink-0">
+                <span class="text-xs text-base-content/50 w-28 shrink-0">{{ t('track.reveal_seconds_label') }}</span>
+                <label class="input input-xs w-20 px-2 shrink-0">
                   <input
                     v-model.number="row.reveal_seconds"
                     type="number"
