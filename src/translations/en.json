@@ -390,5 +390,7 @@
   "admin.sessions_delete": "Delete session",
   "admin.sessions_delete_title": "Delete this session?",
   "admin.sessions_delete_message": "\"{name}\" and everything it holds — players, tracks, buzzes and votes — will be permanently deleted.",
-  "admin.sessions_delete_live_warning": "Careful: {count} player(s) are online in this session right now."
+  "admin.sessions_delete_live_warning": "Careful: {count} player(s) are online in this session right now.",
+  "common.cancel": "Cancel",
+  "common.delete": "Delete"
 }

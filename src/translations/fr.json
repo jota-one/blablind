@@ -390,5 +390,7 @@
   "admin.sessions_delete": "Supprimer la session",
   "admin.sessions_delete_title": "Supprimer cette session ?",
   "admin.sessions_delete_message": "« {name} » et tout ce qu’elle contient — joueurs, morceaux, buzz et votes — seront définitivement supprimés.",
-  "admin.sessions_delete_live_warning": "Attention : {count} joueur(s) sont en ligne dans cette session en ce moment."
+  "admin.sessions_delete_live_warning": "Attention : {count} joueur(s) sont en ligne dans cette session en ce moment.",
+  "common.cancel": "Annuler",
+  "common.delete": "Supprimer"
 }

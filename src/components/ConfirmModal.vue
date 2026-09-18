@@ -7,9 +7,9 @@
       <h3 class="font-bold text-lg mb-4">{{ title }}</h3>
       <p class="py-4">{{ message }}</p>
       <div class="modal-action">
-        <button type="button" @click="handleCancel" class="btn">Cancel</button>
+        <button type="button" @click="handleCancel" class="btn">{{ t('common.cancel') }}</button>
         <button type="button" @click="handleConfirm" class="btn btn-error">
-          Delete
+          {{ t('common.delete') }}
         </button>
       </div>
     </div>
@@ -21,12 +21,15 @@
 
 <script setup lang="ts">
 import { watch, useTemplateRef } from 'vue'
+import { useI36n } from '@jota-one/i36n'
 
 interface Props {
   modelValue: boolean
   title: string
   message: string
 }
+
+const { t } = useI36n()
 
 const props = defineProps<Props>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean]; confirm: [] }>()
