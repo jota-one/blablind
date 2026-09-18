@@ -85,6 +85,13 @@ export default function useSessions() {
     })
   })
 
+  // Relations cascade: players and tracks go with the session, then buzzes and
+  // answer_votes go with the tracks.
+  const deleteSession = async (id: string) => {
+    await pb.collection('sessions').delete(id)
+    await load()
+  }
+
   let refreshInterval: ReturnType<typeof setInterval>
   let clockInterval: ReturnType<typeof setInterval>
 
@@ -101,5 +108,5 @@ export default function useSessions() {
     clearInterval(clockInterval)
   })
 
-  return { rows, statusFilter, loading, load }
+  return { rows, statusFilter, loading, load, deleteSession }
 }

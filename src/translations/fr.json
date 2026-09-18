@@ -386,5 +386,9 @@
   "admin.sessions_tracks": "Morceaux joués / total",
   "admin.sessions_empty": "Aucune session à afficher.",
   "admin.sessions_refresh": "Rafraîchir",
-  "admin.sessions_live_hint": "Actualisation automatique toutes les 10 s."
+  "admin.sessions_live_hint": "Actualisation automatique toutes les 10 s.",
+  "admin.sessions_delete": "Supprimer la session",
+  "admin.sessions_delete_title": "Supprimer cette session ?",
+  "admin.sessions_delete_message": "« {name} » et tout ce qu’elle contient — joueurs, morceaux, buzz et votes — seront définitivement supprimés.",
+  "admin.sessions_delete_live_warning": "Attention : {count} joueur(s) sont en ligne dans cette session en ce moment."
 }

@@ -79,22 +79,43 @@
           <span class="badge badge-sm badge-ghost">
             {{ t(`wizard.mode_${session.mode || 'classic'}`) }}
           </span>
-          <span class="text-xs opacity-40 w-full text-right sm:w-auto sm:ml-auto">{{ formatDate(session.created) }}</span>
+          <div class="flex items-center justify-end gap-1 w-full sm:w-auto sm:ml-auto">
+            <span class="text-xs opacity-40">{{ formatDate(session.created) }}</span>
+            <button
+              class="btn btn-xs btn-ghost text-red-600"
+              :title="t('admin.sessions_delete')"
+              @click="confirmDelete(session)"
+            >
+              <span class="i-fa-solid-trash"></span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
+
+    <ConfirmModal
+      v-model="showDeleteModal"
+      :title="t('admin.sessions_delete_title')"
+      :message="deleteMessage"
+      @confirm="deleteSessionConfirmed"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import dayjs from 'dayjs'
 import { useI36n } from '@jota-one/i36n'
-import useSessions from '@admin/composables/useSessions'
+import useSessions, { type TSessionRow } from '@admin/composables/useSessions'
+import ConfirmModal from '@components/ConfirmModal.vue'
 import type { SessionStatus } from '@/types/records'
 
 const { t } = useI36n()
-const { rows, statusFilter, loading, load } = useSessions()
+const { rows, statusFilter, loading, load, deleteSession } = useSessions()
+
+const showDeleteModal = ref(false)
+const sessionToDelete = ref<TSessionRow | null>(null)
+const deleteMessage = ref('')
 
 const filters = computed(() => [
   { value: '' as const, label: t('admin.sessions_filter_all') },
@@ -112,6 +133,26 @@ const statusBadge = (status: SessionStatus) => {
   if (status === 'playing') { return 'badge-success' }
   if (status === 'waiting') { return 'badge-warning' }
   return 'badge-ghost'
+}
+
+const confirmDelete = (session: TSessionRow) => {
+  sessionToDelete.value = session
+  deleteMessage.value = t('admin.sessions_delete_message', { name: session.name })
+  if (session.playersOnline > 0) {
+    deleteMessage.value += ` ${t('admin.sessions_delete_live_warning', { count: session.playersOnline })}`
+  }
+  showDeleteModal.value = true
+}
+
+const deleteSessionConfirmed = async () => {
+  if (!sessionToDelete.value) { return }
+  try {
+    await deleteSession(sessionToDelete.value.id)
+  } catch (error) {
+    console.error('Error deleting session:', error)
+  }
+  showDeleteModal.value = false
+  sessionToDelete.value = null
 }
 
 const formatDate = (date: string) => dayjs(date).format('DD/MM/YY HH:mm')

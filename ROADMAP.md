@@ -79,6 +79,7 @@ Priorité basse — indifférents au présentiel :
 
 ## History (done)
 
+- [2026-09-18] Delete a session (admin) — an administrator can delete a blindtest from the sessions list; the players, tracks, buzzes and votes it holds go with it, and the confirmation warns when players are still online in that session.
 - [2026-09-18] Sessions view (admin) — a new admin section lists every blindtest with its status, mode, players currently online and tracks played, so a host can watch a game fill up and progress from their phone.
 - [2026-09-18] Admin on mobile — the admin area is usable on a phone: screens no longer waste a quarter of the width in margins, and the users, tracks and roles lists fit without sideways scrolling.
 - [2026-08-23] YouTube search fixed — adding a track by searching YouTube works again; searches now go straight to YouTube instead of third-party mirrors that had gone offline, so results are faster and complete.

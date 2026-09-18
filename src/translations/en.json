@@ -386,5 +386,9 @@
   "admin.sessions_tracks": "Tracks played / total",
   "admin.sessions_empty": "No session to show.",
   "admin.sessions_refresh": "Refresh",
-  "admin.sessions_live_hint": "Refreshes automatically every 10 s."
+  "admin.sessions_live_hint": "Refreshes automatically every 10 s.",
+  "admin.sessions_delete": "Delete session",
+  "admin.sessions_delete_title": "Delete this session?",
+  "admin.sessions_delete_message": "\"{name}\" and everything it holds — players, tracks, buzzes and votes — will be permanently deleted.",
+  "admin.sessions_delete_live_warning": "Careful: {count} player(s) are online in this session right now."
 }
