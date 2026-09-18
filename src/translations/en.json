@@ -398,5 +398,10 @@
   "dashboard.recent_favorites": "Recent favorites",
   "dashboard.see_all": "See all",
   "dashboard.no_playlist": "No playlist yet.",
-  "dashboard.no_favorites": "No favorite track yet."
+  "dashboard.no_favorites": "No favorite track yet.",
+  "favorites.add_track": "Add a track",
+  "favorites.close_search": "Close the search",
+  "favorites.duplicate": "Duplicate with its own timings",
+  "room.favorite_removed_variants_left": "Removed from your favorites. You still have {n} version(s) set up differently, so the star stays on.",
+  "room.favorite_only_variants": "You have {n} version(s) of this track set up differently. Manage them from your favorites."
 }

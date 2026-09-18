@@ -153,6 +153,8 @@ type Props = {
   disabled?: boolean
   getPreviewTime?: () => number
   initialStart?: number
+  initialDuration?: number
+  initialReveal?: number
 }
 
 const props = defineProps<Props>()
@@ -163,8 +165,8 @@ defineEmits<{
 }>()
 
 const startSeconds = ref(props.initialStart ?? 0)
-const playbackDuration = ref(0)
-const revealSeconds = ref(0)
+const playbackDuration = ref(props.initialDuration ?? 0)
+const revealSeconds = ref(props.initialReveal ?? 0)
 
 const captureStart = () => { startSeconds.value = Math.floor(props.getPreviewTime!()) }
 const captureEnd = () => { playbackDuration.value = Math.max(1, Math.floor(props.getPreviewTime!()) - startSeconds.value) }

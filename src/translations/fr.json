@@ -398,5 +398,10 @@
   "dashboard.recent_favorites": "Derniers favoris",
   "dashboard.see_all": "Tout voir",
   "dashboard.no_playlist": "Aucune playlist pour le moment.",
-  "dashboard.no_favorites": "Aucun morceau favori pour le moment."
+  "dashboard.no_favorites": "Aucun morceau favori pour le moment.",
+  "favorites.add_track": "Ajouter un morceau",
+  "favorites.close_search": "Fermer la recherche",
+  "favorites.duplicate": "Dupliquer avec ses propres timings",
+  "room.favorite_removed_variants_left": "Ce morceau a été retiré de tes favoris. Tu en as cependant encore {n} configuré(s) différemment, donc l’étoile reste allumée.",
+  "room.favorite_only_variants": "Tu as {n} version(s) de ce morceau configurée(s) différemment. Gère-les depuis tes favoris."
 }

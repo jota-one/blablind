@@ -6,6 +6,18 @@
         {{ t('favorites.title') }}
       </h2>
 
+      <!-- Prepare ahead: search the library and YouTube, same component as the
+           in-game add-track modal. -->
+      <div class="mb-4">
+        <button class="btn btn-sm btn-primary w-full" @click="showSearch = !showSearch">
+          <span :class="showSearch ? 'i-fa-solid-xmark' : 'i-fa-solid-plus'"></span>
+          {{ showSearch ? t('favorites.close_search') : t('favorites.add_track') }}
+        </button>
+        <div v-show="showSearch" class="mt-3">
+          <TrackSearch :add-track="addFavorite" :remove-track="removeFavoriteById" can-add-track />
+        </div>
+      </div>
+
       <div v-if="loading" class="flex justify-center py-8">
         <span class="loading loading-spinner loading-sm"></span>
       </div>
@@ -45,47 +57,90 @@
         <li
           v-for="favorite in favorites"
           :key="favorite.id"
-          class="flex items-center gap-3 rounded-lg bg-base-200 px-3 py-2"
+          class="rounded-lg bg-base-200 px-3 py-2"
         >
-          <button
-            type="button"
-            class="relative w-14 h-14 shrink-0 rounded overflow-hidden group"
-            :title="isPreviewing(favorite) ? t('track.stop_preview') : t('track.play_preview')"
-            @click="togglePreview(favorite)"
-          >
-            <img
-              :src="`https://img.youtube.com/vi/${favorite.expand?.video?.video_id}/default.jpg`"
-              class="w-full h-full object-cover bg-base-300"
-              loading="lazy"
-            />
-            <span class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/60 transition-colors text-white">
-              <span :class="isPreviewing(favorite) ? 'i-fa-solid-stop' : 'i-fa-solid-play'"></span>
-            </span>
-          </button>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium truncate">
-              {{ favorite.expand?.video?.title }}
-              <span v-if="favorite.guessed_right" class="ml-1" :title="t('favorites.guessed_badge')">🏆</span>
-            </p>
-            <p v-if="favorite.expand?.video?.artist" class="text-xs text-base-content/50 truncate">
-              {{ favorite.expand?.video?.artist }}
-            </p>
-            <p class="text-xs text-base-content/40 mt-0.5 truncate">
-              <template v-if="favorite.discovered_from_name">
-                {{ t('favorites.discovered_from', { name: favorite.discovered_from_name }) }} ·
-              </template>
-              {{ favorite.session_name }} · {{ formatDate(favorite.created) }}
-            </p>
-            <div class="flex items-center gap-1.5 mt-1">
-              <span class="text-xs text-base-content/50">{{ t('track.start_label') }}</span>
-              <label class="input input-xs w-20 shrink-0">
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              class="relative w-14 h-14 shrink-0 rounded overflow-hidden group"
+              :title="isPreviewing(favorite) ? t('track.stop_preview') : t('track.play_preview')"
+              @click="togglePreview(favorite)"
+            >
+              <img
+                :src="`https://img.youtube.com/vi/${favorite.expand?.video?.video_id}/default.jpg`"
+                class="w-full h-full object-cover bg-base-300"
+                loading="lazy"
+              />
+              <span class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/60 transition-colors text-white">
+                <span :class="isPreviewing(favorite) ? 'i-fa-solid-stop' : 'i-fa-solid-play'"></span>
+              </span>
+            </button>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium truncate">
+                {{ favorite.expand?.video?.title }}
+                <span v-if="favorite.guessed_right" class="ml-1" :title="t('favorites.guessed_badge')">🏆</span>
+              </p>
+              <p v-if="favorite.expand?.video?.artist" class="text-xs text-base-content/50 truncate">
+                {{ favorite.expand?.video?.artist }}
+              </p>
+              <p class="text-xs text-base-content/40 mt-0.5 truncate">
+                <template v-if="favorite.discovered_from_name">
+                  {{ t('favorites.discovered_from', { name: favorite.discovered_from_name }) }} ·
+                </template>
+                <template v-if="favorite.session_name">{{ favorite.session_name }} · </template>
+                {{ formatDate(favorite.created) }}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="btn btn-xs btn-ghost btn-circle shrink-0 text-base-content/40 hover:text-primary"
+              :title="t('favorites.duplicate')"
+              @click="duplicateFavorite(favorite)"
+            >
+              <span class="i-fa-solid-copy"></span>
+            </button>
+            <a
+              :href="youtubeUrl(favorite)"
+              target="_blank"
+              rel="noopener"
+              class="btn btn-xs btn-ghost btn-circle shrink-0 text-base-content/40 hover:text-error"
+              :title="t('favorites.listen')"
+            >
+              <span class="i-fa-brands-youtube"></span>
+            </a>
+            <button
+              v-if="deleteConfirmId === favorite.id"
+              class="btn btn-xs btn-error shrink-0"
+              @click="removeFavorite(favorite)"
+            >
+              {{ t('favorites.remove_confirm') }}
+            </button>
+            <button
+              v-else
+              class="btn btn-xs btn-ghost btn-circle shrink-0 text-base-content/40 hover:text-error"
+              :title="t('favorites.remove')"
+              @click="deleteConfirmId = favorite.id"
+            >
+              <span class="i-fa-solid-trash"></span>
+            </button>
+          </div>
+
+          <!-- Full row width: nested in the title column the labels truncated. -->
+          <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+            <div
+              v-for="field in timingFields"
+              :key="field.key"
+              class="flex items-center gap-1.5"
+            >
+              <span class="text-xs text-base-content/50 whitespace-nowrap">{{ t(field.label) }}</span>
+              <label class="input input-xs w-16 shrink-0">
                 <input
-                  v-model.number="favorite.start_seconds"
+                  v-model.number="favorite[field.key]"
                   type="number"
                   min="0"
                   class="grow w-full min-w-0 text-center"
-                  :title="t('track.start_title')"
-                  @change="saveStart(favorite)"
+                  :title="t(field.title)"
+                  @change="saveTimings(favorite)"
                 />
                 <span class="opacity-50">s</span>
               </label>
@@ -93,37 +148,13 @@
                 v-if="isPreviewing(favorite)"
                 type="button"
                 class="btn btn-xs btn-ghost shrink-0 text-primary"
-                :title="t('track.capture_start_title')"
-                @click="captureStart(favorite)"
+                :title="t(field.captureTitle)"
+                @click="field.capture(favorite)"
               >
-                <span class="i-fa-solid-flag text-xs"></span>
+                <span :class="[field.icon, 'text-xs']"></span>
               </button>
             </div>
           </div>
-          <a
-            :href="youtubeUrl(favorite)"
-            target="_blank"
-            rel="noopener"
-            class="btn btn-xs btn-ghost btn-circle shrink-0 text-base-content/40 hover:text-error"
-            :title="t('favorites.listen')"
-          >
-            <span class="i-fa-brands-youtube"></span>
-          </a>
-          <button
-            v-if="deleteConfirmId === favorite.id"
-            class="btn btn-xs btn-error shrink-0"
-            @click="removeFavorite(favorite)"
-          >
-            {{ t('favorites.remove_confirm') }}
-          </button>
-          <button
-            v-else
-            class="btn btn-xs btn-ghost btn-circle shrink-0 text-base-content/40 hover:text-error"
-            :title="t('favorites.remove')"
-            @click="deleteConfirmId = favorite.id"
-          >
-            <span class="i-fa-solid-trash"></span>
-          </button>
         </li>
       </ul>
 
@@ -141,6 +172,8 @@ import { ref, computed, watch, useTemplateRef } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import useAuth from '@admin/composables/useAuth'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
+import TrackSearch from '@game/components/TrackSearch.vue'
+import { findOrCreateVideo } from '@game/composables/useVideos'
 
 const { t } = useI36n()
 const { user, pb } = useAuth()
@@ -148,6 +181,7 @@ const { user, pb } = useAuth()
 const favorites = ref<any[]>([])
 const loading = ref(false)
 const deleteConfirmId = ref<string | null>(null)
+const showSearch = ref(false)
 const previewInfo = ref<{ videoId: string; startSeconds: number } | null>(null)
 
 const previewPlayer = useTemplateRef<InstanceType<typeof YoutubePlayer>>('previewPlayer')
@@ -158,17 +192,35 @@ const previewingFavorite = computed(
   () => favorites.value.find(isPreviewing) ?? null,
 )
 
-const saveStart = (favorite: any) => {
-  const start = Math.max(0, Math.floor(favorite.start_seconds || 0))
-  favorite.start_seconds = start
-  pb.collection('favorites').update(favorite.id, { start_seconds: start })
+const saveTimings = (favorite: any) => {
+  const clean = (v: any) => (typeof v === 'number' && v > 0 ? Math.floor(v) : null)
+  favorite.start_seconds = Math.max(0, Math.floor(favorite.start_seconds || 0))
+  favorite.playback_duration = clean(favorite.playback_duration)
+  favorite.reveal_seconds = clean(favorite.reveal_seconds)
+  pb.collection('favorites').update(favorite.id, {
+    start_seconds: favorite.start_seconds,
+    playback_duration: favorite.playback_duration,
+    reveal_seconds: favorite.reveal_seconds,
+  })
 }
 
-// Capture the preview's current position as the new start, without restarting
-// the player (previewInfo keeps its original startSeconds).
+// Capture the preview's current position, without restarting the player
+// (previewInfo keeps its original startSeconds).
+const previewTime = () => Math.floor(previewPlayer.value?.getCurrentTime() ?? 0)
+
 const captureStart = (favorite: any) => {
-  favorite.start_seconds = Math.floor(previewPlayer.value?.getCurrentTime() ?? 0)
-  saveStart(favorite)
+  favorite.start_seconds = previewTime()
+  saveTimings(favorite)
+}
+
+const captureEnd = (favorite: any) => {
+  favorite.playback_duration = Math.max(1, previewTime() - (favorite.start_seconds ?? 0))
+  saveTimings(favorite)
+}
+
+const captureReveal = (favorite: any) => {
+  favorite.reveal_seconds = previewTime()
+  saveTimings(favorite)
 }
 
 const togglePreview = (favorite: any) => {
@@ -214,6 +266,79 @@ const removeFavorite = async (favorite: any) => {
   }
 }
 
+const timingFields = [
+  {
+    key: 'start_seconds',
+    label: 'track.start_label',
+    title: 'track.start_title',
+    captureTitle: 'track.capture_start_title',
+    icon: 'i-fa-solid-flag',
+    capture: captureStart,
+  },
+  {
+    key: 'playback_duration',
+    label: 'track.playback_duration_label',
+    title: 'track.playback_duration_title',
+    captureTitle: 'track.capture_end_title',
+    icon: 'i-fa-solid-flag-checkered',
+    capture: captureEnd,
+  },
+  {
+    key: 'reveal_seconds',
+    label: 'track.reveal_seconds_label',
+    title: 'track.reveal_seconds_title',
+    captureTitle: 'track.capture_reveal_title',
+    icon: 'i-fa-solid-eye',
+    capture: captureReveal,
+  },
+] as const
+
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+
+// Adding from the search: no discovery context, unlike a favorite starred in
+// a game. Returns the id so TrackSearch can offer to undo the add.
+const addFavorite = async (data: {
+  video_id: string
+  title?: string
+  artist?: string
+  duration?: number
+  start_seconds?: number
+  playback_duration?: number
+  reveal_seconds?: number
+}) => {
+  if (!user.value?.id) { return }
+  const video = await findOrCreateVideo(data)
+  const favorite = await pb.collection('favorites').create({
+    user: user.value.id,
+    video: video.id,
+    start_seconds: data.start_seconds ?? 0,
+    playback_duration: data.playback_duration || null,
+    reveal_seconds: data.reveal_seconds ?? null,
+  })
+  favorites.value.unshift({ ...favorite, expand: { video } })
+  return { id: favorite.id }
+}
+
+const removeFavoriteById = async (favoriteId: string) => {
+  await pb.collection('favorites').delete(favoriteId)
+  favorites.value = favorites.value.filter(f => f.id !== favoriteId)
+}
+
+// Same video, own timings: the point of dropping the unique (user, video) index.
+const duplicateFavorite = async (favorite: any) => {
+  const copy = await pb.collection('favorites').create({
+    user: favorite.user,
+    video: favorite.video,
+    discovered_from_name: favorite.discovered_from_name,
+    discovered_from_user: favorite.discovered_from_user || null,
+    session_name: favorite.session_name,
+    guessed_right: favorite.guessed_right,
+    start_seconds: favorite.start_seconds ?? 0,
+    playback_duration: favorite.playback_duration || null,
+    reveal_seconds: favorite.reveal_seconds ?? null,
+  })
+  const index = favorites.value.findIndex(f => f.id === favorite.id)
+  favorites.value.splice(index + 1, 0, { ...copy, expand: favorite.expand })
+}
 </script>

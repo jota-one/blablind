@@ -27,6 +27,8 @@
           :previewing="previewInfo?.videoId === favorite.expand?.video?.video_id"
           :get-preview-time="previewInfo?.videoId === favorite.expand?.video?.video_id ? getPreviewTime : undefined"
           :initial-start="favorite.start_seconds ?? 0"
+          :initial-duration="favorite.playback_duration ?? 0"
+          :initial-reveal="favorite.reveal_seconds ?? 0"
           @add="addVideo"
           @remove="removeVideo"
           @preview="togglePreview"

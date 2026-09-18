@@ -79,6 +79,7 @@ Priorité basse — indifférents au présentiel :
 
 ## History (done)
 
+- [2026-09-18] Favorites become a preparation library — members can search the library and YouTube straight from their favorites to add tracks ahead of a blindtest, set the start, excerpt length and reveal timings on each one so adding it to a game brings everything, and duplicate a track to keep several differently tuned versions of it. Un-starring a track in a game never destroys those tuned versions, and says so.
 - [2026-09-18] Preview player stays in view — when previewing a track from the favorites list, a playlist or the add-track search, the video now stays pinned at the top while the list scrolls under it, so the track being tuned and its start-timing controls remain reachable.
 - [2026-09-18] Member area dashboard — the account page now opens on a dashboard: counters and one-tap shortcuts to blindtests, playlists, favorites and game preferences, plus a preview of the latest blindtest, the latest playlist and the five most recent favorites, each with a link to its full section.
 - [2026-09-18] Delete a session (admin) — an administrator can delete a blindtest from the sessions list; the players, tracks, buzzes and votes it holds go with it, and the confirmation warns when players are still online in that session.

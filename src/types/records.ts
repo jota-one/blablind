@@ -125,5 +125,7 @@ export type FavoriteRecord = BaseRecord & {
   session_name: string
   guessed_right: boolean
   start_seconds: number
+  playback_duration: number
+  reveal_seconds: number
   expand?: { video?: VideoRecord }
 }

@@ -1097,12 +1097,19 @@ watch(() => user.value?.id, (id) => {
     loadFavorites()
   }
 }, { immediate: true })
-const onFavoriteToggle = (track: any) => {
+const onFavoriteToggle = async (track: any) => {
   if (!canFavorite.value) {
     showToast(t('room.favorite_login_hint'))
     return
   }
-  toggleFavorite(track)
+  const result = await toggleFavorite(track)
+  if (result.variantsLeft > 0) {
+    showToast(
+      result.action === 'removed'
+        ? t('room.favorite_removed_variants_left', { n: result.variantsLeft })
+        : t('room.favorite_only_variants', { n: result.variantsLeft }),
+    )
+  }
 }
 
 // Declarative seek toward the YoutubePlayer; bump the token to (re)trigger.
