@@ -379,5 +379,12 @@
   "password_reset.success": "Password updated! You can now log in.",
   "password_reset.passwords_dont_match": "Passwords don't match.",
   "password_reset.token_expired": "This link is invalid or has expired.",
-  "password_reset.error": "Something went wrong. Please try again."
+  "password_reset.error": "Something went wrong. Please try again.",
+  "admin.sessions_title": "Sessions",
+  "admin.sessions_filter_all": "All",
+  "admin.sessions_players": "Players online / total",
+  "admin.sessions_tracks": "Tracks played / total",
+  "admin.sessions_empty": "No session to show.",
+  "admin.sessions_refresh": "Refresh",
+  "admin.sessions_live_hint": "Refreshes automatically every 10 s."
 }

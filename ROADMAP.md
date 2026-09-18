@@ -79,6 +79,8 @@ Priorité basse — indifférents au présentiel :
 
 ## History (done)
 
+- [2026-09-18] Sessions view (admin) — a new admin section lists every blindtest with its status, mode, players currently online and tracks played, so a host can watch a game fill up and progress from their phone.
+- [2026-09-18] Admin on mobile — the admin area is usable on a phone: screens no longer waste a quarter of the width in margins, and the users, tracks and roles lists fit without sideways scrolling.
 - [2026-08-23] YouTube search fixed — adding a track by searching YouTube works again; searches now go straight to YouTube instead of third-party mirrors that had gone offline, so results are faster and complete.
 - [2026-07-18] Impersonation (admin) — an administrator can sign in as any user from the users list to see the app through their eyes; a banner in the member area signals the impersonation and lets the admin return to their own account.
 - [2026-07-18] Account merge (admin) — an administrator can merge two user accounts: all activity of the source account (sessions, game history, favorites, playlists) is moved to the target account, then the emptied source account is deleted.

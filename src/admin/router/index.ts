@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
+import Sessions from '../views/Sessions.vue'
 import Users from '../views/Users.vue'
 import Roles from '../views/Roles.vue'
 import Roadmap from '../views/Roadmap.vue'
@@ -9,6 +10,7 @@ import useAuth from '../composables/useAuth'
 
 const routes = [
   { path: '/', component: Home },
+  { path: '/sessions', component: Sessions },
   { path: '/users', component: Users },
   { path: '/roles', component: Roles },
   { path: '/roadmap', component: Roadmap },
