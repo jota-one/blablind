@@ -81,9 +81,7 @@
       </div>
     </aside>
     <div class="drawer-content p-4 lg:p-8 overflow-y-auto h-[calc(100vh-5rem)]">
-      <div class="max-w-xl">
-        <slot />
-      </div>
+      <slot />
     </div>
   </div>
 </template>

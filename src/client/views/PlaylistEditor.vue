@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-8 max-w-xl">
     <section v-if="playlist">
       <div class="flex items-center gap-2 mb-4">
         <RouterLink to="/playlists" class="btn btn-sm btn-ghost btn-circle" :title="t('playlists.back')">

@@ -392,5 +392,11 @@
   "admin.sessions_delete_message": "« {name} » et tout ce qu’elle contient — joueurs, morceaux, buzz et votes — seront définitivement supprimés.",
   "admin.sessions_delete_live_warning": "Attention : {count} joueur(s) sont en ligne dans cette session en ce moment.",
   "common.cancel": "Annuler",
-  "common.delete": "Supprimer"
+  "common.delete": "Supprimer",
+  "dashboard.last_blindtest": "Dernier blindtest",
+  "dashboard.last_playlist": "Dernière playlist",
+  "dashboard.recent_favorites": "Derniers favoris",
+  "dashboard.see_all": "Tout voir",
+  "dashboard.no_playlist": "Aucune playlist pour le moment.",
+  "dashboard.no_favorites": "Aucun morceau favori pour le moment."
 }

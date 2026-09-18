@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-8 max-w-xl">
     <section>
       <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
         <span class="i-fa-solid-star text-primary"></span>

@@ -392,5 +392,11 @@
   "admin.sessions_delete_message": "\"{name}\" and everything it holds — players, tracks, buzzes and votes — will be permanently deleted.",
   "admin.sessions_delete_live_warning": "Careful: {count} player(s) are online in this session right now.",
   "common.cancel": "Cancel",
-  "common.delete": "Delete"
+  "common.delete": "Delete",
+  "dashboard.last_blindtest": "Latest blindtest",
+  "dashboard.last_playlist": "Latest playlist",
+  "dashboard.recent_favorites": "Recent favorites",
+  "dashboard.see_all": "See all",
+  "dashboard.no_playlist": "No playlist yet.",
+  "dashboard.no_favorites": "No favorite track yet."
 }
