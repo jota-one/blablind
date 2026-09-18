@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8">
+  <div class="p-4 lg:p-8">
     <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
       <span class="i-fa-solid-user-shield"></span>
       Roles
@@ -15,12 +15,12 @@
         </button>
       </div>
       <div class="overflow-x-auto">
-        <table class="table w-full">
+        <table class="table table-sm lg:table-md w-full">
           <thead>
             <tr>
               <th>Name</th>
               <th>Slug</th>
-              <th>Created</th>
+              <th class="hidden sm:table-cell">Created</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -28,7 +28,7 @@
             <tr v-for="role in roles" :key="role.id">
               <td class="font-semibold">{{ role.name }}</td>
               <td class="font-mono text-sm">{{ role.slug }}</td>
-              <td>{{ formatDate(role.created) }}</td>
+              <td class="hidden sm:table-cell">{{ formatDate(role.created) }}</td>
               <td>
                 <div class="flex gap-2">
                   <button

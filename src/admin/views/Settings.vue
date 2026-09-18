@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8 max-w-xl">
+  <div class="p-4 lg:p-8 max-w-xl">
     <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
       <span class="i-fa-solid-sliders text-xl"></span>
       {{ t('admin.settings_title') }}
@@ -7,7 +7,7 @@
 
     <div v-if="!form" class="text-base-content/50">{{ t('admin.settings_loading') }}</div>
 
-    <form v-else class="card space-y-6 p-6" @submit.prevent="handleSave">
+    <form v-else class="card space-y-6 p-4 lg:p-6" @submit.prevent="handleSave">
 
       <!-- max_buzz_attempts -->
       <div class="form-control">
@@ -65,8 +65,8 @@
       <!-- continue_after_success -->
       <div class="form-control">
         <label class="label cursor-pointer justify-start gap-4">
-          <input v-model="form.continue_after_success" type="checkbox" class="toggle toggle-primary" />
-          <span class="label-text font-medium">{{ t('admin.settings_continue_after_success_label') }}</span>
+          <input v-model="form.continue_after_success" type="checkbox" class="toggle toggle-primary shrink-0" />
+          <span class="label-text font-medium whitespace-normal">{{ t('admin.settings_continue_after_success_label') }}</span>
         </label>
         <p class="text-sm text-base-content/50 mt-1">{{ t('admin.settings_continue_after_success_hint') }}</p>
       </div>
@@ -93,8 +93,8 @@
       <!-- force_equity -->
       <div class="form-control">
         <label class="label cursor-pointer justify-start gap-4">
-          <input v-model="form.force_equity" type="checkbox" class="toggle toggle-primary" />
-          <span class="label-text font-medium">{{ t('admin.settings_force_equity_label') }}</span>
+          <input v-model="form.force_equity" type="checkbox" class="toggle toggle-primary shrink-0" />
+          <span class="label-text font-medium whitespace-normal">{{ t('admin.settings_force_equity_label') }}</span>
         </label>
         <p class="text-sm text-base-content/50 mt-1">{{ t('admin.settings_force_equity_hint') }}</p>
       </div>

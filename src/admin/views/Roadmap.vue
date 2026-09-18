@@ -1,12 +1,12 @@
 <template>
-  <div class="p-8 max-w-5xl">
-    <h2 class="text-2xl font-bold mb-10 flex items-center gap-3">
+  <div class="p-4 lg:p-8 max-w-5xl">
+    <h2 class="text-2xl font-bold mb-6 lg:mb-10 flex items-center gap-3">
       <span class="i-fa6-solid-map text-xl text-primary"></span>
       {{ t('admin.roadmap_title') }}
     </h2>
 
     <!-- ── COMING SOON ─────────────────────────────────────────────────────── -->
-    <section class="mb-14">
+    <section class="mb-10 lg:mb-14">
       <div class="flex items-center gap-3 mb-7">
         <span class="i-fa6-solid-fire text-2xl text-orange-400"></span>
         <h3 class="text-lg font-bold tracking-tight">{{ t('admin.roadmap_upcoming_section') }}</h3>
@@ -14,7 +14,7 @@
 
       <!-- New features -->
       <p class="text-xs uppercase font-semibold tracking-widest opacity-40 mb-4">{{ t('admin.roadmap_features_label') }}</p>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 lg:mb-10">
         <div
           v-for="feature in features"
           :key="feature.title"

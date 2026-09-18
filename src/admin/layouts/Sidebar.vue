@@ -3,7 +3,7 @@
     <input id="my-drawer" type="checkbox" class="drawer-toggle" />
     <aside class="drawer-side">
       <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-      <ul class="menu bg-base-200 text-base-content min-h-full w-60 p-4 pt-24 lg:pt-4">
+      <ul class="menu bg-base-200 text-base-content min-h-full w-60 p-4 pt-20 lg:pt-4">
         <li>
           <RouterLink to="/" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
             <span class="i-fa6-solid-house text-xl"></span>
@@ -54,7 +54,7 @@
         </li>
       </ul>
     </aside>
-    <div class="drawer-content p-4 overflow-y-auto h-[calc(100vh-5rem)]">
+    <div class="drawer-content overflow-y-auto h-full">
       <slot />
     </div>
   </div>

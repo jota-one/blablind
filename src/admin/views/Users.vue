@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8">
+  <div class="p-4 lg:p-8">
     <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
       <span class="i-fa-solid-users"></span>
       Users
@@ -15,22 +15,22 @@
         </button>
       </div>
       <div class="overflow-x-auto">
-        <table class="table w-full">
+        <table class="table table-sm lg:table-md w-full">
           <thead>
             <tr>
-              <th style="width: 80px;"></th>
+              <th class="hidden sm:table-cell" style="width: 80px;"></th>
               <th>Name</th>
-              <th>Email</th>
+              <th class="hidden sm:table-cell">Email</th>
               <th>Roles</th>
-              <th>Verified</th>
-              <th>Created</th>
+              <th class="hidden sm:table-cell">Verified</th>
+              <th class="hidden sm:table-cell">Created</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="user in users" :key="user.id">
-              <td>
-                <div class="w-12 h-12 bg-base-300 rounded-full flex items-center justify-center overflow-hidden">
+              <td class="hidden sm:table-cell">
+                <div class="w-10 h-10 bg-base-300 rounded-full flex items-center justify-center overflow-hidden">
                   <img
                     v-if="user.avatar"
                     :src="getAvatarUrl(user)"
@@ -40,8 +40,12 @@
                   <span v-else class="i-fa-solid-user text-xl"></span>
                 </div>
               </td>
-              <td>{{ user.name || '-' }}</td>
-              <td>{{ user.email }}</td>
+              <td>
+                {{ user.name || '-' }}
+                <!-- the Email column is hidden on mobile: keep the address visible here -->
+                <span class="block sm:hidden text-xs opacity-50">{{ user.email }}</span>
+              </td>
+              <td class="hidden sm:table-cell">{{ user.email }}</td>
               <td>
                 <div v-if="user.expand?.roles?.length" class="flex flex-wrap gap-1">
                   <span
@@ -54,13 +58,13 @@
                 </div>
                 <span v-else class="text-gray-400">-</span>
               </td>
-              <td>
+              <td class="hidden sm:table-cell">
                 <span v-if="user.verified" class="badge badge-success badge-sm">
                   Verified
                 </span>
                 <span v-else class="badge badge-warning badge-sm">Not verified</span>
               </td>
-              <td>{{ formatDate(user.created) }}</td>
+              <td class="hidden sm:table-cell">{{ formatDate(user.created) }}</td>
               <td>
                 <div class="flex gap-2">
                   <button
@@ -71,14 +75,14 @@
                     <span class="i-fa-solid-pen"></span>
                   </button>
                   <button
-                    class="btn btn-xs btn-ghost"
+                    class="btn btn-xs btn-ghost hidden sm:inline-flex"
                     title="Sign in as this user"
                     @click="impersonateUser(user)"
                   >
                     <span class="i-fa-solid-user-secret"></span>
                   </button>
                   <button
-                    class="btn btn-xs btn-ghost"
+                    class="btn btn-xs btn-ghost hidden sm:inline-flex"
                     title="Merge into another account"
                     @click="openMergeModal(user)"
                   >

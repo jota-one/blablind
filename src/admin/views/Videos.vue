@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8">
+  <div class="p-4 lg:p-8">
     <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
       <span class="i-fa-solid-music"></span>
       Morceaux
@@ -10,7 +10,7 @@
           v-model="searchQuery"
           type="text"
           placeholder="Rechercher (titre, artiste…)"
-          class="input input-bordered input-sm w-64"
+          class="input input-bordered input-sm w-full sm:w-64"
         />
       </div>
       <div class="text-sm text-base-content/60 mb-2">
@@ -18,14 +18,14 @@
         <span v-else>{{ videos.length }} chargés sur un total de {{ totalVideos }}</span>
       </div>
       <div class="overflow-x-auto">
-        <table class="table w-full">
+        <table class="table table-sm lg:table-md w-full max-sm:[&_:is(th,td)]:px-2">
           <thead>
             <tr>
               <th>Titre</th>
               <th>Artiste</th>
-              <th>Durée</th>
-              <th>Video ID</th>
-              <th>Ajouté le</th>
+              <th class="hidden sm:table-cell">Durée</th>
+              <th class="hidden sm:table-cell">Video ID</th>
+              <th class="hidden sm:table-cell">Ajouté le</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -33,8 +33,8 @@
             <tr v-for="video in videos" :key="video.id">
               <td>{{ video.title || '-' }}</td>
               <td>{{ video.artist || '-' }}</td>
-              <td>{{ formatDuration(video.duration) }}</td>
-              <td>
+              <td class="hidden sm:table-cell">{{ formatDuration(video.duration) }}</td>
+              <td class="hidden sm:table-cell">
                 <a
                   :href="`https://youtube.com/watch?v=${video.video_id}`"
                   target="_blank"
@@ -45,7 +45,7 @@
                   <span class="i-fa-solid-arrow-up-right-from-square text-xs opacity-60"></span>
                 </a>
               </td>
-              <td>{{ formatDate(video.created) }}</td>
+              <td class="hidden sm:table-cell">{{ formatDate(video.created) }}</td>
               <td>
                 <div class="flex gap-2">
                   <button
