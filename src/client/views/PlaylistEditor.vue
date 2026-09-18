@@ -44,16 +44,34 @@
         <p v-if="savedFlash" class="text-xs text-success">{{ t('playlists.saved') }}</p>
       </div>
 
-      <!-- Preview player -->
-      <div v-if="previewInfo" class="rounded-lg overflow-hidden aspect-video max-w-md mx-auto mb-3">
-        <YoutubePlayer
-          :key="`${previewInfo.videoId}-${previewInfo.startSeconds}`"
-          ref="previewPlayer"
-          :video-id="previewInfo.videoId"
-          :start-seconds="previewInfo.startSeconds"
-          :paused="false"
-          autoplay
-        />
+      <!-- Preview player. Sticky so it stays in view while the track list
+           scrolls under it: the timings are tuned from the row below, which
+           must remain reachable. The scroll container's own padding insets the
+           sticky rectangle, hence the negative anchor padded back. -->
+      <div v-if="previewInfo" class="sticky -top-4 lg:-top-8 z-20 bg-base-100 pt-4 lg:pt-8 pb-3">
+        <div class="rounded-lg overflow-hidden aspect-video max-w-md mx-auto">
+          <YoutubePlayer
+            :key="`${previewInfo.videoId}-${previewInfo.startSeconds}`"
+            ref="previewPlayer"
+            :video-id="previewInfo.videoId"
+            :start-seconds="previewInfo.startSeconds"
+            :paused="false"
+            autoplay
+          />
+        </div>
+        <div class="max-w-md mx-auto flex items-center gap-2 mt-1.5">
+          <p class="text-xs text-base-content/60 truncate">
+            {{ previewingRow?.expand?.video?.title }}
+          </p>
+          <button
+            type="button"
+            class="btn btn-xs btn-ghost shrink-0 ml-auto"
+            :title="t('track.stop_preview')"
+            @click="previewInfo = null"
+          >
+            <span class="i-fa-solid-stop text-xs"></span>
+          </button>
+        </div>
       </div>
 
       <!-- Tracks -->
@@ -296,6 +314,8 @@ const saveMeta = async () => {
 // --- Timings ---
 
 const isPreviewing = (row: any) => previewInfo.value?.videoId === row.expand?.video?.video_id
+
+const previewingRow = computed(() => rows.value.find(isPreviewing) ?? null)
 
 const togglePreview = (row: any) => {
   if (isPreviewing(row)) {

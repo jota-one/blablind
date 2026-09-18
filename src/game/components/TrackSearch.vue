@@ -15,16 +15,20 @@
       </button>
     </form>
 
-    <!-- Preview player -->
-    <div v-if="previewInfo" class="rounded-lg overflow-hidden aspect-video max-w-md mx-auto">
-      <YoutubePlayer
-        :key="`${previewInfo.videoId}-${previewInfo.startSeconds}`"
-        ref="previewPlayer"
-        :video-id="previewInfo.videoId"
-        :start-seconds="previewInfo.startSeconds"
-        :paused="false"
-        autoplay
-      />
+    <!-- Preview player. Sticky so it stays in view while the results scroll
+         under it. The modal's scroll container has its own padding, which
+         insets the sticky rectangle: anchor above it and pad back. -->
+    <div v-if="previewInfo" class="sticky -top-4 z-20 bg-base-100 pt-4 pb-3">
+      <div class="rounded-lg overflow-hidden aspect-video max-w-md mx-auto">
+        <YoutubePlayer
+          :key="`${previewInfo.videoId}-${previewInfo.startSeconds}`"
+          ref="previewPlayer"
+          :video-id="previewInfo.videoId"
+          :start-seconds="previewInfo.startSeconds"
+          :paused="false"
+          autoplay
+        />
+      </div>
     </div>
 
     <!-- Local results -->

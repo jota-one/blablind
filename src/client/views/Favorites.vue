@@ -12,16 +12,33 @@
 
       <template v-else-if="favorites.length > 0">
 
-      <!-- In-app preview player, same pattern as the game's track search -->
-      <div v-if="previewInfo" class="rounded-lg overflow-hidden aspect-video max-w-md mx-auto mb-3">
-        <YoutubePlayer
-          :key="`${previewInfo.videoId}-${previewInfo.startSeconds}`"
-          ref="previewPlayer"
-          :video-id="previewInfo.videoId"
-          :start-seconds="previewInfo.startSeconds"
-          :paused="false"
-          autoplay
-        />
+      <!-- In-app preview player, same pattern as the game's track search.
+           Sticky so it stays in view while the list scrolls under it: the start
+           timing is tuned from the row below, which must remain reachable. -->
+      <div v-if="previewInfo" class="sticky -top-4 lg:-top-8 z-20 bg-base-100 pt-4 lg:pt-8 pb-3">
+        <div class="rounded-lg overflow-hidden aspect-video max-w-md mx-auto">
+          <YoutubePlayer
+            :key="`${previewInfo.videoId}-${previewInfo.startSeconds}`"
+            ref="previewPlayer"
+            :video-id="previewInfo.videoId"
+            :start-seconds="previewInfo.startSeconds"
+            :paused="false"
+            autoplay
+          />
+        </div>
+        <div class="max-w-md mx-auto flex items-center gap-2 mt-1.5">
+          <p class="text-xs text-base-content/60 truncate">
+            {{ previewingFavorite?.expand?.video?.title }}
+          </p>
+          <button
+            type="button"
+            class="btn btn-xs btn-ghost shrink-0 ml-auto"
+            :title="t('track.stop_preview')"
+            @click="previewInfo = null"
+          >
+            <span class="i-fa-solid-stop text-xs"></span>
+          </button>
+        </div>
       </div>
 
       <ul class="space-y-2">
@@ -120,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, useTemplateRef } from 'vue'
+import { ref, computed, watch, useTemplateRef } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import useAuth from '@admin/composables/useAuth'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
@@ -136,6 +153,10 @@ const previewInfo = ref<{ videoId: string; startSeconds: number } | null>(null)
 const previewPlayer = useTemplateRef<InstanceType<typeof YoutubePlayer>>('previewPlayer')
 
 const isPreviewing = (favorite: any) => previewInfo.value?.videoId === favorite.expand?.video?.video_id
+
+const previewingFavorite = computed(
+  () => favorites.value.find(isPreviewing) ?? null,
+)
 
 const saveStart = (favorite: any) => {
   const start = Math.max(0, Math.floor(favorite.start_seconds || 0))

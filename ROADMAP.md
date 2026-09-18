@@ -79,6 +79,7 @@ Priorité basse — indifférents au présentiel :
 
 ## History (done)
 
+- [2026-09-18] Preview player stays in view — when previewing a track from the favorites list, a playlist or the add-track search, the video now stays pinned at the top while the list scrolls under it, so the track being tuned and its start-timing controls remain reachable.
 - [2026-09-18] Member area dashboard — the account page now opens on a dashboard: counters and one-tap shortcuts to blindtests, playlists, favorites and game preferences, plus a preview of the latest blindtest, the latest playlist and the five most recent favorites, each with a link to its full section.
 - [2026-09-18] Delete a session (admin) — an administrator can delete a blindtest from the sessions list; the players, tracks, buzzes and votes it holds go with it, and the confirmation warns when players are still online in that session.
 - [2026-09-18] Sessions view (admin) — a new admin section lists every blindtest with its status, mode, players currently online and tracks played, so a host can watch a game fill up and progress from their phone.
