@@ -125,36 +125,14 @@
             </button>
           </div>
 
-          <!-- Full row width: nested in the title column the labels truncated. -->
-          <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-            <div
-              v-for="field in timingFields"
-              :key="field.key"
-              class="flex items-center gap-1.5"
-            >
-              <span class="text-xs text-base-content/50 w-28 shrink-0">{{ t(field.label) }}</span>
-              <label class="input input-xs w-20 px-2 shrink-0">
-                <input
-                  v-model.number="favorite[field.key]"
-                  type="number"
-                  min="0"
-                  class="grow w-full min-w-0 text-center"
-                  :title="t(field.title)"
-                  @change="saveTimings(favorite)"
-                />
-                <span class="opacity-50">s</span>
-              </label>
-              <button
-                v-if="isPreviewing(favorite)"
-                type="button"
-                class="btn btn-xs btn-ghost shrink-0 text-primary"
-                :title="t(field.captureTitle)"
-                @click="field.capture(favorite)"
-              >
-                <span :class="[field.icon, 'text-xs']"></span>
-              </button>
-            </div>
-          </div>
+          <TrackTimings
+            class="mt-2"
+            :track="favorite"
+            :previewing-at="isPreviewing(favorite) ? previewInfo?.startSeconds ?? null : null"
+            :get-preview-time="isPreviewing(favorite) ? previewTime : undefined"
+            @save="saveTimings(favorite)"
+            @preview="seconds => togglePreviewAt(favorite, seconds)"
+          />
         </li>
       </ul>
 
@@ -173,6 +151,7 @@ import { useI36n } from '@jota-one/i36n'
 import useAuth from '@admin/composables/useAuth'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 import TrackSearch from '@game/components/TrackSearch.vue'
+import TrackTimings from '@game/components/TrackTimings.vue'
 import { findOrCreateVideo } from '@game/composables/useVideos'
 
 const { t } = useI36n()
@@ -208,19 +187,21 @@ const saveTimings = (favorite: any) => {
 // (previewInfo keeps its original startSeconds).
 const previewTime = () => Math.floor(previewPlayer.value?.getCurrentTime() ?? 0)
 
-const captureStart = (favorite: any) => {
-  favorite.start_seconds = previewTime()
-  saveTimings(favorite)
-}
 
-const captureEnd = (favorite: any) => {
-  favorite.playback_duration = Math.max(1, previewTime() - (favorite.start_seconds ?? 0))
-  saveTimings(favorite)
-}
 
-const captureReveal = (favorite: any) => {
-  favorite.reveal_seconds = previewTime()
-  saveTimings(favorite)
+
+// 'Résultat' is a resume position like 'Démarrage', so it must be auditionable
+// the same way. Previewing compares the position too, to tell them apart.
+const isPreviewingAt = (favorite: any, seconds: number) =>
+  isPreviewing(favorite) && previewInfo.value?.startSeconds === seconds
+
+const togglePreviewAt = (favorite: any, seconds: number) => {
+  const at = Math.max(0, Math.floor(seconds || 0))
+  if (isPreviewingAt(favorite, at)) {
+    previewInfo.value = null
+  } else {
+    previewInfo.value = { videoId: favorite.expand?.video?.video_id, startSeconds: at }
+  }
 }
 
 const togglePreview = (favorite: any) => {
@@ -266,32 +247,6 @@ const removeFavorite = async (favorite: any) => {
   }
 }
 
-const timingFields = [
-  {
-    key: 'start_seconds',
-    label: 'track.start_label',
-    title: 'track.start_title',
-    captureTitle: 'track.capture_start_title',
-    icon: 'i-fa-solid-flag',
-    capture: captureStart,
-  },
-  {
-    key: 'playback_duration',
-    label: 'track.playback_duration_label',
-    title: 'track.playback_duration_title',
-    captureTitle: 'track.capture_end_title',
-    icon: 'i-fa-solid-flag-checkered',
-    capture: captureEnd,
-  },
-  {
-    key: 'reveal_seconds',
-    label: 'track.reveal_seconds_label',
-    title: 'track.reveal_seconds_title',
-    captureTitle: 'track.capture_reveal_title',
-    icon: 'i-fa-solid-eye',
-    capture: captureReveal,
-  },
-] as const
 
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })

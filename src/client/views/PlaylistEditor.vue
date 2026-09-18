@@ -108,77 +108,15 @@
             <p v-if="row.expand?.video?.artist" class="text-xs text-base-content/50 truncate">
               {{ row.expand?.video?.artist }}
             </p>
-            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-              <div class="flex items-center gap-1">
-                <span class="text-xs text-base-content/50 w-28 shrink-0">{{ t('track.start_label') }}</span>
-                <label class="input input-xs w-20 px-2 shrink-0">
-                  <input
-                    v-model.number="row.start_seconds"
-                    type="number"
-                    min="0"
-                    class="grow w-full min-w-0 text-center"
-                    :title="t('track.start_title')"
-                    @change="saveTiming(row)"
-                  />
-                  <span class="opacity-50">s</span>
-                </label>
-                <button
-                  v-if="isPreviewing(row)"
-                  type="button"
-                  class="btn btn-xs btn-ghost shrink-0 text-primary px-1"
-                  :title="t('track.capture_start_title')"
-                  @click="captureStart(row)"
-                >
-                  <span class="i-fa-solid-flag text-xs"></span>
-                </button>
-              </div>
-              <div class="flex items-center gap-1">
-                <span class="text-xs text-base-content/50 w-28 shrink-0">{{ t('track.playback_duration_label') }}</span>
-                <label class="input input-xs w-20 px-2 shrink-0">
-                  <input
-                    v-model.number="row.playback_duration"
-                    type="number"
-                    min="0"
-                    class="grow w-full min-w-0 text-center"
-                    :title="t('track.playback_duration_title')"
-                    @change="saveTiming(row)"
-                  />
-                  <span class="opacity-50">s</span>
-                </label>
-                <button
-                  v-if="isPreviewing(row)"
-                  type="button"
-                  class="btn btn-xs btn-ghost shrink-0 text-primary px-1"
-                  :title="t('track.capture_end_title')"
-                  @click="captureDuration(row)"
-                >
-                  <span class="i-fa-solid-flag-checkered text-xs"></span>
-                </button>
-              </div>
-              <div class="flex items-center gap-1">
-                <span class="text-xs text-base-content/50 w-28 shrink-0">{{ t('track.reveal_seconds_label') }}</span>
-                <label class="input input-xs w-20 px-2 shrink-0">
-                  <input
-                    v-model.number="row.reveal_seconds"
-                    type="number"
-                    min="0"
-                    class="grow w-full min-w-0 text-center"
-                    :title="t('track.reveal_seconds_title')"
-                    @change="saveTiming(row)"
-                  />
-                  <span class="opacity-50">s</span>
-                </label>
-                <button
-                  v-if="isPreviewing(row)"
-                  type="button"
-                  class="btn btn-xs btn-ghost shrink-0 text-primary px-1"
-                  :title="t('track.capture_reveal_title')"
-                  @click="captureReveal(row)"
-                >
-                  <span class="i-fa-solid-eye text-xs"></span>
-                </button>
-              </div>
-            </div>
+            <TrackTimings
+              class="mt-1"
+              wrap="flex flex-wrap items-center gap-x-3 gap-y-1"
+              :track="row"
+              :previewing-at="isPreviewing(row) ? previewInfo?.startSeconds ?? null : null"
+              :get-preview-time="isPreviewing(row) ? previewTime : undefined"
+              @save="saveTiming(row)"
+              @preview="seconds => togglePreviewAt(row, seconds)"
+            />
           </div>
           <button
             v-if="deleteConfirmId === row.id"
@@ -239,6 +177,7 @@ import useAuth from '@admin/composables/useAuth'
 import { findOrCreateVideo } from '@game/composables/useVideos'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 import TrackSearch from '@game/components/TrackSearch.vue'
+import TrackTimings from '@game/components/TrackTimings.vue'
 import FavoritesPicker from '@game/components/FavoritesPicker.vue'
 
 const { t } = useI36n()
@@ -317,6 +256,20 @@ const isPreviewing = (row: any) => previewInfo.value?.videoId === row.expand?.vi
 
 const previewingRow = computed(() => rows.value.find(isPreviewing) ?? null)
 
+// 'Résultat' is a resume position like 'Démarrage', so it must be auditionable
+// the same way. Previewing compares the position too, to tell them apart.
+const isPreviewingAt = (row: any, seconds: number) =>
+  isPreviewing(row) && previewInfo.value?.startSeconds === seconds
+
+const togglePreviewAt = (row: any, seconds: number) => {
+  const at = Math.max(0, Math.floor(seconds || 0))
+  if (isPreviewingAt(row, at)) {
+    previewInfo.value = null
+  } else {
+    previewInfo.value = { videoId: row.expand?.video?.video_id, startSeconds: at }
+  }
+}
+
 const togglePreview = (row: any) => {
   if (isPreviewing(row)) {
     previewInfo.value = null
@@ -342,20 +295,8 @@ const saveTiming = (row: any) => {
 
 const previewTime = () => Math.floor(previewPlayer.value?.getCurrentTime() ?? 0)
 
-const captureStart = (row: any) => {
-  row.start_seconds = previewTime()
-  saveTiming(row)
-}
 
-const captureDuration = (row: any) => {
-  row.playback_duration = Math.max(1, previewTime() - (row.start_seconds ?? 0))
-  saveTiming(row)
-}
 
-const captureReveal = (row: any) => {
-  row.reveal_seconds = previewTime()
-  saveTiming(row)
-}
 
 // --- Add / remove ---
 
