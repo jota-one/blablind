@@ -14,7 +14,13 @@
           {{ showSearch ? t('favorites.close_search') : t('favorites.add_track') }}
         </button>
         <div v-show="showSearch" class="mt-3">
-          <TrackSearch :add-track="addFavorite" :remove-track="removeFavoriteById" can-add-track />
+          <TrackSearch
+            ref="trackSearch"
+            :add-track="addFavorite"
+            :remove-track="removeFavoriteById"
+            can-add-track
+            @preview-start="stopPreview"
+          />
         </div>
       </div>
 
@@ -31,11 +37,12 @@
         <div class="rounded-lg overflow-hidden aspect-video max-w-md mx-auto">
           <YoutubePlayer
             :key="`${previewInfo.videoId}-${previewInfo.startSeconds}`"
-            ref="previewPlayer"
+            :ref="el => (previewPlayer = el as any)"
             :video-id="previewInfo.videoId"
             :start-seconds="previewInfo.startSeconds"
-            :paused="false"
+            :paused="previewPaused"
             autoplay
+            @playing="onPreviewPlaying"
           />
         </div>
         <div class="max-w-md mx-auto flex items-center gap-2 mt-1.5">
@@ -46,7 +53,7 @@
             type="button"
             class="btn btn-xs btn-ghost shrink-0 ml-auto"
             :title="t('track.stop_preview')"
-            @click="previewInfo = null"
+            @click="stopPreview"
           >
             <span class="i-fa-solid-stop text-xs"></span>
           </button>
@@ -129,9 +136,9 @@
             class="mt-2"
             :track="favorite"
             :previewing-at="isPreviewing(favorite) ? previewInfo?.startSeconds ?? null : null"
-            :get-preview-time="isPreviewing(favorite) ? previewTime : undefined"
+            :get-preview-time="isPreviewing(favorite) ? currentTime : undefined"
             @save="saveTimings(favorite)"
-            @preview="seconds => togglePreviewAt(favorite, seconds)"
+            @preview="(seconds, duration) => toggleAt(videoIdOf(favorite), seconds, duration)"
           />
         </li>
       </ul>
@@ -150,6 +157,7 @@ import { ref, computed, watch, useTemplateRef } from 'vue'
 import { useI36n } from '@jota-one/i36n'
 import useAuth from '@admin/composables/useAuth'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
+import useTrackPreview from '@game/composables/useTrackPreview'
 import TrackSearch from '@game/components/TrackSearch.vue'
 import TrackTimings from '@game/components/TrackTimings.vue'
 import { findOrCreateVideo } from '@game/composables/useVideos'
@@ -161,15 +169,24 @@ const favorites = ref<any[]>([])
 const loading = ref(false)
 const deleteConfirmId = ref<string | null>(null)
 const showSearch = ref(false)
-const previewInfo = ref<{ videoId: string; startSeconds: number } | null>(null)
+const {
+  player: previewPlayer,
+  info: previewInfo,
+  paused: previewPaused,
+  isPreviewing: isPreviewingVideo,
+  playAt,
+  toggleAt,
+  stop: stopPreview,
+  onPlaying: onPreviewPlaying,
+  currentTime,
+} = useTrackPreview({ onStart: () => trackSearch.value?.stopPreview() })
 
-const previewPlayer = useTemplateRef<InstanceType<typeof YoutubePlayer>>('previewPlayer')
+const trackSearch = useTemplateRef<InstanceType<typeof TrackSearch>>('trackSearch')
 
-const isPreviewing = (favorite: any) => previewInfo.value?.videoId === favorite.expand?.video?.video_id
+const videoIdOf = (favorite: any) => favorite.expand?.video?.video_id
+const isPreviewing = (favorite: any) => isPreviewingVideo(videoIdOf(favorite))
 
-const previewingFavorite = computed(
-  () => favorites.value.find(isPreviewing) ?? null,
-)
+const previewingFavorite = computed(() => favorites.value.find(isPreviewing) ?? null)
 
 const saveTimings = (favorite: any) => {
   const clean = (v: any) => (typeof v === 'number' && v > 0 ? Math.floor(v) : null)
@@ -185,33 +202,15 @@ const saveTimings = (favorite: any) => {
 
 // Capture the preview's current position, without restarting the player
 // (previewInfo keeps its original startSeconds).
-const previewTime = () => Math.floor(previewPlayer.value?.getCurrentTime() ?? 0)
 
 
 
-
-// 'Résultat' is a resume position like 'Démarrage', so it must be auditionable
-// the same way. Previewing compares the position too, to tell them apart.
-const isPreviewingAt = (favorite: any, seconds: number) =>
-  isPreviewing(favorite) && previewInfo.value?.startSeconds === seconds
-
-const togglePreviewAt = (favorite: any, seconds: number) => {
-  const at = Math.max(0, Math.floor(seconds || 0))
-  if (isPreviewingAt(favorite, at)) {
-    previewInfo.value = null
-  } else {
-    previewInfo.value = { videoId: favorite.expand?.video?.video_id, startSeconds: at }
-  }
-}
 
 const togglePreview = (favorite: any) => {
   if (isPreviewing(favorite)) {
-    previewInfo.value = null
+    stopPreview()
   } else {
-    previewInfo.value = {
-      videoId: favorite.expand?.video?.video_id,
-      startSeconds: favorite.start_seconds ?? 0,
-    }
+    playAt(videoIdOf(favorite), favorite.start_seconds ?? 0, favorite.playback_duration)
   }
 }
 

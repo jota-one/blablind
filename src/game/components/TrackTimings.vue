@@ -20,7 +20,7 @@
         type="button"
         class="btn btn-xs btn-ghost shrink-0 px-1"
         :title="isPreviewingAt(field) ? t('track.stop_preview') : t('track.play_preview')"
-        @click="emit('preview', value(field))"
+        @click="emit('preview', value(field), excerptFor(field))"
       >
         <span :class="[isPreviewingAt(field) ? 'i-fa-solid-stop' : 'i-fa-solid-play', 'text-xs']"></span>
       </button>
@@ -70,7 +70,12 @@ const props = withDefaults(defineProps<Props>(), {
   wrap: 'flex flex-wrap gap-x-4 gap-y-1',
 })
 
-const emit = defineEmits<{ save: []; preview: [seconds: number] }>()
+const emit = defineEmits<{
+  save: []
+  // The excerpt length applies to the start only: a reveal position is a resume
+  // point, it is meant to run on.
+  preview: [seconds: number, durationSeconds: number | null]
+}>()
 
 const fields: Field[] = [
   {
@@ -100,6 +105,9 @@ const fields: Field[] = [
 ]
 
 const value = (field: Field) => Math.max(0, Math.floor(props.track[field.key] || 0))
+
+const excerptFor = (field: Field) =>
+  field.key === 'start_seconds' ? props.track.playback_duration || null : null
 
 const isPreviewingAt = (field: Field) =>
   props.previewingAt !== null && props.previewingAt === value(field)

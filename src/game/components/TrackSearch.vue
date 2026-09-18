@@ -111,6 +111,8 @@ const localResults = ref<any[]>([])
 const ytResults = ref<SearchVideo[]>([])
 const addedIds = ref(new Set<string>())
 const addedTrackIds = new Map<string, string>()
+const emit = defineEmits<{ 'preview-start': [] }>()
+
 const previewInfo = ref<{ videoId: string; startSeconds: number } | null>(null)
 const searching = ref(false)
 const searchingYt = ref(false)
@@ -130,6 +132,8 @@ const togglePreview = (video: SearchVideo, startSeconds: number) => {
     previewInfo.value = null
   } else {
     previewInfo.value = { videoId: video.videoId, startSeconds }
+    // Let the host stop any other player: only one may sound at a time.
+    emit('preview-start')
   }
 }
 

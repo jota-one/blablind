@@ -52,11 +52,12 @@
         <div class="rounded-lg overflow-hidden aspect-video max-w-md mx-auto">
           <YoutubePlayer
             :key="`${previewInfo.videoId}-${previewInfo.startSeconds}`"
-            ref="previewPlayer"
+            :ref="el => (previewPlayer = el as any)"
             :video-id="previewInfo.videoId"
             :start-seconds="previewInfo.startSeconds"
-            :paused="false"
+            :paused="previewPaused"
             autoplay
+            @playing="onPreviewPlaying"
           />
         </div>
         <div class="max-w-md mx-auto flex items-center gap-2 mt-1.5">
@@ -67,7 +68,7 @@
             type="button"
             class="btn btn-xs btn-ghost shrink-0 ml-auto"
             :title="t('track.stop_preview')"
-            @click="previewInfo = null"
+            @click="stopPreview"
           >
             <span class="i-fa-solid-stop text-xs"></span>
           </button>
@@ -113,9 +114,9 @@
               wrap="flex flex-wrap items-center gap-x-3 gap-y-1"
               :track="row"
               :previewing-at="isPreviewing(row) ? previewInfo?.startSeconds ?? null : null"
-              :get-preview-time="isPreviewing(row) ? previewTime : undefined"
+              :get-preview-time="isPreviewing(row) ? currentTime : undefined"
               @save="saveTiming(row)"
-              @preview="seconds => togglePreviewAt(row, seconds)"
+              @preview="(seconds, duration) => toggleAt(videoIdOf(row), seconds, duration)"
             />
           </div>
           <button
@@ -152,13 +153,21 @@
         </button>
       </div>
       <!-- v-show keeps search results / previews alive across tab switches -->
-      <TrackSearch v-show="addMode === 'search'" ref="trackSearch" :add-track="addRow" :remove-track="deleteRowById" can-add-track />
+      <TrackSearch
+          v-show="addMode === 'search'"
+          ref="trackSearch"
+          :add-track="addRow"
+          :remove-track="deleteRowById"
+          can-add-track
+          @preview-start="stopPreview"
+        />
       <FavoritesPicker
         v-show="addMode === 'favorites'"
         ref="favoritesPane"
         :favorites="favorites"
         :add-track="addRow"
         :remove-track="deleteRowById"
+        @preview-start="stopPreview"
       />
     </section>
 
@@ -176,6 +185,7 @@ import Sortable from 'sortablejs'
 import useAuth from '@admin/composables/useAuth'
 import { findOrCreateVideo } from '@game/composables/useVideos'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
+import useTrackPreview from '@game/composables/useTrackPreview'
 import TrackSearch from '@game/components/TrackSearch.vue'
 import TrackTimings from '@game/components/TrackTimings.vue'
 import FavoritesPicker from '@game/components/FavoritesPicker.vue'
@@ -189,6 +199,7 @@ const rows = ref<any[]>([])
 const addMode = ref<'search' | 'favorites'>('search')
 const favorites = ref<any[]>([])
 
+const trackSearch = useTemplateRef<InstanceType<typeof TrackSearch>>('trackSearch')
 const favoritesPane = useTemplateRef<InstanceType<typeof FavoritesPicker>>('favoritesPane')
 
 const loadFavorites = async () => {
@@ -204,7 +215,12 @@ const loadFavorites = async () => {
 watch(() => user.value?.id, (id) => { if (id) { loadFavorites() } }, { immediate: true })
 
 // Stop the favorites preview when leaving the tab
+// Panes stay mounted (v-show): silence the one being left, so only one player
+// ever sounds in the member area.
 watch(addMode, (mode) => {
+  if (mode !== 'search') {
+    trackSearch.value?.stopPreview()
+  }
   if (mode !== 'favorites') {
     favoritesPane.value?.stopPreview()
   }
@@ -212,9 +228,25 @@ watch(addMode, (mode) => {
 const tagsInput = ref('')
 const savedFlash = ref(false)
 const deleteConfirmId = ref<string | null>(null)
-const previewInfo = ref<{ videoId: string; startSeconds: number } | null>(null)
+const {
+  player: previewPlayer,
+  info: previewInfo,
+  paused: previewPaused,
+  isPreviewing: isPreviewingVideo,
+  playAt,
+  toggleAt,
+  stop: stopPreview,
+  onPlaying: onPreviewPlaying,
+  currentTime,
+} = useTrackPreview({
+  onStart: () => {
+    trackSearch.value?.stopPreview()
+    favoritesPane.value?.stopPreview()
+  },
+})
 
-const previewPlayer = useTemplateRef<InstanceType<typeof YoutubePlayer>>('previewPlayer')
+const videoIdOf = (row: any) => row.expand?.video?.video_id
+
 const rowListEl = useTemplateRef<HTMLElement>('rowListEl')
 
 const playlistId = computed(() => route.params.id as string)
@@ -252,32 +284,15 @@ const saveMeta = async () => {
 
 // --- Timings ---
 
-const isPreviewing = (row: any) => previewInfo.value?.videoId === row.expand?.video?.video_id
+const isPreviewing = (row: any) => isPreviewingVideo(videoIdOf(row))
 
 const previewingRow = computed(() => rows.value.find(isPreviewing) ?? null)
 
-// 'Résultat' is a resume position like 'Démarrage', so it must be auditionable
-// the same way. Previewing compares the position too, to tell them apart.
-const isPreviewingAt = (row: any, seconds: number) =>
-  isPreviewing(row) && previewInfo.value?.startSeconds === seconds
-
-const togglePreviewAt = (row: any, seconds: number) => {
-  const at = Math.max(0, Math.floor(seconds || 0))
-  if (isPreviewingAt(row, at)) {
-    previewInfo.value = null
-  } else {
-    previewInfo.value = { videoId: row.expand?.video?.video_id, startSeconds: at }
-  }
-}
-
 const togglePreview = (row: any) => {
   if (isPreviewing(row)) {
-    previewInfo.value = null
+    stopPreview()
   } else {
-    previewInfo.value = {
-      videoId: row.expand?.video?.video_id,
-      startSeconds: row.start_seconds ?? 0,
-    }
+    playAt(videoIdOf(row), row.start_seconds ?? 0, row.playback_duration)
   }
 }
 
@@ -293,7 +308,6 @@ const saveTiming = (row: any) => {
   }, { requestKey: null })
 }
 
-const previewTime = () => Math.floor(previewPlayer.value?.getCurrentTime() ?? 0)
 
 
 
