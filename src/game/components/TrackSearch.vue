@@ -77,14 +77,19 @@
     <!-- No results -->
     <p v-if="noResults" class="text-sm text-base-content/40 text-center py-2">{{ t('search.no_results') }}</p>
 
-  </div>
+    <!-- Toast erreur YouTube. Teleported so it still floats above everything,
+         but kept inside the single root: a second root node (even the comment
+         a v-if leaves behind) makes the parent's v-show silently do nothing,
+         and this pane then stays visible under the favorites one. -->
+    <Teleport to="body">
+      <div v-if="ytError" class="toast toast-bottom toast-center z-50">
+        <div class="alert alert-error shadow-lg">
+          <span class="text-lg shrink-0">😕</span>
+          <span>{{ ytError }}</span>
+        </div>
+      </div>
+    </Teleport>
 
-  <!-- Toast erreur YouTube -->
-  <div v-if="ytError" class="toast toast-bottom toast-center z-50">
-    <div class="alert alert-error shadow-lg">
-      <span class="text-lg shrink-0">😕</span>
-      <span>{{ ytError }}</span>
-    </div>
   </div>
 </template>
 
