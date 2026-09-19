@@ -4,6 +4,7 @@ import UserAuth from '@components/UserAuth.vue'
 import AdminLink from '@components/AdminLink.vue'
 import NavLogo from '@components/NavLogo.vue'
 import LangSwitch from '@components/LangSwitch.vue'
+import TutorialLink from '@components/TutorialLink.vue'
 const isHome = Astro.url.pathname === '/';
 const { navBg = 'bg-transparent' } = Astro.props;
 
@@ -22,6 +23,9 @@ const logoContainerClasses = isHome ? 'mr-5 flex-1' : 'mr-5';
       <div class="hidden lg:flex gap-20 justify-between items-center mr-5" id="mainNavigation">
         <ul class="flex gap-8">
           <li class="text-md font-semibold text-white cursor-pointer"><a href="/">Accueil</a></li>
+          <li class="text-md font-semibold text-white cursor-pointer">
+            <TutorialLink client:only linkClass="" />
+          </li>
           <AdminLink client:only />
         </ul>
       </div>
@@ -37,6 +41,7 @@ const logoContainerClasses = isHome ? 'mr-5 flex-1' : 'mr-5';
   <!-- Footer -->
   <footer class="p-8 bg-gray-900 border-t">
     <div class="container m-auto text-center text-white/60">
+      <TutorialLink client:only linkClass="link link-hover text-xs inline-block mb-2" />
       <span class="text-xs block">© 2026 BlaBlind. Tous droits réservés.</span>
     </div>
   </footer>

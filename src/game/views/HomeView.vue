@@ -74,6 +74,12 @@
             <p class="text-neutral-content/70 leading-relaxed">{{ step.desc }}</p>
           </div>
         </div>
+        <div class="mt-16">
+          <a href="/tutorial" class="btn btn-outline btn-primary">
+            <span class="i-fa-solid-circle-question mr-2"></span>
+            {{ t('home.how_tutorial_link') }}
+          </a>
+        </div>
       </div>
     </section>
 

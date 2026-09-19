@@ -1,0 +1,9 @@
+---
+import SiteLayout from '@layouts/SiteLayout.astro'
+import TutorialView from '@components/TutorialView.vue'
+export const prerender = false
+---
+
+<SiteLayout navBg="bg-base-100/80">
+  <TutorialView client:only />
+</SiteLayout>

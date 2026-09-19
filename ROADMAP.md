@@ -79,6 +79,7 @@ Priorité basse — indifférents au présentiel :
 
 ## History (done)
 
+- [2026-09-19] Tutorial page — a step-by-step guide at `/tutorial` that opens on creating an account, then covers building a blindtest, inviting players, playing a round and the member area, with FR/EN screenshots switchable between mobile and desktop. Linked from the nav, the footer and the home page.
 - [2026-09-18] Truer track previews in the member area — previewing a track from its start now plays only the excerpt and stops at the chosen length, the reveal position can be auditioned on its own, and only one track ever plays at a time across the list, the search and the favorites picker.
 - [2026-09-18] Favorites become a preparation library — members can search the library and YouTube straight from their favorites to add tracks ahead of a blindtest, set the start, excerpt length and reveal timings on each one so adding it to a game brings everything, and duplicate a track to keep several differently tuned versions of it. Un-starring a track in a game never destroys those tuned versions, and says so.
 - [2026-09-18] Preview player stays in view — when previewing a track from the favorites list, a playlist or the add-track search, the video now stays pinned at the top while the list scrolls under it, so the track being tuned and its start-timing controls remain reachable.
