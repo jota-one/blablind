@@ -34,3 +34,7 @@ test-results/
 tests/e2e/reports/
 tests/e2e/.env
 .cache/ms-playwright
+
+# tutorial screenshot pipeline (intermediate artefacts)
+tests/tutorial/.seed.json
+tests/tutorial/.shots/

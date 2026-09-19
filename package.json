@@ -14,6 +14,9 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:clean": "node --experimental-strip-types tests/e2e/clean.ts",
+    "tutorial:seed": "node --experimental-strip-types tests/tutorial/seed.ts",
+    "tutorial:shoot": "node --experimental-strip-types tests/tutorial/shoot.ts",
+    "tutorial:webp": "zsh tests/tutorial/to-webp.sh",
     "db": "cd pb && ./pocketbase serve --http=127.0.0.1:8093",
     "db:custom": "cd pb && go build -o pocketbase.custom . && ./pocketbase.custom serve --http=127.0.0.1:8093",
     "db:host": "cd pb && ./pocketbase serve --http=0.0.0.0:8093"
