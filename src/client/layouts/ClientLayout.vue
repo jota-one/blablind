@@ -12,7 +12,9 @@
     <input id="client-drawer" type="checkbox" class="drawer-toggle" />
     <aside class="drawer-side z-40">
       <label for="client-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-      <div class="bg-base-200 text-base-content w-60 h-screen lg:h-[calc(100vh-5rem)] flex flex-col pt-24 lg:pt-4">
+      <div
+        class="bg-base-200 text-base-content w-60 h-screen lg:h-[calc(100vh-5rem)] flex flex-col pt-24 lg:pt-4"
+      >
         <ul class="menu flex-1 px-4">
           <li>
             <RouterLink
@@ -100,7 +102,9 @@ const handleStopImpersonation = () => {
 
 const closeDrawer = () => {
   const drawer = document.getElementById('client-drawer') as HTMLInputElement | null
-  if (drawer) { drawer.checked = false }
+  if (drawer) {
+    drawer.checked = false
+  }
 }
 
 const handleLogout = () => {

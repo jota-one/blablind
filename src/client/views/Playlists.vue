@@ -94,7 +94,9 @@ const trackCount = (playlist: any) => playlist.expand?.playlist_tracks_via_playl
 const tags = (playlist: any) => (Array.isArray(playlist.tags) ? playlist.tags : [])
 
 const loadPlaylists = async () => {
-  if (!user.value?.id) { return }
+  if (!user.value?.id) {
+    return
+  }
   loading.value = true
   try {
     playlists.value = await pb.collection('playlists').getFullList({
@@ -108,11 +110,21 @@ const loadPlaylists = async () => {
   }
 }
 
-watch(() => user.value?.id, (id) => { if (id) { loadPlaylists() } }, { immediate: true })
+watch(
+  () => user.value?.id,
+  id => {
+    if (id) {
+      loadPlaylists()
+    }
+  },
+  { immediate: true },
+)
 
 const createPlaylist = async () => {
   const name = newName.value.trim()
-  if (!name || !user.value?.id) { return }
+  if (!name || !user.value?.id) {
+    return
+  }
   creating.value = true
   try {
     const playlist = await pb.collection('playlists').create({ name, owner: user.value.id })

@@ -13,7 +13,11 @@
           :key="i"
           :class="[
             'h-1.5 rounded-full transition-all duration-300',
-            i === currentStepIndex ? 'w-6 bg-primary' : i < currentStepIndex ? 'w-1.5 bg-primary/40' : 'w-1.5 bg-base-300',
+            i === currentStepIndex
+              ? 'w-6 bg-primary'
+              : i < currentStepIndex
+                ? 'w-1.5 bg-primary/40'
+                : 'w-1.5 bg-base-300',
           ]"
         ></div>
       </div>
@@ -23,7 +27,9 @@
         <div :key="currentStep.key" class="flex flex-col items-center text-center min-h-72">
           <span :class="[currentStep.icon, 'text-6xl text-primary mb-5 block']"></span>
           <h3 class="text-xl font-bold mb-2">{{ currentStep.label }}</h3>
-          <p v-if="currentStep.hint" class="text-base-content/60 text-sm mb-6 max-w-xs">{{ currentStep.hint }}</p>
+          <p v-if="currentStep.hint" class="text-base-content/60 text-sm mb-6 max-w-xs">
+            {{ currentStep.hint }}
+          </p>
 
           <!-- Text input (name) -->
           <input
@@ -37,7 +43,10 @@
           />
 
           <!-- Number input -->
-          <div v-else-if="currentStep.inputType === 'number'" class="flex items-center justify-center gap-3 mt-2">
+          <div
+            v-else-if="currentStep.inputType === 'number'"
+            class="flex items-center justify-center gap-3 mt-2"
+          >
             <input
               v-model.number="(form as any)[currentStep.key]"
               type="number"
@@ -48,28 +57,43 @@
           </div>
 
           <!-- Toggle -->
-          <div v-else-if="currentStep.inputType === 'toggle'" class="flex flex-col items-center gap-3 mt-2">
+          <div
+            v-else-if="currentStep.inputType === 'toggle'"
+            class="flex flex-col items-center gap-3 mt-2"
+          >
             <input
               v-model="(form as any)[currentStep.key]"
               type="checkbox"
               class="toggle toggle-primary toggle-lg"
             />
             <span class="text-sm text-base-content/60">
-              {{ (form as any)[currentStep.key] ? t('client.settings_yes') : t('client.settings_no') }}
+              {{
+                (form as any)[currentStep.key] ? t('client.settings_yes') : t('client.settings_no')
+              }}
             </span>
           </div>
 
           <!-- Radio -->
-          <div v-else-if="currentStep.inputType === 'radio'" class="flex flex-col gap-2 w-full text-left mt-2">
+          <div
+            v-else-if="currentStep.inputType === 'radio'"
+            class="flex flex-col gap-2 w-full text-left mt-2"
+          >
             <label
               v-for="opt in currentStep.options"
               :key="opt.value"
               class="flex items-center gap-3 cursor-pointer p-3 rounded-lg hover:bg-base-200"
             >
-              <input v-model="(form as any)[currentStep.key]" type="radio" :value="opt.value" class="radio radio-primary" />
+              <input
+                v-model="(form as any)[currentStep.key]"
+                type="radio"
+                :value="opt.value"
+                class="radio radio-primary"
+              />
               <span class="flex-1">
                 {{ opt.label }}
-                <span v-if="opt.hint" class="block text-xs text-base-content/50">{{ opt.hint }}</span>
+                <span v-if="opt.hint" class="block text-xs text-base-content/50">{{
+                  opt.hint
+                }}</span>
               </span>
             </label>
           </div>
@@ -96,7 +120,9 @@
                     <span class="block text-sm font-medium truncate">{{ playlist.name }}</span>
                     <span class="block text-xs text-base-content/50 truncate">
                       {{ t('playlists.track_count', { count: trackCount(playlist) }) }}
-                      <template v-if="playlistTags(playlist).length"> · {{ playlistTags(playlist).join(', ') }}</template>
+                      <template v-if="playlistTags(playlist).length">
+                        · {{ playlistTags(playlist).join(', ') }}</template
+                      >
                     </span>
                   </span>
                 </label>
@@ -104,7 +130,11 @@
             </ul>
             <p v-else class="text-sm text-base-content/50 text-center py-4">
               {{ t('wizard.playlist_empty') }}
-              <a v-if="isAuthenticated" href="/profile/playlists" class="link link-primary block mt-1">
+              <a
+                v-if="isAuthenticated"
+                href="/profile/playlists"
+                class="link link-primary block mt-1"
+              >
                 {{ t('wizard.playlist_create_link') }}
               </a>
             </p>
@@ -124,8 +154,14 @@
         >
           ← {{ t('wizard.prev') }}
         </button>
-        <span class="text-xs text-base-content/40">{{ currentStepIndex + 1 }} / {{ steps.length }}</span>
-        <button class="btn btn-primary btn-sm" :disabled="!canProceed || creating" @click="handleNext">
+        <span class="text-xs text-base-content/40"
+          >{{ currentStepIndex + 1 }} / {{ steps.length }}</span
+        >
+        <button
+          class="btn btn-primary btn-sm"
+          :disabled="!canProceed || creating"
+          @click="handleNext"
+        >
           <span v-if="creating" class="loading loading-spinner loading-xs"></span>
           {{ isLastStep ? t('wizard.create') : t('wizard.next') }}
           <span v-if="!isLastStep" class="ml-1">→</span>
@@ -192,7 +228,11 @@ const steps = computed<WizardStep[]>(() => [
     inputType: 'radio',
     options: [
       { value: 'classic', label: t('wizard.mode_classic'), hint: t('wizard.mode_classic_hint') },
-      { value: 'autonomous', label: t('wizard.mode_autonomous'), hint: t('wizard.mode_autonomous_hint') },
+      {
+        value: 'autonomous',
+        label: t('wizard.mode_autonomous'),
+        hint: t('wizard.mode_autonomous_hint'),
+      },
     ],
   },
   ...(form.mode === 'autonomous'
@@ -297,7 +337,9 @@ const trackCount = (playlist: any) => playlist.expand?.playlist_tracks_via_playl
 const playlistTags = (playlist: any) => (Array.isArray(playlist.tags) ? playlist.tags : [])
 
 const loadPlaylists = async () => {
-  if (playlistsLoaded.value) { return }
+  if (playlistsLoaded.value) {
+    return
+  }
   loadingPlaylists.value = true
   try {
     const items = await pb.collection('playlists').getFullList({
@@ -320,7 +362,9 @@ const isLastStep = computed(() => currentStepIndex.value === steps.value.length 
 const transitionName = computed(() => `slide-${direction.value}`)
 
 const canProceed = computed(() => {
-  if (currentStep.value?.key === 'name') { return form.name.trim().length > 0 }
+  if (currentStep.value?.key === 'name') {
+    return form.name.trim().length > 0
+  }
   if (currentStep.value?.key === 'playlist') {
     const selected = playlists.value.find(p => p.id === form.playlistId)
     return !!selected && trackCount(selected) > 0
@@ -329,7 +373,9 @@ const canProceed = computed(() => {
 })
 
 const handleNext = async () => {
-  if (!canProceed.value) { return }
+  if (!canProceed.value) {
+    return
+  }
   if (isLastStep.value) {
     await createSession()
   } else {
@@ -346,7 +392,9 @@ const handleNext = async () => {
 }
 
 const handlePrev = () => {
-  if (currentStepIndex.value === 0) { return }
+  if (currentStepIndex.value === 0) {
+    return
+  }
   direction.value = 'backward'
   currentStepIndex.value--
 }
@@ -386,7 +434,7 @@ const createSession = async () => {
             reveal_seconds: pt.reveal_seconds || null,
             status: 'queued',
             order: i + j + 1,
-          })
+          }),
         )
         await batch.send()
       }
@@ -421,10 +469,7 @@ const open = async () => {
   direction.value = 'forward'
   error.value = ''
 
-  await Promise.all([
-    loadSettings(),
-    isAuthenticated.value ? refreshAuth() : Promise.resolve(),
-  ])
+  await Promise.all([loadSettings(), isAuthenticated.value ? refreshAuth() : Promise.resolve()])
 
   const base = appSettings.value ?? {}
   const userOverrides = (user.value?.user_settings ?? {}) as Record<string, any>
@@ -457,8 +502,20 @@ defineExpose({ open })
 .slide-backward-leave-active {
   transition: all 0.2s ease;
 }
-.slide-forward-enter-from { transform: translateX(24px); opacity: 0; }
-.slide-forward-leave-to   { transform: translateX(-24px); opacity: 0; }
-.slide-backward-enter-from { transform: translateX(-24px); opacity: 0; }
-.slide-backward-leave-to   { transform: translateX(24px); opacity: 0; }
+.slide-forward-enter-from {
+  transform: translateX(24px);
+  opacity: 0;
+}
+.slide-forward-leave-to {
+  transform: translateX(-24px);
+  opacity: 0;
+}
+.slide-backward-enter-from {
+  transform: translateX(-24px);
+  opacity: 0;
+}
+.slide-backward-leave-to {
+  transform: translateX(24px);
+  opacity: 0;
+}
 </style>

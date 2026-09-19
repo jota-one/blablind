@@ -1,6 +1,5 @@
 <template>
   <div class="space-y-3">
-
     <!-- Preview player -->
     <div v-if="previewInfo" class="sticky -top-4 z-20 bg-base-100 pt-4 pb-3">
       <div class="rounded-lg overflow-hidden aspect-video max-w-md mx-auto">
@@ -25,7 +24,9 @@
           :added="addedIds.has(favorite.expand?.video?.video_id)"
           :disabled="disabled"
           :previewing="previewInfo?.videoId === favorite.expand?.video?.video_id"
-          :get-preview-time="previewInfo?.videoId === favorite.expand?.video?.video_id ? getPreviewTime : undefined"
+          :get-preview-time="
+            previewInfo?.videoId === favorite.expand?.video?.video_id ? getPreviewTime : undefined
+          "
           :initial-start="favorite.start_seconds ?? 0"
           :initial-duration="favorite.playback_duration ?? 0"
           :initial-reveal="favorite.reveal_seconds ?? 0"
@@ -35,7 +36,6 @@
         />
       </li>
     </ul>
-
   </div>
 </template>
 
@@ -47,11 +47,24 @@ import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 
 const { t } = useI36n()
 
-interface SearchVideo { videoId: string; title: string; artist: string; duration: number }
+interface SearchVideo {
+  videoId: string
+  title: string
+  artist: string
+  duration: number
+}
 
 type Props = {
   favorites: any[]
-  addTrack: (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number; playback_duration?: number; reveal_seconds?: number }) => Promise<{ id: string } | void> | undefined
+  addTrack: (data: {
+    video_id: string
+    title?: string
+    artist?: string
+    duration?: number
+    start_seconds?: number
+    playback_duration?: number
+    reveal_seconds?: number
+  }) => Promise<{ id: string } | void> | undefined
   removeTrack: (trackId: string) => Promise<void>
   disabled?: boolean
 }
@@ -69,11 +82,19 @@ const getPreviewTime = () => previewPlayer.value?.getCurrentTime() ?? 0
 
 const toSearchVideo = (favorite: any): SearchVideo => {
   const video = favorite.expand?.video
-  return { videoId: video?.video_id, title: video?.title, artist: video?.artist, duration: video?.duration }
+  return {
+    videoId: video?.video_id,
+    title: video?.title,
+    artist: video?.artist,
+    duration: video?.duration,
+  }
 }
 
 const togglePreview = (video: SearchVideo, startSeconds: number) => {
-  if (previewInfo.value?.videoId === video.videoId && previewInfo.value?.startSeconds === startSeconds) {
+  if (
+    previewInfo.value?.videoId === video.videoId &&
+    previewInfo.value?.startSeconds === startSeconds
+  ) {
     previewInfo.value = null
   } else {
     previewInfo.value = { videoId: video.videoId, startSeconds }
@@ -86,7 +107,12 @@ const stopPreview = () => {
   previewInfo.value = null
 }
 
-const addVideo = async (video: SearchVideo, startSeconds: number, playbackDuration: number | null, revealSeconds: number | null) => {
+const addVideo = async (
+  video: SearchVideo,
+  startSeconds: number,
+  playbackDuration: number | null,
+  revealSeconds: number | null,
+) => {
   addedIds.value = new Set([...addedIds.value, video.videoId])
   if (previewInfo.value?.videoId === video.videoId) {
     previewInfo.value = null

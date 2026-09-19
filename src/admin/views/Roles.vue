@@ -6,10 +6,7 @@
     </h2>
     <div class="card">
       <div class="flex justify-end mb-2">
-        <button
-          class="btn btn-primary btn-sm"
-          @click="openAddModal"
-        >
+        <button class="btn btn-primary btn-sm" @click="openAddModal">
           <span class="i-fa-solid-plus"></span>
           Add a role
         </button>
@@ -31,11 +28,7 @@
               <td class="hidden sm:table-cell">{{ formatDate(role.created) }}</td>
               <td>
                 <div class="flex gap-2">
-                  <button
-                    class="btn btn-xs btn-ghost"
-                    title="Edit"
-                    @click="editRole(role)"
-                  >
+                  <button class="btn btn-xs btn-ghost" title="Edit" @click="editRole(role)">
                     <span class="i-fa-solid-pen"></span>
                   </button>
                   <button
@@ -52,9 +45,7 @@
           </tbody>
         </table>
       </div>
-      <div class="text-sm text-gray-500 p-4">
-        Total roles: {{ roles ? roles.length : 0 }}
-      </div>
+      <div class="text-sm text-gray-500 p-4">Total roles: {{ roles ? roles.length : 0 }}</div>
     </div>
 
     <RoleAddModal ref="addModalRef" @saved="loadRoles" />

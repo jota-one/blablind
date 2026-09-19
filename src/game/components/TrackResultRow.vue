@@ -14,7 +14,9 @@
           class="w-full h-full object-cover bg-base-300"
           loading="lazy"
         />
-        <span class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover/thumb:bg-black/60 transition-colors text-white">
+        <span
+          class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover/thumb:bg-black/60 transition-colors text-white"
+        >
           <span :class="previewing ? 'i-fa-solid-stop' : 'i-fa-solid-play'"></span>
         </span>
       </button>
@@ -32,7 +34,9 @@
     <div class="flex gap-3">
       <div class="flex-1 min-w-0 flex flex-col gap-1.5 sm:flex-row sm:gap-3">
         <div class="flex items-center gap-2 sm:flex-col sm:items-start sm:gap-0.5">
-          <span class="text-xs text-base-content/50 w-28 sm:w-auto shrink-0">{{ t('track.start_label') }}</span>
+          <span class="text-xs text-base-content/50 w-28 sm:w-auto shrink-0">{{
+            t('track.start_label')
+          }}</span>
           <div class="flex items-center gap-1">
             <label class="input input-xs w-20 px-2 shrink-0" :class="{ 'opacity-60': added }">
               <input
@@ -59,7 +63,9 @@
         </div>
 
         <div class="flex items-center gap-2 sm:flex-col sm:items-start sm:gap-0.5">
-          <span class="text-xs text-base-content/50 w-28 sm:w-auto shrink-0">{{ t('track.playback_duration_label') }}</span>
+          <span class="text-xs text-base-content/50 w-28 sm:w-auto shrink-0">{{
+            t('track.playback_duration_label')
+          }}</span>
           <div class="flex items-center gap-1">
             <label class="input input-xs w-20 px-2 shrink-0" :class="{ 'opacity-60': added }">
               <input
@@ -86,7 +92,9 @@
         </div>
 
         <div class="flex items-center gap-2 sm:flex-col sm:items-start sm:gap-0.5">
-          <span class="text-xs text-base-content/50 w-28 sm:w-auto shrink-0">{{ t('track.reveal_seconds_label') }}</span>
+          <span class="text-xs text-base-content/50 w-28 sm:w-auto shrink-0">{{
+            t('track.reveal_seconds_label')
+          }}</span>
           <div class="flex items-center gap-1">
             <label class="input input-xs w-20 px-2 shrink-0" :class="{ 'opacity-60': added }">
               <input
@@ -144,7 +152,12 @@ import { useI36n } from '@jota-one/i36n'
 
 const { t } = useI36n()
 
-interface SearchVideo { videoId: string; title: string; artist: string; duration: number }
+interface SearchVideo {
+  videoId: string
+  title: string
+  artist: string
+  duration: number
+}
 
 type Props = {
   video: SearchVideo
@@ -159,7 +172,12 @@ type Props = {
 
 const props = defineProps<Props>()
 defineEmits<{
-  add: [video: SearchVideo, startSeconds: number, playbackDuration: number | null, revealSeconds: number | null]
+  add: [
+    video: SearchVideo,
+    startSeconds: number,
+    playbackDuration: number | null,
+    revealSeconds: number | null,
+  ]
   remove: [video: SearchVideo]
   preview: [video: SearchVideo, startSeconds: number]
 }>()
@@ -168,9 +186,15 @@ const startSeconds = ref(props.initialStart ?? 0)
 const playbackDuration = ref(props.initialDuration ?? 0)
 const revealSeconds = ref(props.initialReveal ?? 0)
 
-const captureStart = () => { startSeconds.value = Math.floor(props.getPreviewTime!()) }
-const captureEnd = () => { playbackDuration.value = Math.max(1, Math.floor(props.getPreviewTime!()) - startSeconds.value) }
-const captureReveal = () => { revealSeconds.value = Math.floor(props.getPreviewTime!()) }
+const captureStart = () => {
+  startSeconds.value = Math.floor(props.getPreviewTime!())
+}
+const captureEnd = () => {
+  playbackDuration.value = Math.max(1, Math.floor(props.getPreviewTime!()) - startSeconds.value)
+}
+const captureReveal = () => {
+  revealSeconds.value = Math.floor(props.getPreviewTime!())
+}
 
 const formatDuration = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 </script>

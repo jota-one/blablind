@@ -19,10 +19,7 @@ export default defineConfig({
   workers: 1,
   retries: process.env.CI ? 1 : 0,
   timeout: 60_000,
-  reporter: [
-    ['html', { outputFolder: 'tests/e2e/reports', open: 'never' }],
-    ['list'],
-  ],
+  reporter: [['html', { outputFolder: 'tests/e2e/reports', open: 'never' }], ['list']],
   use: {
     baseURL: BASE_URL,
     screenshot: 'only-on-failure',

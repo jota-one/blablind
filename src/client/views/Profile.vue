@@ -17,12 +17,20 @@
             class="w-full h-full object-cover"
           />
           <span v-else class="i-fa-solid-user text-3xl text-base-content/40"></span>
-          <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <div
+            class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          >
             <span v-if="!savingAvatar" class="i-fa-solid-camera text-white text-xl"></span>
             <span v-else class="loading loading-spinner loading-sm text-white"></span>
           </div>
         </button>
-        <input ref="fileInputRef" type="file" accept="image/*" class="hidden" @change="handleAvatarChange" />
+        <input
+          ref="fileInputRef"
+          type="file"
+          accept="image/*"
+          class="hidden"
+          @change="handleAvatarChange"
+        />
 
         <div class="flex-1 min-w-0">
           <div v-if="!editingName" class="flex items-center gap-2">
@@ -150,7 +158,10 @@
               <span class="i-fa-solid-music text-xs opacity-50"></span>
               {{ t('playlists.track_count', { count: playlistTrackCount }) }}
             </span>
-            <RouterLink :to="`/playlists/${lastPlaylist.id}`" class="btn btn-xs btn-primary ml-auto">
+            <RouterLink
+              :to="`/playlists/${lastPlaylist.id}`"
+              class="btn btn-xs btn-primary ml-auto"
+            >
               {{ t('playlists.edit') }}
             </RouterLink>
           </div>
@@ -222,9 +233,24 @@ const savingName = ref(false)
 const errorMessage = ref('')
 
 const tiles = computed(() => [
-  { to: '/blindtests', icon: 'i-fa-solid-music', label: t('client.nav_blindtests'), count: counts.value.sessions },
-  { to: '/playlists', icon: 'i-fa-solid-list-ol', label: t('client.nav_playlists'), count: counts.value.playlists },
-  { to: '/favorites', icon: 'i-fa-solid-star', label: t('client.nav_favorites'), count: counts.value.favorites },
+  {
+    to: '/blindtests',
+    icon: 'i-fa-solid-music',
+    label: t('client.nav_blindtests'),
+    count: counts.value.sessions,
+  },
+  {
+    to: '/playlists',
+    icon: 'i-fa-solid-list-ol',
+    label: t('client.nav_playlists'),
+    count: counts.value.playlists,
+  },
+  {
+    to: '/favorites',
+    icon: 'i-fa-solid-star',
+    label: t('client.nav_favorites'),
+    count: counts.value.favorites,
+  },
   { to: '/settings', icon: 'i-fa6-solid-sliders', label: t('client.nav_settings'), count: null },
 ])
 
@@ -233,18 +259,28 @@ const playlistTrackCount = computed(
 )
 
 const currentAvatarUrl = computed(() => {
-  if (!user.value?.avatar) { return '' }
+  if (!user.value?.avatar) {
+    return ''
+  }
   return `${config.apiBaseUrl}/api/files/_pb_users_auth_/${user.value.id}/${user.value.avatar}`
 })
 
 const statusBadge = (status: SessionStatus) => {
-  if (status === 'playing') { return 'badge-success' }
-  if (status === 'waiting') { return 'badge-warning' }
+  if (status === 'playing') {
+    return 'badge-success'
+  }
+  if (status === 'waiting') {
+    return 'badge-warning'
+  }
   return 'badge-ghost'
 }
 
 const formatDate = (dateStr: string) =>
-  new Date(dateStr).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+  new Date(dateStr).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
 
 const triggerFileInput = () => {
   fileInputRef.value?.click()
@@ -252,7 +288,9 @@ const triggerFileInput = () => {
 
 const handleAvatarChange = async (e: Event) => {
   const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) { return }
+  if (!file) {
+    return
+  }
 
   avatarPreview.value = URL.createObjectURL(file)
   savingAvatar.value = true
@@ -269,7 +307,9 @@ const handleAvatarChange = async (e: Event) => {
     avatarPreview.value = ''
   } finally {
     savingAvatar.value = false
-    if (fileInputRef.value) { fileInputRef.value.value = '' }
+    if (fileInputRef.value) {
+      fileInputRef.value.value = ''
+    }
   }
 }
 

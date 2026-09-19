@@ -70,8 +70,12 @@ test('user resets password via the emailed link and can log in with it', async (
 
   // Oracle: the new password authenticates, the old one no longer does.
   const fresh = new PocketBase(PB_URL)
-  await expect(fresh.collection('users').authWithPassword(user.email, NEW_PASSWORD)).resolves.toBeTruthy()
+  await expect(
+    fresh.collection('users').authWithPassword(user.email, NEW_PASSWORD),
+  ).resolves.toBeTruthy()
 
   const stale = new PocketBase(PB_URL)
-  await expect(stale.collection('users').authWithPassword(user.email, user.password)).rejects.toThrow()
+  await expect(
+    stale.collection('users').authWithPassword(user.email, user.password),
+  ).rejects.toThrow()
 })

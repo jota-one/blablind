@@ -7,15 +7,21 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="card bg-base-200 p-4 lg:p-6">
-        <p class="text-xs text-base-content/50 uppercase tracking-wide mb-1">{{ t('admin.stat_active_sessions') }}</p>
+        <p class="text-xs text-base-content/50 uppercase tracking-wide mb-1">
+          {{ t('admin.stat_active_sessions') }}
+        </p>
         <p class="text-3xl font-bold font-mono">—</p>
       </div>
       <div class="card bg-base-200 p-4 lg:p-6">
-        <p class="text-xs text-base-content/50 uppercase tracking-wide mb-1">{{ t('admin.stat_connected_players') }}</p>
+        <p class="text-xs text-base-content/50 uppercase tracking-wide mb-1">
+          {{ t('admin.stat_connected_players') }}
+        </p>
         <p class="text-3xl font-bold font-mono">—</p>
       </div>
       <div class="card bg-base-200 p-4 lg:p-6">
-        <p class="text-xs text-base-content/50 uppercase tracking-wide mb-1">{{ t('admin.stat_played_tracks') }}</p>
+        <p class="text-xs text-base-content/50 uppercase tracking-wide mb-1">
+          {{ t('admin.stat_played_tracks') }}
+        </p>
         <p class="text-3xl font-bold font-mono">—</p>
       </div>
     </div>

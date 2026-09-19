@@ -1,7 +1,7 @@
 # PocketBase — custom Go build
 
 BlaBlind ships its **own PocketBase binary**, built from `main.go` in this
-folder, instead of the official release. The build is *hybrid*: the `jsvm`
+folder, instead of the official release. The build is _hybrid_: the `jsvm`
 plugin is registered exactly like in the stock binary, so every hook in
 `pb_hooks/` and every migration in `pb_migrations/` keeps running unchanged.
 
@@ -11,12 +11,12 @@ server-side autonomous reconciler). See `docs/plans/09-webpush-go.md`.
 
 ## Differences from the stock binary
 
-| | stock | ours |
-|---|---|---|
-| jsvm (`pb_hooks`, `pb_migrations`) | yes | yes |
-| CLI flags (`--hooksDir`, `--publicDir`, `--automigrate`, …) | yes | yes, same defaults |
-| `pocketbase update` (ghupdate plugin) | yes | **removed** — self-updating would overwrite our binary |
-| reported version | `v0.39.4` | `(untracked)` |
+|                                                             | stock     | ours                                                   |
+| ----------------------------------------------------------- | --------- | ------------------------------------------------------ |
+| jsvm (`pb_hooks`, `pb_migrations`)                          | yes       | yes                                                    |
+| CLI flags (`--hooksDir`, `--publicDir`, `--automigrate`, …) | yes       | yes, same defaults                                     |
+| `pocketbase update` (ghupdate plugin)                       | yes       | **removed** — self-updating would overwrite our binary |
+| reported version                                            | `v0.39.4` | `(untracked)`                                          |
 
 `(untracked)` is meaningful: infra's `bin/pb_install` skips any binary reporting
 that version, so a deploy never replaces a source-built one.

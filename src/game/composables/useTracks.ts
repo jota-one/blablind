@@ -76,20 +76,24 @@ export default function useTracks(sessionId: string) {
     await load()
     // expand 'video' is applied server-side to the realtime payload, so e.record
     // already carries the relation — no per-event getOne needed.
-    unsubscribe = await pb.collection('tracks').subscribe<TrackRecord>('*', e => {
-      if (e.action === 'create') {
-        // Guard against double-insert (e.g. event buffered across a reconnect reload)
-        if (tracks.value.some(t => t.id === e.record.id)) return
-        tracks.value.push(e.record)
-        sort()
-      } else if (e.action === 'update') {
-        const idx = tracks.value.findIndex(t => t.id === e.record.id)
-        if (idx >= 0) tracks.value[idx] = e.record
-        sort()
-      } else if (e.action === 'delete') {
-        tracks.value = tracks.value.filter(t => t.id !== e.record.id)
-      }
-    }, { filter: pb.filter('session = {:session}', { session: sessionId }), expand: 'video' })
+    unsubscribe = await pb.collection('tracks').subscribe<TrackRecord>(
+      '*',
+      e => {
+        if (e.action === 'create') {
+          // Guard against double-insert (e.g. event buffered across a reconnect reload)
+          if (tracks.value.some(t => t.id === e.record.id)) return
+          tracks.value.push(e.record)
+          sort()
+        } else if (e.action === 'update') {
+          const idx = tracks.value.findIndex(t => t.id === e.record.id)
+          if (idx >= 0) tracks.value[idx] = e.record
+          sort()
+        } else if (e.action === 'delete') {
+          tracks.value = tracks.value.filter(t => t.id !== e.record.id)
+        }
+      },
+      { filter: pb.filter('session = {:session}', { session: sessionId }), expand: 'video' },
+    )
     // Reload on SSE reconnect to recover any missed track events
     unsubscribeReconnect = await pb.realtime.subscribe('PB_CONNECT', () => {
       load()
@@ -101,5 +105,15 @@ export default function useTracks(sessionId: string) {
     unsubscribeReconnect?.()
   })
 
-  return { tracks, currentTrack, queuedTracks, addTrack, playTrack, finishTrack, voteToSkip, cancelSkipVote, deleteTrack }
+  return {
+    tracks,
+    currentTrack,
+    queuedTracks,
+    addTrack,
+    playTrack,
+    finishTrack,
+    voteToSkip,
+    cancelSkipVote,
+    deleteTrack,
+  }
 }

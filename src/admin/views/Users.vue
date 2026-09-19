@@ -6,10 +6,7 @@
     </h2>
     <div class="card">
       <div class="flex justify-end mb-2">
-        <button
-          class="btn btn-primary btn-sm"
-          @click="openAddModal"
-        >
+        <button class="btn btn-primary btn-sm" @click="openAddModal">
           <span class="i-fa-solid-plus"></span>
           Add a user
         </button>
@@ -18,7 +15,7 @@
         <table class="table table-sm lg:table-md w-full">
           <thead>
             <tr>
-              <th class="hidden sm:table-cell" style="width: 80px;"></th>
+              <th class="hidden sm:table-cell" style="width: 80px"></th>
               <th>Name</th>
               <th class="hidden sm:table-cell">Email</th>
               <th>Roles</th>
@@ -30,7 +27,9 @@
           <tbody>
             <tr v-for="user in users" :key="user.id">
               <td class="hidden sm:table-cell">
-                <div class="w-10 h-10 bg-base-300 rounded-full flex items-center justify-center overflow-hidden">
+                <div
+                  class="w-10 h-10 bg-base-300 rounded-full flex items-center justify-center overflow-hidden"
+                >
                   <img
                     v-if="user.avatar"
                     :src="getAvatarUrl(user)"
@@ -59,19 +58,13 @@
                 <span v-else class="text-gray-400">-</span>
               </td>
               <td class="hidden sm:table-cell">
-                <span v-if="user.verified" class="badge badge-success badge-sm">
-                  Verified
-                </span>
+                <span v-if="user.verified" class="badge badge-success badge-sm"> Verified </span>
                 <span v-else class="badge badge-warning badge-sm">Not verified</span>
               </td>
               <td class="hidden sm:table-cell">{{ formatDate(user.created) }}</td>
               <td>
                 <div class="flex gap-2">
-                  <button
-                    class="btn btn-xs btn-ghost"
-                    title="Edit"
-                    @click="editUser(user)"
-                  >
+                  <button class="btn btn-xs btn-ghost" title="Edit" @click="editUser(user)">
                     <span class="i-fa-solid-pen"></span>
                   </button>
                   <button
@@ -101,9 +94,7 @@
           </tbody>
         </table>
       </div>
-      <div class="text-sm text-gray-500 p-4">
-        Total users: {{ users ? users.length : 0 }}
-      </div>
+      <div class="text-sm text-gray-500 p-4">Total users: {{ users ? users.length : 0 }}</div>
     </div>
 
     <UserAddModal ref="addModalRef" @saved="loadUsers" />

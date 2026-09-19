@@ -19,12 +19,12 @@ List of small potential improvements and refactors.
 - **Couverture de tests ciblée** — la partie unit est faite (`tests/unit/rules.test.ts` couvre `buzzBlockReason`, `canAddTrack`/`canDeleteTrack`, `skipVotesNeeded`, `playerRatio`). Reste l'e2e : flux IRL (handover DJ + buzz verbal), plus gros flux non testé.
 - **Heartbeat : amplification d'écritures** — chaque heartbeat (15s) = update `players` diffusé en SSE à tous + hook d'élection du host. OK à l'échelle actuelle ; si sessions > ~20 joueurs, endpoint dédié + early-exit du hook quand le host est en ligne.
 
-
-
 ## New Features
 
 ### Mode autonome — suite (v2)
+
 La v1 est livrée (voir History 2026-07-12). Reste pour plus tard :
+
 - **Mode "simple"** : charger une playlist dont les morceaux n'ont pas de timings "pro" (durée d'extrait, reprise résultat) — aujourd'hui un défaut de 30s s'applique, mais l'expérience est pensée pour des playlists préparées.
 - **Auteur de la playlist** : il connaît les réponses — le badger ou l'exclure des candidats/votes.
 - **Galerie de playlists publiques** : aujourd'hui les playlists publiques n'apparaissent que dans le wizard ; une page de navigation (tags, recherche) serait utile.
@@ -32,15 +32,17 @@ La v1 est livrée (voir History 2026-07-12). Reste pour plus tard :
 - **Export/durcissement des votes** : votes définitifs v1 (pas de changement d'avis) ; seuil recalculé sur les joueurs en ligne au moment du vote.
 
 ### Notifications push (Web Push)
+
 > Plan d'implémentation détaillé : `docs/plans/09-webpush-go.md`. La phase 1 (build PocketBase custom en Go) est livrée — voir `pb/README.md` ; reste les phases 2 (plomberie push) et 3 (clés VAPID + secret d'infra).
 
-Le besoin est **présentiel**, contrairement à ce qu'on pourrait croire : le jeu impose d'avoir le téléphone en main comme buzzer, ce qui est exactement la situation où on part lire un message — l'app passe en arrière-plan *pendant* la partie. Et un onglet en fond ne peut pas s'alerter lui-même (timers throttlés sur mobile) : le push est le seul mécanisme qui atteigne une PWA en arrière-plan.
+Le besoin est **présentiel**, contrairement à ce qu'on pourrait croire : le jeu impose d'avoir le téléphone en main comme buzzer, ce qui est exactement la situation où on part lire un message — l'app passe en arrière-plan _pendant_ la partie. Et un onglet en fond ne peut pas s'alerter lui-même (timers throttlés sur mobile) : le push est le seul mécanisme qui atteigne une PWA en arrière-plan.
 
 Déclencheur prioritaire : **"c'est ton tour de faire deviner"**. Comme le validateur est le propriétaire du morceau (`added_by`), le rôle tourne entre tous les joueurs et une seule personne distraite met toute la pièce en pause — c'est un problème de gameplay, pas de confort. "La partie démarre" garde du sens (on attend sur son téléphone). "Tu as été invité" n'a pas besoin de push : un lien ou un mail suffit.
 
 Prérequis déjà en place : l'app est installable (manifest + service worker), obligatoire pour le push sur iOS (16.4+). Le push part d'un hook Go via `webpush-go` (chiffrement aes128gcm + JWT VAPID natifs), ce qui évite un sidecar Node ou une réimplémentation crypto en JSVM.
 
 À faire :
+
 - Générer une paire de clés **VAPID** (publique côté client, privée en secret serveur).
 - Collection `push_subscriptions` (endpoint + clés `p256dh`/`auth`, liée au player/user, dédup par endpoint).
 - Client : bouton opt-in → `Notification.requestPermission()` → `pushManager.subscribe(clé publique)` → envoi de la subscription à PocketBase.
@@ -48,11 +50,14 @@ Prérequis déjà en place : l'app est installable (manifest + service worker), 
 - Hook Go : sur les déclencheurs → envoyer le push aux subscriptions ciblées, en commençant par "c'est ton tour".
 
 ### Morceaux favoris — suite
+
 Idée de Geetha. La v1 est livrée (voir History 2026-07-10) : ajout depuis la révélation, l'onglet "Passés" et l'écran de fin, section dédiée dans l'espace membre, réservé aux joueurs connectés. Reste :
+
 - **Export ou partage** de sa liste de favoris.
-- Le hook serveur de validation est suivi dans *Improvements / Sécurité*.
+- Le hook serveur de validation est suivi dans _Improvements / Sécurité_.
 
 ### Idées issues de l'analyse 2026-07-12
+
 Reclassées **présentiel d'abord** (2026-08-24) : le blindtest à distance n'est plus une cible — `irl_mode` est le défaut et le distant n'est plus investi. Détails et arbitrages dans `docs/ANALYSIS-2026-07-12.md` §3.
 
 Priorité haute — servent directement la soirée en présence :
@@ -72,10 +77,9 @@ Priorité basse — indifférents au présentiel :
 - **Scoring dégressif à la vitesse (option)** : point plein si buzz correct sous N secondes, dégressif ensuite — les timings par buzz sont déjà enregistrés (`buzzes.created` vs `tracks.started_at`). Nécessite de passer d'un score dérivé de `solved_by` à un score stocké par track (à mutualiser avec le mode équipes).
 - **Stats carrière (membres)** : page "Stats" dans l'espace membre — parties jouées, ratio dans le temps, meilleure série, artistes les plus devinés. Tout est calculable depuis `players.auth_user` + `tracks.solved_by` + `favorites`. Donne une vraie raison de créer un compte.
 
-> **Spotify comme source audio — étudié le 2026-08-24, écarté comme remplacement.** En présentiel un seul appareil diffuse, donc un seul Premium serait nécessaire (l'API Connect piloterait l'app Spotify du DJ ; la recherche passe par un token applicatif serveur, sans compte joueur). Deux obstacles décisifs : le **catalogue** licencié de Spotify est bien plus étroit que YouTube, or "chacun fait deviner *ses* morceaux" est le principe fondateur — un morceau absent exclut son joueur ; et `dj_candidate` permet le handover, donc plusieurs personnes devraient être Premium. Reste envisageable comme **option** pour un DJ qui a Premium, jamais comme socle : la permissivité de YouTube *est* le produit.
+> **Spotify comme source audio — étudié le 2026-08-24, écarté comme remplacement.** En présentiel un seul appareil diffuse, donc un seul Premium serait nécessaire (l'API Connect piloterait l'app Spotify du DJ ; la recherche passe par un token applicatif serveur, sans compte joueur). Deux obstacles décisifs : le **catalogue** licencié de Spotify est bien plus étroit que YouTube, or "chacun fait deviner _ses_ morceaux" est le principe fondateur — un morceau absent exclut son joueur ; et `dj_candidate` permet le handover, donc plusieurs personnes devraient être Premium. Reste envisageable comme **option** pour un DJ qui a Premium, jamais comme socle : la permissivité de YouTube _est_ le produit.
 
 Écartés volontairement (voir analyse) : app native (la PWA + Web Push couvrent le besoin), hébergement audio in-app (droits, stockage), leaderboards globaux (scores non comparables entre sessions, incite à la triche).
-
 
 ## History (done)
 

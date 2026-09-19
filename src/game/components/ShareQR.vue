@@ -1,5 +1,10 @@
 <template>
-  <button v-if="!hideTrigger" class="btn btn-xs btn-ghost" :title="t('share.title')" @click="open = true">
+  <button
+    v-if="!hideTrigger"
+    class="btn btn-xs btn-ghost"
+    :title="t('share.title')"
+    @click="open = true"
+  >
     <span class="i-fa-solid-qrcode text-lg"></span>
   </button>
 
@@ -31,14 +36,18 @@ const { t } = useI36n()
 const props = defineProps<{ slug: string; hideTrigger?: boolean }>()
 
 const open = ref(false)
-defineExpose({ open: () => { open.value = true } })
+defineExpose({
+  open: () => {
+    open.value = true
+  },
+})
 const copied = ref(false)
 const qrContainer = useTemplateRef<HTMLElement>('qrContainer')
 const url = typeof window !== 'undefined' ? `${window.location.origin}/${props.slug}` : ''
 
 let qrRendered = false
 
-watch(open, async (val) => {
+watch(open, async val => {
   if (!val || qrRendered) return
   await nextTick()
   const { default: QRCodeStyling } = await import('qr-code-styling')
@@ -59,6 +68,8 @@ watch(open, async (val) => {
 const copy = async () => {
   await navigator.clipboard.writeText(url)
   copied.value = true
-  setTimeout(() => { copied.value = false }, 2000)
+  setTimeout(() => {
+    copied.value = false
+  }, 2000)
 }
 </script>

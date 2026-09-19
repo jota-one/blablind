@@ -60,7 +60,12 @@
               <span>{{ errorMessage }}</span>
             </div>
 
-            <button type="submit" class="btn btn-primary w-full" :disabled="loading" data-testid="reset-submit">
+            <button
+              type="submit"
+              class="btn btn-primary w-full"
+              :disabled="loading"
+              data-testid="reset-submit"
+            >
               <span v-if="loading" class="loading loading-spinner"></span>
               {{ t('password_reset.submit') }}
             </button>
@@ -98,7 +103,9 @@ const handleSubmit = async () => {
   }
   loading.value = true
   try {
-    await pb.collection('users').confirmPasswordReset(token.value, password.value, passwordConfirm.value)
+    await pb
+      .collection('users')
+      .confirmPasswordReset(token.value, password.value, passwordConfirm.value)
     submitted.value = true
   } catch {
     errorMessage.value = t('password_reset.error')

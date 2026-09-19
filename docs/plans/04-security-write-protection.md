@@ -143,21 +143,21 @@ Auth resolution: load the player, check `player.session === sessionId`, then ide
 
 Op table (reject anything else with 403/400):
 
-| op | who | effect |
-|---|---|---|
-| `set_paused` | host | `paused = !!payload.paused` |
-| `set_status` | host | `status ∈ {playing, finished}` only |
-| `save_settings` | host | `settings = payload.settings` (object) |
-| `toggle_irl` | host | `irl_mode`, `dj_candidate = null`, dj restore logic (copy from Room.vue `toggleIrlMode`) |
-| `propose_host` | any player | `host_candidate = playerId` |
-| `approve_host` | host | `host = host_candidate; host_candidate = null` |
-| `reject_host` | host | `host_candidate = null` |
-| `take_host` | owner | `host = playerId; host_candidate = null` |
-| `propose_dj` | any player | `dj_candidate = playerId` |
-| `approve_dj` | current DJ | `dj_player = dj_candidate; dj_candidate = null` |
-| `reject_dj` | current DJ | `dj_candidate = null` |
-| `claim_owner` | authed host, owner empty | `owner = auth.id` |
-| `clear_paused_on_new_track` | host | `paused = false` |
+| op                          | who                      | effect                                                                                   |
+| --------------------------- | ------------------------ | ---------------------------------------------------------------------------------------- |
+| `set_paused`                | host                     | `paused = !!payload.paused`                                                              |
+| `set_status`                | host                     | `status ∈ {playing, finished}` only                                                      |
+| `save_settings`             | host                     | `settings = payload.settings` (object)                                                   |
+| `toggle_irl`                | host                     | `irl_mode`, `dj_candidate = null`, dj restore logic (copy from Room.vue `toggleIrlMode`) |
+| `propose_host`              | any player               | `host_candidate = playerId`                                                              |
+| `approve_host`              | host                     | `host = host_candidate; host_candidate = null`                                           |
+| `reject_host`               | host                     | `host_candidate = null`                                                                  |
+| `take_host`                 | owner                    | `host = playerId; host_candidate = null`                                                 |
+| `propose_dj`                | any player               | `dj_candidate = playerId`                                                                |
+| `approve_dj`                | current DJ               | `dj_player = dj_candidate; dj_candidate = null`                                          |
+| `reject_dj`                 | current DJ               | `dj_candidate = null`                                                                    |
+| `claim_owner`               | authed host, owner empty | `owner = auth.id`                                                                        |
+| `clear_paused_on_new_track` | host                     | `paused = false`                                                                         |
 
 Also `status = 'waiting'` is needed by the reset flow — allow it for the host as part of `set_status` (whitelist all three, host-only).
 
@@ -168,7 +168,10 @@ New `src/game/composables/useSessionActions.ts`:
 ```ts
 export default function useSessionActions(sessionId: string, playerId: string, secret: string) {
   const act = (op: string, payload: Record<string, unknown> = {}) =>
-    pb.send('/api/game/session-action', { method: 'POST', body: { sessionId, playerId, secret, op, payload } })
+    pb.send('/api/game/session-action', {
+      method: 'POST',
+      body: { sessionId, playerId, secret, op, payload },
+    })
   return { act }
 }
 ```

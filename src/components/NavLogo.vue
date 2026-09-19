@@ -18,7 +18,9 @@ const showLogo = computed(() => !isHome || y.value > window.innerHeight * 0.4)
 <style scoped>
 .slide-down-enter-active,
 .slide-down-leave-active {
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
 }
 .slide-down-enter-from,
 .slide-down-leave-to {

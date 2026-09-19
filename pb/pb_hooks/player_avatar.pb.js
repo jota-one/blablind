@@ -25,14 +25,9 @@ onRecordAfterUpdateSuccess(e => {
 
   const avatar = e.record.getString('avatar')
   try {
-    const players = e.app.findRecordsByFilter(
-      'players',
-      'auth_user = {:uid}',
-      '',
-      500,
-      0,
-      { uid: e.record.id },
-    )
+    const players = e.app.findRecordsByFilter('players', 'auth_user = {:uid}', '', 500, 0, {
+      uid: e.record.id,
+    })
     for (const player of players) {
       if (player.getString('avatar') !== avatar) {
         player.set('avatar', avatar)

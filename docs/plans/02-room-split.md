@@ -23,14 +23,16 @@ Signature sketch:
 
 ```ts
 export default function useRoomRoles(options: {
-  session: ComputedRef<any>          // computed(() => props.session)
+  session: ComputedRef<any> // computed(() => props.session)
   currentPlayerId: string
   players: Ref<any[]>
   isHost: ComputedRef<boolean>
   isAuthenticated: ComputedRef<boolean>
   user: Ref<any>
   t: (key: string, params?: any) => string
-}) { /* returns all of the above */ }
+}) {
+  /* returns all of the above */
+}
 ```
 
 ### A2. `src/game/composables/useGameFlow.ts`
@@ -46,6 +48,7 @@ Watch out: `animationState` is shared between the solved-buzz watcher (stays in 
 `sessionSettings` computed (defaults merge), `editedSettings`, `openSettingsModal`, `saveSettings`, `settingsSaving`, `settingsError`, `showSettingsModal`.
 
 **Checkpoint A**: Room.vue script should be roughly halved. Commits:
+
 - `refactor(game): extract useRoomRoles from Room.vue`
 - `refactor(game): extract useGameFlow from Room.vue`
 - `refactor(game): extract useRoomSettings from Room.vue`
@@ -54,14 +57,14 @@ Watch out: `animationState` is shared between the solved-buzz watcher (stays in 
 
 Current template map (line numbers of 2026-07-12, drift expected after phase A):
 
-| Block | Lines | → Component |
-|---|---|---|
-| 3-layer video/warm-up/status container incl. lobby | 61–201 | `PlaybackCard.vue` (lobby content via `<slot name="idle">`) |
-| Lobby roster + ready/launch | 126–199 | `RoomLobby.vue` (rendered in PlaybackCard's slot) |
-| Classic buzz zone | 231–284 | `BuzzZone.vue` |
-| Validator panel + auto-reject countdown (incl. its timer logic) | 287–308, 1908–1930 | `ValidatorPanel.vue` |
-| Tabs (upcoming/done/scores) + swipe + drag & drop | 363–557, swipe/sortable logic | `RoomTabs.vue` |
-| Menu drawer + roles/settings/reset/participants modals | 636–1029 | `RoomMenus.vue` |
+| Block                                                           | Lines                         | → Component                                                 |
+| --------------------------------------------------------------- | ----------------------------- | ----------------------------------------------------------- |
+| 3-layer video/warm-up/status container incl. lobby              | 61–201                        | `PlaybackCard.vue` (lobby content via `<slot name="idle">`) |
+| Lobby roster + ready/launch                                     | 126–199                       | `RoomLobby.vue` (rendered in PlaybackCard's slot)           |
+| Classic buzz zone                                               | 231–284                       | `BuzzZone.vue`                                              |
+| Validator panel + auto-reject countdown (incl. its timer logic) | 287–308, 1908–1930            | `ValidatorPanel.vue`                                        |
+| Tabs (upcoming/done/scores) + swipe + drag & drop               | 363–557, swipe/sortable logic | `RoomTabs.vue`                                              |
+| Menu drawer + roles/settings/reset/participants modals          | 636–1029                      | `RoomMenus.vue`                                             |
 
 Recommended order (leaf-first, smallest risk): `ValidatorPanel` → `BuzzZone` → `RoomLobby` → `RoomMenus` → `RoomTabs` → `PlaybackCard`.
 

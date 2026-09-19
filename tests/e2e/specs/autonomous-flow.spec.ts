@@ -16,7 +16,11 @@ import {
  * and the session auto-finishes when the queue empties.
  */
 
-async function openPlayer(browser: Browser, scenario: Scenario, player: SeededPlayer): Promise<Page> {
+async function openPlayer(
+  browser: Browser,
+  scenario: Scenario,
+  player: SeededPlayer,
+): Promise<Page> {
   const context = await browser.newContext()
   await context.addInitScript(ytStubInitScript)
   await context.addInitScript(
@@ -28,11 +32,15 @@ async function openPlayer(browser: Browser, scenario: Scenario, player: SeededPl
   )
   const page = await context.newPage()
   await page.goto(`/${scenario.slug}`)
-  await expect(page.getByRole('heading', { name: 'E2E Auto Room' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('heading', { name: 'E2E Auto Room' })).toBeVisible({
+    timeout: 15_000,
+  })
   return page
 }
 
-test('buzz order + peer votes award the point, then the session auto-finishes', async ({ browser }) => {
+test('buzz order + peer votes award the point, then the session auto-finishes', async ({
+  browser,
+}) => {
   const scenario = await seedAutonomousScenario()
 
   let hostPage: Page | undefined
@@ -66,7 +74,8 @@ test('buzz order + peer votes award the point, then the session auto-finishes', 
     await bobVoteYes.click()
 
     // Resolution (server oracle): Alice gets the point.
-    await expect.poll(async () => (await getTrack(scenario.track1Id)).solved_by, { timeout: 15_000 })
+    await expect
+      .poll(async () => (await getTrack(scenario.track1Id)).solved_by, { timeout: 15_000 })
       .toBe(scenario.alice.id)
 
     // Reveal phase: everyone votes to move on (unanimous skip → advance).
@@ -76,13 +85,16 @@ test('buzz order + peer votes award the point, then the session auto-finishes', 
       await stop.click()
     }
 
-    await expect.poll(async () => (await getTrack(scenario.track1Id)).status, { timeout: 15_000 })
+    await expect
+      .poll(async () => (await getTrack(scenario.track1Id)).status, { timeout: 15_000 })
       .toBe('done')
-    await expect.poll(async () => (await getTrack(scenario.track2Id)).status, { timeout: 15_000 })
+    await expect
+      .poll(async () => (await getTrack(scenario.track2Id)).status, { timeout: 15_000 })
       .toBe('playing')
 
     // Track 2: nobody buzzes. Window closes → no-winner reveal (skip_revealed).
-    await expect.poll(async () => (await getTrack(scenario.track2Id)).skip_revealed, { timeout: 15_000 })
+    await expect
+      .poll(async () => (await getTrack(scenario.track2Id)).skip_revealed, { timeout: 15_000 })
       .toBe(true)
 
     // Everyone votes to move on; the queue is empty so the host auto-ends.
@@ -92,7 +104,8 @@ test('buzz order + peer votes award the point, then the session auto-finishes', 
       await stop.click()
     }
 
-    await expect.poll(async () => (await getSession(scenario.sessionId)).status, { timeout: 15_000 })
+    await expect
+      .poll(async () => (await getSession(scenario.sessionId)).status, { timeout: 15_000 })
       .toBe('finished')
 
     // Scoring: with no track owners every done track is guessable by everyone —

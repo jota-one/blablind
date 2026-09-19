@@ -48,14 +48,9 @@ routerAdd(
         const target = txApp.findRecordById('users', targetId)
 
         const repoint = (collection, field) => {
-          const records = txApp.findRecordsByFilter(
-            collection,
-            `${field} = {:id}`,
-            '',
-            0,
-            0,
-            { id: sourceId },
-          )
+          const records = txApp.findRecordsByFilter(collection, `${field} = {:id}`, '', 0, 0, {
+            id: sourceId,
+          })
           for (const record of records) {
             record.set(field, targetId)
             txApp.save(record)
@@ -68,14 +63,9 @@ routerAdd(
 
         // Players keep their session history; refresh the denormalized avatar
         // so past sessions show the surviving account's avatar.
-        const players = txApp.findRecordsByFilter(
-          'players',
-          'auth_user = {:id}',
-          '',
-          0,
-          0,
-          { id: sourceId },
-        )
+        const players = txApp.findRecordsByFilter('players', 'auth_user = {:id}', '', 0, 0, {
+          id: sourceId,
+        })
         for (const player of players) {
           player.set('auth_user', targetId)
           player.set('avatar', target.getString('avatar'))
@@ -84,14 +74,9 @@ routerAdd(
 
         // Favorites are unique per (user, video): move them unless the target
         // already favorited the same video, in which case drop the duplicate.
-        const favorites = txApp.findRecordsByFilter(
-          'favorites',
-          'user = {:id}',
-          '',
-          0,
-          0,
-          { id: sourceId },
-        )
+        const favorites = txApp.findRecordsByFilter('favorites', 'user = {:id}', '', 0, 0, {
+          id: sourceId,
+        })
         for (const favorite of favorites) {
           const duplicates = txApp.findRecordsByFilter(
             'favorites',

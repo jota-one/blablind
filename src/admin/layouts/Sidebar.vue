@@ -5,43 +5,78 @@
       <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
       <ul class="menu bg-base-200 text-base-content min-h-full w-60 p-4 pt-20 lg:pt-4">
         <li>
-          <RouterLink to="/" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
+          <RouterLink
+            to="/"
+            class="flex items-center gap-3"
+            active-class="menu-active"
+            @click="closeDrawer"
+          >
             <span class="i-fa6-solid-house text-xl"></span>
             {{ t('admin.nav_home') }}
           </RouterLink>
         </li>
         <li>
-          <RouterLink to="/sessions" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
+          <RouterLink
+            to="/sessions"
+            class="flex items-center gap-3"
+            active-class="menu-active"
+            @click="closeDrawer"
+          >
             <span class="i-fa-solid-headphones text-xl"></span>
             {{ t('admin.nav_sessions') }}
           </RouterLink>
         </li>
         <li>
-          <RouterLink to="/videos" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
+          <RouterLink
+            to="/videos"
+            class="flex items-center gap-3"
+            active-class="menu-active"
+            @click="closeDrawer"
+          >
             <span class="i-fa-solid-music text-xl"></span>
             {{ t('admin.nav_videos') }}
           </RouterLink>
         </li>
         <li>
-          <RouterLink to="/users" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
+          <RouterLink
+            to="/users"
+            class="flex items-center gap-3"
+            active-class="menu-active"
+            @click="closeDrawer"
+          >
             <span class="i-fa-solid-users text-xl"></span>
             {{ t('admin.nav_users') }}
           </RouterLink>
         </li>
         <li>
-          <RouterLink to="/roles" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
+          <RouterLink
+            to="/roles"
+            class="flex items-center gap-3"
+            active-class="menu-active"
+            @click="closeDrawer"
+          >
             <span class="i-fa-solid-user-shield text-xl"></span>
             Roles
           </RouterLink>
         </li>
         <li>
-          <RouterLink to="/roadmap" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
+          <RouterLink
+            to="/roadmap"
+            class="flex items-center gap-3"
+            active-class="menu-active"
+            @click="closeDrawer"
+          >
             <span class="i-fa6-solid-map text-xl"></span>
             {{ t('admin.nav_roadmap') }}
           </RouterLink>
         </li>
         <li>
-          <RouterLink to="/settings" class="flex items-center gap-3" active-class="menu-active" @click="closeDrawer">
+          <RouterLink
+            to="/settings"
+            class="flex items-center gap-3"
+            active-class="menu-active"
+            @click="closeDrawer"
+          >
             <span class="i-fa6-solid-sliders text-xl"></span>
             {{ t('admin.nav_settings') }}
           </RouterLink>
@@ -67,7 +102,9 @@ const { t } = useI36n()
 
 const closeDrawer = () => {
   const drawer = document.getElementById('my-drawer') as HTMLInputElement | null
-  if (drawer) { drawer.checked = false }
+  if (drawer) {
+    drawer.checked = false
+  }
 }
 
 const goOut = () => {

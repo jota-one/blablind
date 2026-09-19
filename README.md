@@ -20,15 +20,15 @@ A real-time multiplayer music blindtest game with a buzzer system, powered by Yo
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Astro 7 (node adapter, SSR proxy routes) |
-| UI | Vue 3 (three SPAs: game, member area, admin) |
-| Backend | PocketBase 0.39 (JS migrations + JSVM hooks) |
-| Styling | Tailwind v4 + DaisyUI (themes: `blind` / `darkblind`) |
-| Components | PrimeVue (orange preset, admin) |
-| Video | YouTube IFrame API |
-| Package manager | pnpm (Node 24 via volta) |
+| Layer           | Technology                                            |
+| --------------- | ----------------------------------------------------- |
+| Framework       | Astro 7 (node adapter, SSR proxy routes)              |
+| UI              | Vue 3 (three SPAs: game, member area, admin)          |
+| Backend         | PocketBase 0.39 (JS migrations + JSVM hooks)          |
+| Styling         | Tailwind v4 + DaisyUI (themes: `blind` / `darkblind`) |
+| Components      | PrimeVue (orange preset, admin)                       |
+| Video           | YouTube IFrame API                                    |
+| Package manager | pnpm (Node 24 via volta)                              |
 
 ## PocketBase Collections
 
@@ -36,16 +36,16 @@ A real-time multiplayer music blindtest game with a buzzer system, powered by Yo
 
 ## Commands
 
-| Command | Action |
-|---|---|
-| `pnpm install` | Install dependencies |
-| `pnpm dev` | Start dev server at `localhost:4321` |
-| `pnpm db` | Start PocketBase at `127.0.0.1:8093` |
-| `pnpm lint` / `pnpm format` | oxlint / oxfmt |
-| `pnpm test:unit` | Unit tests (node, no framework) |
-| `pnpm test:e2e` | Playwright e2e (see `tests/e2e/README.md`) |
-| `pnpm build` | Type-check + build for production into `pb/pb_public` |
-| `pnpm preview` | Preview the production build locally |
+| Command                     | Action                                                |
+| --------------------------- | ----------------------------------------------------- |
+| `pnpm install`              | Install dependencies                                  |
+| `pnpm dev`                  | Start dev server at `localhost:4321`                  |
+| `pnpm db`                   | Start PocketBase at `127.0.0.1:8093`                  |
+| `pnpm lint` / `pnpm format` | oxlint / oxfmt                                        |
+| `pnpm test:unit`            | Unit tests (node, no framework)                       |
+| `pnpm test:e2e`             | Playwright e2e (see `tests/e2e/README.md`)            |
+| `pnpm build`                | Type-check + build for production into `pb/pb_public` |
+| `pnpm preview`              | Preview the production build locally                  |
 
 The SPA reaches PocketBase through `PUBLIC_PB_BASE_URI` (`.env.local`).
 

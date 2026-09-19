@@ -8,8 +8,8 @@
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <p class="text-sm">
-          All activity of <strong>{{ source?.email }}</strong> (sessions, game history,
-          favorites, playlists) will be moved to the selected account, then
+          All activity of <strong>{{ source?.email }}</strong> (sessions, game history, favorites,
+          playlists) will be moved to the selected account, then
           <strong>{{ source?.email }}</strong> will be deleted.
         </p>
 

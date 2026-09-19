@@ -13,7 +13,9 @@
       </div>
 
       <!-- New features -->
-      <p class="text-xs uppercase font-semibold tracking-widest opacity-40 mb-4">{{ t('admin.roadmap_features_label') }}</p>
+      <p class="text-xs uppercase font-semibold tracking-widest opacity-40 mb-4">
+        {{ t('admin.roadmap_features_label') }}
+      </p>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 lg:mb-10">
         <div
           v-for="feature in features"
@@ -25,11 +27,17 @@
             <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <span :class="[featureIcon(feature.title), 'text-primary text-base']"></span>
             </div>
-            <h4 class="font-semibold text-sm leading-snug group-hover:text-primary transition-colors">{{ feature.title }}</h4>
+            <h4
+              class="font-semibold text-sm leading-snug group-hover:text-primary transition-colors"
+            >
+              {{ feature.title }}
+            </h4>
           </div>
           <p class="text-xs text-base-content/50 line-clamp-2 pl-12">{{ feature.excerpt }}</p>
           <div class="flex justify-end">
-            <span class="text-xs text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span
+              class="text-xs text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
               {{ t('admin.roadmap_see_detail') }}
               <span class="i-fa6-solid-arrow-right text-xs"></span>
             </span>
@@ -38,7 +46,9 @@
       </div>
 
       <!-- Improvements -->
-      <p class="text-xs uppercase font-semibold tracking-widest opacity-40 mb-4">{{ t('admin.roadmap_improvements_label') }}</p>
+      <p class="text-xs uppercase font-semibold tracking-widest opacity-40 mb-4">
+        {{ t('admin.roadmap_improvements_label') }}
+      </p>
       <div class="flex flex-col gap-2">
         <div
           v-for="(imp, i) in improvements"
@@ -64,9 +74,13 @@
             <span class="i-fa-solid-circle text-success"></span>
           </div>
           <div class="timeline-start mb-8">
-            <time class="font-bold text-xs uppercase tracking-widest text-success/70">{{ formatDate(entry.date) }}</time>
+            <time class="font-bold text-xs uppercase tracking-widest text-success/70">{{
+              formatDate(entry.date)
+            }}</time>
             <p class="font-semibold text-sm mt-0.5">{{ entry.title }}</p>
-            <p v-if="entry.detail" class="text-xs text-base-content/50 mt-0.5 line-clamp-2">{{ entry.detail }}</p>
+            <p v-if="entry.detail" class="text-xs text-base-content/50 mt-0.5 line-clamp-2">
+              {{ entry.detail }}
+            </p>
           </div>
           <hr class="bg-success/30" />
         </li>
@@ -92,8 +106,16 @@ const { t } = useI36n()
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-interface Feature { title: string; excerpt: string; content: string }
-interface HistoryEntry { date: string; title: string; detail: string }
+interface Feature {
+  title: string
+  excerpt: string
+  content: string
+}
+interface HistoryEntry {
+  date: string
+  title: string
+  detail: string
+}
 
 // ─── Parser ─────────────────────────────────────────────────────────────────
 
@@ -109,20 +131,27 @@ function parseRoadmap(raw: string) {
     if (heading.startsWith('Improvements')) {
       for (const line of body.split('\n')) {
         const match = line.match(/^- (.+)/)
-        if (!match) { continue }
+        if (!match) {
+          continue
+        }
         improvements.push(match[1].trim())
       }
     } else if (heading.startsWith('New Features')) {
       for (const sub of body.split(/^### /m).slice(1)) {
         const [title, ...lines] = sub.split('\n')
         const subContent = lines.join('\n').trim()
-        const excerpt = subContent.replace(/`[^`]+`/g, '').split(/[.\n]/)[0].trim()
+        const excerpt = subContent
+          .replace(/`[^`]+`/g, '')
+          .split(/[.\n]/)[0]
+          .trim()
         features.push({ title: title.trim(), excerpt, content: subContent })
       }
     } else if (heading.startsWith('History')) {
       for (const line of body.split('\n')) {
         const match = line.match(/^- \[(\d{4}-\d{2}-\d{2})\] (.+)/)
-        if (!match) { continue }
+        if (!match) {
+          continue
+        }
         const [, date, rest2] = match
         const sep = rest2.indexOf(' — ')
         history.push({
@@ -144,14 +173,30 @@ const { features, improvements, history } = parseRoadmap(roadmapContent)
 const selectedFeature = ref<Feature | null>(null)
 const showModal = ref(false)
 
-const openFeature = (f: Feature) => { selectedFeature.value = f; showModal.value = true }
+const openFeature = (f: Feature) => {
+  selectedFeature.value = f
+  showModal.value = true
+}
 const selectedFeatureHtml = computed(() =>
-  selectedFeature.value ? String(marked.parse(selectedFeature.value.content)) : ''
+  selectedFeature.value ? String(marked.parse(selectedFeature.value.content)) : '',
 )
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const MONTHS_EN = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
 const formatDate = (d: string) => {
   const [year, month, day] = d.split('-').map(Number)
   return `${MONTHS_EN[month - 1]} ${day}, ${year}`

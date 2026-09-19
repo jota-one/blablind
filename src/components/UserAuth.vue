@@ -8,8 +8,16 @@
       >
         {{ t('auth.login_button') }}
       </button>
-      <LoginModal ref="loginModalRef" @login-success="handleLoginSuccess" @switch-to-signup="handleSwitchToSignup" />
-      <SignupModal ref="signupModalRef" @signup-success="handleSignupSuccess" @switch-to-login="handleSwitchToLogin" />
+      <LoginModal
+        ref="loginModalRef"
+        @login-success="handleLoginSuccess"
+        @switch-to-signup="handleSwitchToSignup"
+      />
+      <SignupModal
+        ref="signupModalRef"
+        @signup-success="handleSignupSuccess"
+        @switch-to-login="handleSwitchToLogin"
+      />
     </template>
     <template v-else>
       <div class="dropdown dropdown-end">
@@ -28,7 +36,9 @@
             <span v-else class="i-fa-solid-user text-xl text-white"></span>
           </div>
           <div class="hidden sm:flex flex-col">
-            <span class="text-xs font-medium text-white/70 uppercase tracking-wide">{{ t('auth.connected') }}</span>
+            <span class="text-xs font-medium text-white/70 uppercase tracking-wide">{{
+              t('auth.connected')
+            }}</span>
             <span class="text-sm font-semibold text-white">{{ user.name }}</span>
           </div>
           <span class="hidden sm:inline i-fa-solid-chevron-down text-xs text-white/70"></span>
@@ -70,13 +80,17 @@ const { t } = useI36n()
 const { isAuthenticated, user, logout, refreshAuth } = useAuth()
 
 onMounted(() => {
-  if (isAuthenticated.value) { refreshAuth() }
+  if (isAuthenticated.value) {
+    refreshAuth()
+  }
 })
 const loginModalRef = useTemplateRef<InstanceType<typeof LoginModal>>('loginModalRef')
 const signupModalRef = useTemplateRef<InstanceType<typeof SignupModal>>('signupModalRef')
 
 const avatarUrl = computed(() => {
-  if (!user.value?.avatar) { return '' }
+  if (!user.value?.avatar) {
+    return ''
+  }
   return `${config.apiBaseUrl}/api/files/_pb_users_auth_/${user.value.id}/${user.value.avatar}`
 })
 

@@ -22,7 +22,9 @@
         :title="isPreviewingAt(field) ? t('track.stop_preview') : t('track.play_preview')"
         @click="emit('preview', value(field), excerptFor(field))"
       >
-        <span :class="[isPreviewingAt(field) ? 'i-fa-solid-stop' : 'i-fa-solid-play', 'text-xs']"></span>
+        <span
+          :class="[isPreviewingAt(field) ? 'i-fa-solid-stop' : 'i-fa-solid-play', 'text-xs']"
+        ></span>
       </button>
 
       <button
@@ -115,9 +117,7 @@ const isPreviewingAt = (field: Field) =>
 const capture = (field: Field) => {
   const at = Math.floor(props.getPreviewTime!())
   props.track[field.key] =
-    field.key === 'playback_duration'
-      ? Math.max(1, at - (props.track.start_seconds ?? 0))
-      : at
+    field.key === 'playback_duration' ? Math.max(1, at - (props.track.start_seconds ?? 0)) : at
   emit('save')
 }
 </script>

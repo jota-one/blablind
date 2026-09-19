@@ -198,8 +198,14 @@ export async function cleanup(scenario: Scenario): Promise<void> {
     console.warn('[e2e] PB_ADMIN_EMAIL/PASSWORD not set — leaving seeded records behind')
     return
   }
-  await pb.collection('sessions').delete(scenario.sessionId).catch(() => {})
-  await pb.collection('videos').delete(scenario.videoId).catch(() => {})
+  await pb
+    .collection('sessions')
+    .delete(scenario.sessionId)
+    .catch(() => {})
+  await pb
+    .collection('videos')
+    .delete(scenario.videoId)
+    .catch(() => {})
 }
 
 export async function getTrack(id: string) {
@@ -227,7 +233,10 @@ export async function seedUser(): Promise<SeededUser> {
 
 export async function deleteUser(user: SeededUser): Promise<void> {
   if (!(await ensureAdmin())) return
-  await pb.collection('users').delete(user.id).catch(() => {})
+  await pb
+    .collection('users')
+    .delete(user.id)
+    .catch(() => {})
 }
 
 /**
@@ -242,7 +251,16 @@ export async function configureMailForTests(appUrl: string): Promise<Record<stri
   // makes PocketBase send AUTH, which Mailpit rejects (502 → no mail delivered).
   await pb.settings.update({
     meta: { ...current.meta, appURL: appUrl },
-    smtp: { enabled: true, host: '127.0.0.1', port: 1025, username: '', password: '', authMethod: 'PLAIN', tls: false, localName: '' },
+    smtp: {
+      enabled: true,
+      host: '127.0.0.1',
+      port: 1025,
+      username: '',
+      password: '',
+      authMethod: 'PLAIN',
+      tls: false,
+      localName: '',
+    },
   })
   return current
 }

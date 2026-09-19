@@ -36,6 +36,7 @@ Also verified end-to-end (2026-08-24): a two-browser classic IRL game against th
 **No workflow change is needed in this repo** — this plan's original instructions here were stale. Verified against `jota-one/infra@c72f808` (2026-08-24): `deploy-pb-db.yaml` checks for `<pb-path>/go.mod`, reads the Go version from it, runs `actions/setup-go`, builds `GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o pocketbase .` and includes the binary in the "pb" bundle. `bin/pb_install` then skips it because a source-built binary reports version `(untracked)`.
 
 Consequence: **the switch to the custom binary happens on the first deploy after `pb/go.mod` reaches `main`** — no opt-in step.
+
 - Keep `.pbversion` in sync with the pinned Go dependency; it doubles as the rollback lever (see lexlsf README "Plan de rollback").
 - VAPID private key: add to the infra secret mechanism, exposed as env to the systemd service.
 

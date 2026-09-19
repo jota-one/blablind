@@ -2,7 +2,11 @@
   <div class="space-y-8 max-w-xl">
     <section v-if="playlist">
       <div class="flex items-center gap-2 mb-4">
-        <RouterLink to="/playlists" class="btn btn-sm btn-ghost btn-circle" :title="t('playlists.back')">
+        <RouterLink
+          to="/playlists"
+          class="btn btn-sm btn-ghost btn-circle"
+          :title="t('playlists.back')"
+        >
           <span class="i-fa-solid-arrow-left"></span>
         </RouterLink>
         <h2 class="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
@@ -15,7 +19,12 @@
       <div class="space-y-3 rounded-lg bg-base-200 p-4 mb-6">
         <label class="form-control w-full">
           <span class="label-text text-xs mb-1">{{ t('playlists.name_label') }}</span>
-          <input v-model="playlist.name" type="text" class="input input-bordered input-sm w-full" @change="saveMeta" />
+          <input
+            v-model="playlist.name"
+            type="text"
+            class="input input-bordered input-sm w-full"
+            @change="saveMeta"
+          />
         </label>
         <label class="form-control w-full">
           <span class="label-text text-xs mb-1">{{ t('playlists.description_label') }}</span>
@@ -37,7 +46,12 @@
           />
         </label>
         <label class="flex items-center gap-2 cursor-pointer">
-          <input v-model="playlist.public" type="checkbox" class="toggle toggle-sm toggle-primary" @change="saveMeta" />
+          <input
+            v-model="playlist.public"
+            type="checkbox"
+            class="toggle toggle-sm toggle-primary"
+            @change="saveMeta"
+          />
           <span class="text-sm">{{ t('playlists.public_label') }}</span>
           <span class="text-xs text-base-content/40">{{ t('playlists.public_hint') }}</span>
         </label>
@@ -100,7 +114,9 @@
               class="w-full h-full object-cover bg-base-300"
               loading="lazy"
             />
-            <span class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/60 transition-colors text-white">
+            <span
+              class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/60 transition-colors text-white"
+            >
               <span :class="isPreviewing(row) ? 'i-fa-solid-stop' : 'i-fa-solid-play'"></span>
             </span>
           </button>
@@ -113,7 +129,7 @@
               class="mt-1"
               wrap="flex flex-wrap items-center gap-x-3 gap-y-1"
               :track="row"
-              :previewing-at="isPreviewing(row) ? previewInfo?.startSeconds ?? null : null"
+              :previewing-at="isPreviewing(row) ? (previewInfo?.startSeconds ?? null) : null"
               :get-preview-time="isPreviewing(row) ? currentTime : undefined"
               @save="saveTiming(row)"
               @preview="(seconds, duration) => toggleAt(videoIdOf(row), seconds, duration)"
@@ -143,24 +159,30 @@
       <!-- Add tracks -->
       <h3 class="font-semibold mb-2">{{ t('playlists.add_tracks') }}</h3>
       <div class="tabs tabs-bordered mb-3">
-        <button :class="['tab', addMode === 'search' ? 'tab-active' : '']" @click="addMode = 'search'">
+        <button
+          :class="['tab', addMode === 'search' ? 'tab-active' : '']"
+          @click="addMode = 'search'"
+        >
           <span class="i-fa-solid-magnifying-glass mr-1"></span>
           {{ t('room.add_tab_search') }}
         </button>
-        <button :class="['tab', addMode === 'favorites' ? 'tab-active' : '']" @click="addMode = 'favorites'">
+        <button
+          :class="['tab', addMode === 'favorites' ? 'tab-active' : '']"
+          @click="addMode = 'favorites'"
+        >
           <span class="i-fa-solid-star mr-1"></span>
           {{ t('room.add_tab_favorites') }}
         </button>
       </div>
       <!-- v-show keeps search results / previews alive across tab switches -->
       <TrackSearch
-          v-show="addMode === 'search'"
-          ref="trackSearch"
-          :add-track="addRow"
-          :remove-track="deleteRowById"
-          can-add-track
-          @preview-start="stopPreview"
-        />
+        v-show="addMode === 'search'"
+        ref="trackSearch"
+        :add-track="addRow"
+        :remove-track="deleteRowById"
+        can-add-track
+        @preview-start="stopPreview"
+      />
       <FavoritesPicker
         v-show="addMode === 'favorites'"
         ref="favoritesPane"
@@ -203,7 +225,9 @@ const trackSearch = useTemplateRef<InstanceType<typeof TrackSearch>>('trackSearc
 const favoritesPane = useTemplateRef<InstanceType<typeof FavoritesPicker>>('favoritesPane')
 
 const loadFavorites = async () => {
-  if (!user.value?.id) { return }
+  if (!user.value?.id) {
+    return
+  }
   favorites.value = await pb.collection('favorites').getFullList({
     filter: pb.filter('user = {:user}', { user: user.value.id }),
     expand: 'video',
@@ -212,12 +236,20 @@ const loadFavorites = async () => {
   })
 }
 
-watch(() => user.value?.id, (id) => { if (id) { loadFavorites() } }, { immediate: true })
+watch(
+  () => user.value?.id,
+  id => {
+    if (id) {
+      loadFavorites()
+    }
+  },
+  { immediate: true },
+)
 
 // Stop the favorites preview when leaving the tab
 // Panes stay mounted (v-show): silence the one being left, so only one player
 // ever sounds in the member area.
-watch(addMode, (mode) => {
+watch(addMode, mode => {
   if (mode !== 'search') {
     trackSearch.value?.stopPreview()
   }
@@ -262,17 +294,30 @@ const load = async () => {
   })
 }
 
-watch(playlistId, () => { load() }, { immediate: true })
+watch(
+  playlistId,
+  () => {
+    load()
+  },
+  { immediate: true },
+)
 
 let savedFlashTimer: ReturnType<typeof setTimeout> | null = null
 const flashSaved = () => {
   savedFlash.value = true
-  if (savedFlashTimer) { clearTimeout(savedFlashTimer) }
-  savedFlashTimer = setTimeout(() => { savedFlash.value = false }, 2000)
+  if (savedFlashTimer) {
+    clearTimeout(savedFlashTimer)
+  }
+  savedFlashTimer = setTimeout(() => {
+    savedFlash.value = false
+  }, 2000)
 }
 
 const saveMeta = async () => {
-  const tags = tagsInput.value.split(',').map(s => s.trim()).filter(Boolean)
+  const tags = tagsInput.value
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
   await pb.collection('playlists').update(playlist.value.id, {
     name: playlist.value.name,
     description: playlist.value.description,
@@ -301,16 +346,16 @@ const saveTiming = (row: any) => {
   row.start_seconds = Math.max(0, Math.floor(row.start_seconds || 0))
   row.playback_duration = clean(row.playback_duration)
   row.reveal_seconds = clean(row.reveal_seconds)
-  pb.collection('playlist_tracks').update(row.id, {
-    start_seconds: row.start_seconds,
-    playback_duration: row.playback_duration,
-    reveal_seconds: row.reveal_seconds,
-  }, { requestKey: null })
+  pb.collection('playlist_tracks').update(
+    row.id,
+    {
+      start_seconds: row.start_seconds,
+      playback_duration: row.playback_duration,
+      reveal_seconds: row.reveal_seconds,
+    },
+    { requestKey: null },
+  )
 }
-
-
-
-
 
 // --- Add / remove ---
 
@@ -354,7 +399,7 @@ const removeRow = (row: any) => {
 
 let sortableInstance: Sortable | null = null
 
-watch(rowListEl, (el) => {
+watch(rowListEl, el => {
   if (el) {
     sortableInstance = Sortable.create(el, {
       draggable: '.draggable-row',
@@ -369,7 +414,11 @@ watch(rowListEl, (el) => {
           const newOrder = i + 1
           if (row.order !== newOrder) {
             row.order = newOrder
-            pb.collection('playlist_tracks').update(row.id, { order: newOrder }, { requestKey: null })
+            pb.collection('playlist_tracks').update(
+              row.id,
+              { order: newOrder },
+              { requestKey: null },
+            )
           }
         })
         rows.value = [...rows.value].sort((a, b) => a.order - b.order)
@@ -383,6 +432,8 @@ watch(rowListEl, (el) => {
 
 onUnmounted(() => {
   sortableInstance?.destroy()
-  if (savedFlashTimer) { clearTimeout(savedFlashTimer) }
+  if (savedFlashTimer) {
+    clearTimeout(savedFlashTimer)
+  }
 })
 </script>

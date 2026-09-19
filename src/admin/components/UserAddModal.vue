@@ -75,11 +75,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <input
-            v-model="form.verified"
-            type="checkbox"
-            class="checkbox checkbox-sm"
-          />
+          <input v-model="form.verified" type="checkbox" class="checkbox checkbox-sm" />
           <label class="label cursor-pointer flex-1">
             <span class="label-text">Verified</span>
           </label>

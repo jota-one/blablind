@@ -35,7 +35,13 @@ export default function useBuzzes(
   )
 
   const buzzBlockReason = computed<'max_attempts' | 'delay' | 'others' | null>(() =>
-    computeBuzzBlockReason(buzzes.value, currentPlayerId ?? '', settings.value, now.value, otherEligibleCount.value),
+    computeBuzzBlockReason(
+      buzzes.value,
+      currentPlayerId ?? '',
+      settings.value,
+      now.value,
+      otherEligibleCount.value,
+    ),
   )
 
   const canBuzz = computed(() => {
@@ -54,7 +60,7 @@ export default function useBuzzes(
   })
 
   const remainingAttempts = computed(() =>
-    Math.max(0, settings.value.max_buzz_attempts - myWrongBuzzes.value.length)
+    Math.max(0, settings.value.max_buzz_attempts - myWrongBuzzes.value.length),
   )
 
   watch(myWrongBuzzes, wrong => {
@@ -158,5 +164,15 @@ export default function useBuzzes(
     }
   }
 
-  return { buzzes, activeBuzz, canBuzz, buzzBlockReason, rebuzzRemainingSeconds, remainingAttempts, buzz, solvedBuzz, reload }
+  return {
+    buzzes,
+    activeBuzz,
+    canBuzz,
+    buzzBlockReason,
+    rebuzzRemainingSeconds,
+    remainingAttempts,
+    buzz,
+    solvedBuzz,
+    reload,
+  }
 }

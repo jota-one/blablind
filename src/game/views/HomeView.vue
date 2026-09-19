@@ -1,26 +1,40 @@
 <template>
   <div class="flex flex-col">
-
     <!-- Hero image -->
     <div class="relative h-[50vh] min-h-64 overflow-hidden">
-      <img src="/blablind-hero.jpg" alt="BlaBlind" class="absolute inset-0 w-full h-full object-cover object-center" />
-      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--color-base-100)]" />
+      <img
+        src="/blablind-hero.jpg"
+        alt="BlaBlind"
+        class="absolute inset-0 w-full h-full object-cover object-center"
+      />
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--color-base-100)]"
+      />
     </div>
 
     <!-- Slogan + Forms -->
     <div class="flex flex-col items-center px-4 pb-20 -mt-6 relative">
-      <p class="text-3xl md:text-4xl font-black font-display uppercase tracking-wide bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent text-center mb-12 max-w-lg">
+      <p
+        class="text-3xl md:text-4xl font-black font-display uppercase tracking-wide bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent text-center mb-12 max-w-lg"
+      >
         {{ t('home.slogan') }}
       </p>
 
       <!-- Bannière restore session -->
-      <div v-if="lastSession" class="alert alert-info w-full max-w-2xl mb-6 flex items-center gap-4">
+      <div
+        v-if="lastSession"
+        class="alert alert-info w-full max-w-2xl mb-6 flex items-center gap-4"
+      >
         <span class="i-fa-solid-rotate-left text-xl shrink-0"></span>
         <span class="flex-1 text-sm">
           {{ t('home.restore_banner', { name: lastSession.name }) }}
         </span>
-        <a :href="`/${lastSession.slug}`" class="btn btn-sm btn-primary shrink-0">{{ t('home.restore_resume') }}</a>
-        <button class="btn btn-sm btn-ghost shrink-0" @click="dismissLastSession">{{ t('home.restore_dismiss') }}</button>
+        <a :href="`/${lastSession.slug}`" class="btn btn-sm btn-primary shrink-0">{{
+          t('home.restore_resume')
+        }}</a>
+        <button class="btn btn-sm btn-ghost shrink-0" @click="dismissLastSession">
+          {{ t('home.restore_dismiss') }}
+        </button>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
@@ -63,12 +77,16 @@
     <!-- Section: Comment ça marche -->
     <section class="bg-neutral text-neutral-content py-24 px-6">
       <div class="max-w-5xl mx-auto">
-        <h2 class="text-5xl md:text-7xl font-black font-display uppercase mb-16 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        <h2
+          class="text-5xl md:text-7xl font-black font-display uppercase mb-16 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+        >
           {{ t('home.how_title') }}
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           <div v-for="step in steps" :key="step.n" class="flex flex-col gap-4">
-            <div class="text-6xl font-black font-display text-primary/30 leading-none">{{ step.n }}</div>
+            <div class="text-6xl font-black font-display text-primary/30 leading-none">
+              {{ step.n }}
+            </div>
             <div class="text-4xl">{{ step.icon }}</div>
             <h3 class="text-2xl font-black font-display uppercase">{{ step.title }}</h3>
             <p class="text-neutral-content/70 leading-relaxed">{{ step.desc }}</p>
@@ -104,14 +122,18 @@
     <!-- Section: Propose une amélioration -->
     <section class="bg-base-200 text-base-content py-24 px-6">
       <div class="max-w-2xl mx-auto">
-        <h2 class="text-5xl md:text-7xl font-black font-display uppercase mb-4 bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
+        <h2
+          class="text-5xl md:text-7xl font-black font-display uppercase mb-4 bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent"
+        >
           {{ t('home.feedback_title') }}
         </h2>
         <p class="text-base-content/60 mb-12 text-lg">{{ t('home.feedback_subtitle') }}</p>
 
         <div v-if="feedbackSent" class="text-center py-12">
           <p class="text-5xl mb-4">🙏</p>
-          <p class="text-2xl font-black font-display uppercase">{{ t('home.feedback_sent_title') }}</p>
+          <p class="text-2xl font-black font-display uppercase">
+            {{ t('home.feedback_sent_title') }}
+          </p>
           <p class="text-base-content/60 mt-2">{{ t('home.feedback_sent_sub') }}</p>
         </div>
         <form v-else @submit.prevent="submitFeedback" class="space-y-5">
@@ -134,7 +156,6 @@
         </form>
       </div>
     </section>
-
   </div>
 
   <!-- Toast erreur join -->
@@ -249,12 +270,16 @@ const handleJoin = async () => {
   joining.value = true
   joinError.value = ''
   try {
-    await pb.collection('sessions').getFirstListItem(pb.filter('slug = {:code}', { code }), { requestKey: null })
+    await pb
+      .collection('sessions')
+      .getFirstListItem(pb.filter('slug = {:code}', { code }), { requestKey: null })
     window.location.href = `/${code}`
   } catch {
     joinError.value = t('app.error_not_found')
     joining.value = false
-    setTimeout(() => { joinError.value = '' }, 4000)
+    setTimeout(() => {
+      joinError.value = ''
+    }, 4000)
   }
 }
 

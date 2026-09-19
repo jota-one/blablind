@@ -20,7 +20,10 @@ export function parseDuration(text: string | null | undefined): number {
   if (!text) {
     return 0
   }
-  const parts = text.trim().split(':').map(p => Number(p))
+  const parts = text
+    .trim()
+    .split(':')
+    .map(p => Number(p))
   if (parts.length === 0 || parts.length > 3 || parts.some(n => !Number.isFinite(n) || n < 0)) {
     return 0
   }
@@ -244,9 +247,7 @@ export async function dataApiSearch(q: string, key: string): Promise<SearchResul
   }
   const searchData = await jsonOrThrow(searchRes)
 
-  const ids = (searchData?.items ?? [])
-    .map((i: any) => i?.id?.videoId)
-    .filter(Boolean)
+  const ids = (searchData?.items ?? []).map((i: any) => i?.id?.videoId).filter(Boolean)
   if (ids.length === 0) {
     return []
   }
@@ -276,7 +277,10 @@ export function invidiousInstances(): string[] {
   if (!env) {
     return DEFAULT_INVIDIOUS_INSTANCES
   }
-  const list = env.split(',').map(s => s.trim()).filter(Boolean)
+  const list = env
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
   return list.length > 0 ? list : DEFAULT_INVIDIOUS_INSTANCES
 }
 

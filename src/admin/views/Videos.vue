@@ -14,7 +14,9 @@
         />
       </div>
       <div class="text-sm text-base-content/60 mb-2">
-        <span v-if="debouncedQuery">{{ videos.length }} résultat(s) pour « {{ debouncedQuery }} »</span>
+        <span v-if="debouncedQuery"
+          >{{ videos.length }} résultat(s) pour « {{ debouncedQuery }} »</span
+        >
         <span v-else>{{ videos.length }} chargés sur un total de {{ totalVideos }}</span>
       </div>
       <div class="overflow-x-auto">
@@ -48,11 +50,7 @@
               <td class="hidden sm:table-cell">{{ formatDate(video.created) }}</td>
               <td>
                 <div class="flex gap-2">
-                  <button
-                    class="btn btn-xs btn-ghost"
-                    title="Modifier"
-                    @click="editVideo(video)"
-                  >
+                  <button class="btn btn-xs btn-ghost" title="Modifier" @click="editVideo(video)">
                     <span class="i-fa-solid-pen"></span>
                   </button>
                   <button

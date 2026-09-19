@@ -69,7 +69,9 @@ export const computeNextAction = (s: AutonomousSnapshot): AutonomousAction | nul
 
     const voterIds = s.onlinePlayerIds.filter(id => id !== candidate.player)
     const yesNeeded = voteThreshold(voterIds.length)
-    const candidateVotes = s.votes.filter(v => v.buzz === candidate.id && voterIds.includes(v.voter))
+    const candidateVotes = s.votes.filter(
+      v => v.buzz === candidate.id && voterIds.includes(v.voter),
+    )
     const yes = candidateVotes.filter(v => v.value).length
     const no = candidateVotes.length - yes
 

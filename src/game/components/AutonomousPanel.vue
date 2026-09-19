@@ -1,6 +1,5 @@
 <template>
   <div class="w-full space-y-3">
-
     <!-- GUESSING: buzz + (remote) inline answer + buzz order -->
     <template v-if="phase === 'guessing'">
       <template v-if="!myBuzz">
@@ -13,7 +12,10 @@
           <span class="i-fa-solid-bell text-3xl"></span>
           <span>
             {{ t('room.buzz_button') }}
-            <span v-if="windowRemainingSeconds !== null" class="block text-sm font-normal opacity-80 tabular-nums">
+            <span
+              v-if="windowRemainingSeconds !== null"
+              class="block text-sm font-normal opacity-80 tabular-nums"
+            >
               ⏱ {{ windowRemainingSeconds }}s
             </span>
           </span>
@@ -44,7 +46,11 @@
               @keyup.enter="emit('save-answer')"
               @blur="emit('save-answer')"
             />
-            <button class="btn btn-primary" data-testid="auto-answer-save" @click="emit('save-answer')">
+            <button
+              class="btn btn-primary"
+              data-testid="auto-answer-save"
+              @click="emit('save-answer')"
+            >
               <span class="i-fa-solid-paper-plane"></span>
             </button>
           </div>
@@ -65,7 +71,9 @@
           :class="candidate.player === currentPlayerId ? 'badge-primary' : 'badge-ghost'"
         >
           {{ i + 1 }}. {{ getPlayerName(candidate.player) }}
-          <span v-if="buzzSeconds(candidate)" class="opacity-60 tabular-nums">· {{ buzzSeconds(candidate) }}s</span>
+          <span v-if="buzzSeconds(candidate)" class="opacity-60 tabular-nums"
+            >· {{ buzzSeconds(candidate) }}s</span
+          >
         </span>
       </div>
     </template>
@@ -85,12 +93,23 @@
               :key="candidate.id"
               class="flex items-center gap-2 rounded-lg bg-base-100 px-3 py-2 text-sm"
             >
-              <span class="w-6 h-6 shrink-0 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center">{{ i + 1 }}</span>
+              <span
+                class="w-6 h-6 shrink-0 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center"
+                >{{ i + 1 }}</span
+              >
               <span class="font-medium flex-1">
                 {{ getPlayerName(candidate.player) }}
-                <span v-if="candidate.player === currentPlayerId" class="text-xs text-base-content/40">({{ t('room.you') }})</span>
+                <span
+                  v-if="candidate.player === currentPlayerId"
+                  class="text-xs text-base-content/40"
+                  >({{ t('room.you') }})</span
+                >
               </span>
-              <span v-if="buzzSeconds(candidate)" class="text-xs text-base-content/50 tabular-nums shrink-0">{{ buzzSeconds(candidate) }}s</span>
+              <span
+                v-if="buzzSeconds(candidate)"
+                class="text-xs text-base-content/50 tabular-nums shrink-0"
+                >{{ buzzSeconds(candidate) }}s</span
+              >
             </li>
           </ol>
         </template>
@@ -105,16 +124,32 @@
     <template v-else-if="phase === 'voting'">
       <div class="card bg-base-200 p-4 space-y-3">
         <div class="text-center">
-          <p class="text-xs uppercase tracking-wide font-semibold text-base-content/40">{{ t('room.auto_voting_answer_label') }}</p>
-          <p class="font-bold font-display text-lg">{{ track?.expand?.video?.title || t('room.no_title') }}</p>
-          <p v-if="track?.expand?.video?.artist" class="text-sm text-base-content/60">{{ track.expand.video.artist }}</p>
+          <p class="text-xs uppercase tracking-wide font-semibold text-base-content/40">
+            {{ t('room.auto_voting_answer_label') }}
+          </p>
+          <p class="font-bold font-display text-lg">
+            {{ track?.expand?.video?.title || t('room.no_title') }}
+          </p>
+          <p v-if="track?.expand?.video?.artist" class="text-sm text-base-content/60">
+            {{ track.expand.video.artist }}
+          </p>
         </div>
 
         <template v-if="currentCandidate">
           <div class="divider my-0"></div>
           <p class="font-bold text-sm text-center">
-            {{ t('room.auto_voting_candidate', { player: getPlayerName(currentCandidate.player), i: candidateIndex, total: orderedCandidates.length }) }}
-            <span v-if="buzzSeconds(currentCandidate)" class="font-normal text-base-content/50 tabular-nums">· {{ buzzSeconds(currentCandidate) }}s</span>
+            {{
+              t('room.auto_voting_candidate', {
+                player: getPlayerName(currentCandidate.player),
+                i: candidateIndex,
+                total: orderedCandidates.length,
+              })
+            }}
+            <span
+              v-if="buzzSeconds(currentCandidate)"
+              class="font-normal text-base-content/50 tabular-nums"
+              >· {{ buzzSeconds(currentCandidate) }}s</span
+            >
           </p>
           <p v-if="!isIrlMode" class="text-lg text-center">
             <span class="font-mono bg-base-300 px-3 py-1 rounded">
@@ -127,11 +162,19 @@
             <span class="text-sm">{{ t('room.auto_voting_you_candidate') }}</span>
           </div>
           <div v-else-if="canVote" class="flex gap-2">
-            <button class="btn btn-success flex-1" data-testid="auto-vote-yes" @click="emit('vote', true)">
+            <button
+              class="btn btn-success flex-1"
+              data-testid="auto-vote-yes"
+              @click="emit('vote', true)"
+            >
               <span class="i-fa-solid-check"></span>
               {{ t('room.auto_vote_yes') }}
             </button>
-            <button class="btn btn-error flex-1" data-testid="auto-vote-no" @click="emit('vote', false)">
+            <button
+              class="btn btn-error flex-1"
+              data-testid="auto-vote-no"
+              @click="emit('vote', false)"
+            >
               <span class="i-fa-solid-times"></span>
               {{ t('room.auto_vote_no') }}
             </button>
@@ -144,7 +187,6 @@
         </template>
       </div>
     </template>
-
   </div>
 </template>
 

@@ -71,5 +71,16 @@ export default function useTrackPreview(options: { onStart?: () => void } = {}) 
 
   onUnmounted(clearTimer)
 
-  return { player, info, paused, isPreviewing, isPreviewingAt, playAt, toggleAt, stop, onPlaying, currentTime }
+  return {
+    player,
+    info,
+    paused,
+    isPreviewing,
+    isPreviewingAt,
+    playAt,
+    toggleAt,
+    stop,
+    onPlaying,
+    currentTime,
+  }
 }

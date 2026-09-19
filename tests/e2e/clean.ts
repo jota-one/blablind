@@ -5,7 +5,9 @@ import { pb, ensureAdmin } from './helpers/seed.ts'
 // Run: pnpm test:e2e:clean
 async function main() {
   if (!(await ensureAdmin())) {
-    console.error('PB_ADMIN_EMAIL / PB_ADMIN_PASSWORD required (sessions/videos have no delete rule).')
+    console.error(
+      'PB_ADMIN_EMAIL / PB_ADMIN_PASSWORD required (sessions/videos have no delete rule).',
+    )
     process.exit(1)
   }
 
@@ -21,16 +23,20 @@ async function main() {
     console.log('deleted video', v.video_id)
   }
 
-  const users = await pb.collection('users').getFullList({ filter: "email ~ 'e2e-' && email ~ '@local.test'" })
+  const users = await pb
+    .collection('users')
+    .getFullList({ filter: "email ~ 'e2e-' && email ~ '@local.test'" })
   for (const u of users) {
     await pb.collection('users').delete(u.id)
     console.log('deleted user', u.email)
   }
 
-  console.log(`done — removed ${sessions.length} session(s), ${videos.length} video(s), ${users.length} user(s)`)
+  console.log(
+    `done — removed ${sessions.length} session(s), ${videos.length} video(s), ${users.length} user(s)`,
+  )
 }
 
-main().catch((e) => {
+main().catch(e => {
   console.error(e)
   process.exit(1)
 })

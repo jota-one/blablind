@@ -8,14 +8,20 @@
     <div v-if="!form" class="text-base-content/50">{{ t('client.settings_loading') }}</div>
 
     <form v-else class="space-y-6" @submit.prevent="handleSave">
-
       <!-- max_buzz_attempts -->
       <div class="form-control">
         <label class="label">
-          <span class="label-text font-medium">{{ t('admin.settings_max_buzz_attempts_label') }}</span>
+          <span class="label-text font-medium">{{
+            t('admin.settings_max_buzz_attempts_label')
+          }}</span>
         </label>
         <div class="flex items-center gap-2 flex-wrap">
-          <input v-model.number="form.max_buzz_attempts" type="number" min="1" class="input input-bordered w-32" />
+          <input
+            v-model.number="form.max_buzz_attempts"
+            type="number"
+            min="1"
+            class="input input-bordered w-32"
+          />
           <span class="text-base-content/50 text-sm">{{ t('admin.settings_attempts') }}</span>
           <button
             v-if="isOverridden('max_buzz_attempts')"
@@ -27,7 +33,9 @@
             {{ t('client.settings_reset_with_default', { value: appSettings?.max_buzz_attempts }) }}
           </button>
         </div>
-        <p class="text-sm text-base-content/50 mt-1">{{ t('admin.settings_max_buzz_attempts_hint') }}</p>
+        <p class="text-sm text-base-content/50 mt-1">
+          {{ t('admin.settings_max_buzz_attempts_hint') }}
+        </p>
       </div>
 
       <!-- rebuzz_delay -->
@@ -36,7 +44,12 @@
           <span class="label-text font-medium">{{ t('admin.settings_rebuzz_delay_label') }}</span>
         </label>
         <div class="flex items-center gap-2 flex-wrap">
-          <input v-model.number="form.rebuzz_delay" type="number" min="0" class="input input-bordered w-32" />
+          <input
+            v-model.number="form.rebuzz_delay"
+            type="number"
+            min="0"
+            class="input input-bordered w-32"
+          />
           <span class="text-base-content/50 text-sm">{{ t('admin.settings_seconds') }}</span>
           <button
             v-if="isOverridden('rebuzz_delay')"
@@ -54,10 +67,17 @@
       <!-- auto_reject_delay -->
       <div class="form-control">
         <label class="label">
-          <span class="label-text font-medium">{{ t('admin.settings_auto_reject_delay_label') }}</span>
+          <span class="label-text font-medium">{{
+            t('admin.settings_auto_reject_delay_label')
+          }}</span>
         </label>
         <div class="flex items-center gap-2 flex-wrap">
-          <input v-model.number="form.auto_reject_delay" type="number" min="0" class="input input-bordered w-32" />
+          <input
+            v-model.number="form.auto_reject_delay"
+            type="number"
+            min="0"
+            class="input input-bordered w-32"
+          />
           <span class="text-base-content/50 text-sm">{{ t('admin.settings_seconds') }}</span>
           <button
             v-if="isOverridden('auto_reject_delay')"
@@ -69,7 +89,9 @@
             {{ t('client.settings_reset_with_default', { value: appSettings?.auto_reject_delay }) }}
           </button>
         </div>
-        <p class="text-sm text-base-content/50 mt-1">{{ t('admin.settings_auto_reject_delay_hint') }}</p>
+        <p class="text-sm text-base-content/50 mt-1">
+          {{ t('admin.settings_auto_reject_delay_hint') }}
+        </p>
       </div>
 
       <div class="divider"></div>
@@ -77,11 +99,19 @@
       <!-- continue_after_success -->
       <div class="form-control">
         <label class="label cursor-pointer justify-start gap-4">
-          <input v-model="form.continue_after_success" type="checkbox" class="toggle toggle-primary" />
-          <span class="label-text font-medium">{{ t('admin.settings_continue_after_success_label') }}</span>
+          <input
+            v-model="form.continue_after_success"
+            type="checkbox"
+            class="toggle toggle-primary"
+          />
+          <span class="label-text font-medium">{{
+            t('admin.settings_continue_after_success_label')
+          }}</span>
         </label>
         <div class="flex items-center gap-2 mt-1">
-          <p class="text-sm text-base-content/50">{{ t('admin.settings_continue_after_success_hint') }}</p>
+          <p class="text-sm text-base-content/50">
+            {{ t('admin.settings_continue_after_success_hint') }}
+          </p>
           <button
             v-if="isOverridden('continue_after_success')"
             type="button"
@@ -89,23 +119,42 @@
             @click="handleResetField('continue_after_success')"
           >
             <span class="i-fa-solid-rotate-left text-xs"></span>
-            {{ t('client.settings_reset_with_default', { value: appSettings?.continue_after_success ? t('client.settings_yes') : t('client.settings_no') }) }}
+            {{
+              t('client.settings_reset_with_default', {
+                value: appSettings?.continue_after_success
+                  ? t('client.settings_yes')
+                  : t('client.settings_no'),
+              })
+            }}
           </button>
         </div>
       </div>
 
       <!-- stop_method (conditional) -->
-      <div v-if="form.continue_after_success" class="form-control pl-2 border-l-2 border-primary/30">
+      <div
+        v-if="form.continue_after_success"
+        class="form-control pl-2 border-l-2 border-primary/30"
+      >
         <label class="label">
           <span class="label-text font-medium">{{ t('admin.settings_stop_method_label') }}</span>
         </label>
         <div class="flex flex-col gap-2">
           <label class="flex items-center gap-3 cursor-pointer">
-            <input v-model="form.stop_method" type="radio" value="vote_unanimous" class="radio radio-primary radio-sm" />
+            <input
+              v-model="form.stop_method"
+              type="radio"
+              value="vote_unanimous"
+              class="radio radio-primary radio-sm"
+            />
             <span class="text-sm">{{ t('admin.settings_stop_method_vote') }}</span>
           </label>
           <label class="flex items-center gap-3 cursor-pointer">
-            <input v-model="form.stop_method" type="radio" value="host_choice" class="radio radio-primary radio-sm" />
+            <input
+              v-model="form.stop_method"
+              type="radio"
+              value="host_choice"
+              class="radio radio-primary radio-sm"
+            />
             <span class="text-sm">{{ t('admin.settings_stop_method_host') }}</span>
           </label>
         </div>
@@ -116,7 +165,14 @@
           @click="handleResetField('stop_method')"
         >
           <span class="i-fa-solid-rotate-left text-xs"></span>
-          {{ t('client.settings_reset_with_default', { value: appSettings?.stop_method === 'vote_unanimous' ? t('admin.settings_stop_method_vote') : t('admin.settings_stop_method_host') }) }}
+          {{
+            t('client.settings_reset_with_default', {
+              value:
+                appSettings?.stop_method === 'vote_unanimous'
+                  ? t('admin.settings_stop_method_vote')
+                  : t('admin.settings_stop_method_host'),
+            })
+          }}
         </button>
       </div>
 
@@ -137,7 +193,13 @@
             @click="handleResetField('force_equity')"
           >
             <span class="i-fa-solid-rotate-left text-xs"></span>
-            {{ t('client.settings_reset_with_default', { value: appSettings?.force_equity ? t('client.settings_yes') : t('client.settings_no') }) }}
+            {{
+              t('client.settings_reset_with_default', {
+                value: appSettings?.force_equity
+                  ? t('client.settings_yes')
+                  : t('client.settings_no'),
+              })
+            }}
           </button>
         </div>
       </div>
@@ -166,7 +228,9 @@
             @click="handleResetField('equity_margin')"
           >
             <span class="i-fa-solid-rotate-left text-xs"></span>
-            {{ t('client.settings_reset_with_default', { value: appSettings?.equity_margin ?? 1 }) }}
+            {{
+              t('client.settings_reset_with_default', { value: appSettings?.equity_margin ?? 1 })
+            }}
           </button>
         </div>
       </div>
@@ -198,7 +262,15 @@ import useUserSettings, { type TUserSettings } from '../composables/useUserSetti
 import type { TSettings } from '@admin/composables/useSettings'
 
 const { t } = useI36n()
-const { appSettings, effective, isOverridden, saveOverrides, resetOverride, loadSettings, refreshAuth } = useUserSettings()
+const {
+  appSettings,
+  effective,
+  isOverridden,
+  saveOverrides,
+  resetOverride,
+  loadSettings,
+  refreshAuth,
+} = useUserSettings()
 
 type TFormData = Omit<TSettings, 'id'>
 
@@ -215,7 +287,7 @@ onMounted(async () => {
   }
 })
 
-watch(effective, (val) => {
+watch(effective, val => {
   if (val && !form.value) {
     form.value = { ...val }
   }
@@ -224,12 +296,14 @@ watch(effective, (val) => {
 const handleResetField = async (key: keyof TUserSettings) => {
   await resetOverride(key)
   if (appSettings.value && form.value) {
-    (form.value as any)[key] = (appSettings.value as any)[key]
+    ;(form.value as any)[key] = (appSettings.value as any)[key]
   }
 }
 
 const handleSave = async () => {
-  if (!form.value || !appSettings.value) { return }
+  if (!form.value || !appSettings.value) {
+    return
+  }
 
   saving.value = true
   errorMessage.value = ''
@@ -237,17 +311,27 @@ const handleSave = async () => {
 
   try {
     const overrides: TUserSettings = {}
-    const keys = ['max_buzz_attempts', 'rebuzz_delay', 'auto_reject_delay', 'continue_after_success', 'stop_method', 'force_equity', 'equity_margin'] as const
+    const keys = [
+      'max_buzz_attempts',
+      'rebuzz_delay',
+      'auto_reject_delay',
+      'continue_after_success',
+      'stop_method',
+      'force_equity',
+      'equity_margin',
+    ] as const
 
     for (const key of keys) {
       if ((form.value as any)[key] !== (appSettings.value as any)[key]) {
-        (overrides as any)[key] = (form.value as any)[key]
+        ;(overrides as any)[key] = (form.value as any)[key]
       }
     }
 
     await saveOverrides(overrides)
     savedMessage.value = true
-    setTimeout(() => { savedMessage.value = false }, 3000)
+    setTimeout(() => {
+      savedMessage.value = false
+    }, 3000)
   } catch (error: any) {
     errorMessage.value = error.message || t('client.settings_error')
   } finally {

@@ -18,7 +18,11 @@ import {
 
 // Opens a page already "joined" as the given player by priming the localStorage
 // keys App.vue.restorePlayer reads, plus stubbing the YouTube player.
-async function openPlayer(browser: Browser, scenario: Scenario, player: SeededPlayer): Promise<Page> {
+async function openPlayer(
+  browser: Browser,
+  scenario: Scenario,
+  player: SeededPlayer,
+): Promise<Page> {
   const context = await browser.newContext()
   await context.addInitScript(ytStubInitScript)
   await context.addInitScript(
@@ -35,7 +39,9 @@ async function openPlayer(browser: Browser, scenario: Scenario, player: SeededPl
   return page
 }
 
-test('correct answer makes the host advance to the next track, once, for everyone', async ({ browser }) => {
+test('correct answer makes the host advance to the next track, once, for everyone', async ({
+  browser,
+}) => {
   const scenario = await seedAdvanceScenario()
 
   let hostPage: Page | undefined
@@ -61,9 +67,11 @@ test('correct answer makes the host advance to the next track, once, for everyon
     await validate.click()
 
     // Convergence (server-side oracle): track1 done, track2 now playing.
-    await expect.poll(async () => (await getTrack(scenario.track1Id)).status, { timeout: 15_000 })
+    await expect
+      .poll(async () => (await getTrack(scenario.track1Id)).status, { timeout: 15_000 })
       .toBe('done')
-    await expect.poll(async () => (await getTrack(scenario.track2Id)).status, { timeout: 15_000 })
+    await expect
+      .poll(async () => (await getTrack(scenario.track2Id)).status, { timeout: 15_000 })
       .toBe('playing')
 
     // No double-advance: track2 must still be playing (not skipped past to done).

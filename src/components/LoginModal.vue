@@ -55,7 +55,11 @@
             </button>
           </div>
           <div>
-            <button @click="enterForgotMode" class="link link-neutral text-xs" data-testid="forgot-link">
+            <button
+              @click="enterForgotMode"
+              class="link link-neutral text-xs"
+              data-testid="forgot-link"
+            >
               {{ t('login.forgot_password') }}
             </button>
           </div>
@@ -90,9 +94,18 @@
               <button type="button" class="btn btn-ghost" @click="exitForgotMode">
                 {{ t('login.back_to_login') }}
               </button>
-              <button type="submit" class="btn btn-primary" :disabled="forgotLoading" data-testid="forgot-submit">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                :disabled="forgotLoading"
+                data-testid="forgot-submit"
+              >
                 <span v-if="forgotLoading" class="loading loading-spinner"></span>
-                {{ forgotLoading ? t('login.forgot_password_submit_loading') : t('login.forgot_password_submit') }}
+                {{
+                  forgotLoading
+                    ? t('login.forgot_password_submit_loading')
+                    : t('login.forgot_password_submit')
+                }}
               </button>
             </div>
           </form>

@@ -1,6 +1,5 @@
 <template>
   <div class="space-y-3">
-
     <!-- Search input -->
     <form class="flex gap-2" @submit.prevent="search">
       <input
@@ -33,7 +32,9 @@
 
     <!-- Local results -->
     <template v-if="localResults.length > 0">
-      <p class="text-xs text-base-content/50 uppercase tracking-wide font-semibold">{{ t('search.library_label') }}</p>
+      <p class="text-xs text-base-content/50 uppercase tracking-wide font-semibold">
+        {{ t('search.library_label') }}
+      </p>
       <ul class="space-y-1">
         <li v-for="v in localResults" :key="v.id">
           <TrackResultRow
@@ -48,7 +49,11 @@
           />
         </li>
       </ul>
-      <button class="btn btn-sm btn-ghost w-full mt-1" :disabled="searchingYt" @click="searchYoutube">
+      <button
+        class="btn btn-sm btn-ghost w-full mt-1"
+        :disabled="searchingYt"
+        @click="searchYoutube"
+      >
         <span v-if="searchingYt" class="loading loading-spinner loading-xs"></span>
         <span v-else class="i-fa-brands-youtube text-error"></span>
         {{ t('search.youtube_button') }}
@@ -57,7 +62,9 @@
 
     <!-- YouTube results -->
     <template v-if="ytResults.length > 0">
-      <p class="text-xs text-base-content/50 uppercase tracking-wide font-semibold">{{ t('search.youtube_label') }}</p>
+      <p class="text-xs text-base-content/50 uppercase tracking-wide font-semibold">
+        {{ t('search.youtube_label') }}
+      </p>
       <ul class="space-y-1">
         <li v-for="v in ytResults" :key="v.videoId">
           <TrackResultRow
@@ -75,7 +82,9 @@
     </template>
 
     <!-- No results -->
-    <p v-if="noResults" class="text-sm text-base-content/40 text-center py-2">{{ t('search.no_results') }}</p>
+    <p v-if="noResults" class="text-sm text-base-content/40 text-center py-2">
+      {{ t('search.no_results') }}
+    </p>
 
     <!-- Toast erreur YouTube. Teleported so it still floats above everything,
          but kept inside the single root: a second root node (even the comment
@@ -89,7 +98,6 @@
         </div>
       </div>
     </Teleport>
-
   </div>
 </template>
 
@@ -103,10 +111,23 @@ import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 
 const { t } = useI36n()
 
-interface SearchVideo { videoId: string; title: string; artist: string; duration: number }
+interface SearchVideo {
+  videoId: string
+  title: string
+  artist: string
+  duration: number
+}
 
 const props = defineProps<{
-  addTrack: (data: { video_id: string; title?: string; artist?: string; duration?: number; start_seconds?: number; playback_duration?: number; reveal_seconds?: number }) => Promise<{ id: string } | void> | undefined
+  addTrack: (data: {
+    video_id: string
+    title?: string
+    artist?: string
+    duration?: number
+    start_seconds?: number
+    playback_duration?: number
+    reveal_seconds?: number
+  }) => Promise<{ id: string } | void> | undefined
   removeTrack: (trackId: string) => Promise<void>
   canAddTrack?: boolean
 }>()
@@ -127,13 +148,20 @@ const ytError = ref('')
 const previewPlayer = useTemplateRef<InstanceType<typeof YoutubePlayer>>('previewPlayer')
 const getPreviewTime = () => previewPlayer.value?.getCurrentTime() ?? 0
 
-const noResults = computed(() =>
-  searched.value && !searching.value && !searchingYt.value &&
-  localResults.value.length === 0 && ytResults.value.length === 0
+const noResults = computed(
+  () =>
+    searched.value &&
+    !searching.value &&
+    !searchingYt.value &&
+    localResults.value.length === 0 &&
+    ytResults.value.length === 0,
 )
 
 const togglePreview = (video: SearchVideo, startSeconds: number) => {
-  if (previewInfo.value?.videoId === video.videoId && previewInfo.value?.startSeconds === startSeconds) {
+  if (
+    previewInfo.value?.videoId === video.videoId &&
+    previewInfo.value?.startSeconds === startSeconds
+  ) {
     previewInfo.value = null
   } else {
     previewInfo.value = { videoId: video.videoId, startSeconds }
@@ -150,7 +178,9 @@ const search = async () => {
   ytResults.value = []
   searched.value = false
 
-  const tokens = normalizeSearch(q).split(/\s+/).filter(t => t.length >= 2)
+  const tokens = normalizeSearch(q)
+    .split(/\s+/)
+    .filter(t => t.length >= 2)
 
   try {
     if (tokens.length > 0) {
@@ -186,13 +216,20 @@ const searchYoutube = async () => {
     ytResults.value = data.results ?? []
   } catch {
     ytError.value = t('search.youtube_error')
-    setTimeout(() => { ytError.value = '' }, 4000)
+    setTimeout(() => {
+      ytError.value = ''
+    }, 4000)
   } finally {
     searchingYt.value = false
   }
 }
 
-const addVideo = async (video: SearchVideo, startSeconds: number, playbackDuration: number | null, revealSeconds: number | null) => {
+const addVideo = async (
+  video: SearchVideo,
+  startSeconds: number,
+  playbackDuration: number | null,
+  revealSeconds: number | null,
+) => {
   addedIds.value = new Set([...addedIds.value, video.videoId])
   if (previewInfo.value?.videoId === video.videoId) {
     previewInfo.value = null

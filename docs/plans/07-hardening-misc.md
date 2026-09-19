@@ -45,12 +45,12 @@ The regression history of this project is concurrency/edge-case math (double ski
 
 Create `src/game/rules.ts` with pure functions extracted from their current homes (move the logic, call the function from the original spot — no behavior change):
 
-| Function | Extract from | Test cases |
-|---|---|---|
-| `buzzBlockReason(wrongBuzzes, settings, now, othersAfterCount, otherEligibleCount)` | `useBuzzes.ts` | none-wrong → null; ≥ max_attempts → 'max_attempts'; within rebuzz_delay → 'delay'; delay elapsed → null; delay=0 & no other buzzed since → 'others'; delay=0 & another buzzed → null |
-| `canAddTrack(myCount, otherCounts, settings)` / `canDeleteTrack(...)` | `Room.vue` (or `useGameFlow`) | equity off → true; solo player → true; at margin → false; under margin → true; delete at min → true; delete below min → false |
-| `skipVotesNeeded(onlineCount, validatorOnline, trackSolvedAndPlaying)` | `Room.vue` | solved → all online; unsolved → online minus validator; floor 1 |
-| `playerRatio(doneTracks, playerId)` | `Room.vue` | own tracks excluded from guessable; 0 guessable → ratio 0; ordering ties broken by guessed count (test `rankedPlayers` comparator too) |
+| Function                                                                            | Extract from                  | Test cases                                                                                                                                                                           |
+| ----------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `buzzBlockReason(wrongBuzzes, settings, now, othersAfterCount, otherEligibleCount)` | `useBuzzes.ts`                | none-wrong → null; ≥ max_attempts → 'max_attempts'; within rebuzz_delay → 'delay'; delay elapsed → null; delay=0 & no other buzzed since → 'others'; delay=0 & another buzzed → null |
+| `canAddTrack(myCount, otherCounts, settings)` / `canDeleteTrack(...)`               | `Room.vue` (or `useGameFlow`) | equity off → true; solo player → true; at margin → false; under margin → true; delete at min → true; delete below min → false                                                        |
+| `skipVotesNeeded(onlineCount, validatorOnline, trackSolvedAndPlaying)`              | `Room.vue`                    | solved → all online; unsolved → online minus validator; floor 1                                                                                                                      |
+| `playerRatio(doneTracks, playerId)`                                                 | `Room.vue`                    | own tracks excluded from guessable; 0 guessable → ratio 0; ordering ties broken by guessed count (test `rankedPlayers` comparator too)                                               |
 
 Adapt signatures pragmatically — the goal is pure inputs (arrays/numbers), no refs, no `pb`. Keep the extracted functions' behavior byte-identical; the tests encode current behavior, not desired behavior. If a test reveals a genuine bug, flag it in the PR description instead of silently changing semantics.
 
@@ -59,5 +59,6 @@ Test file: `tests/unit/rules.test.ts`, wired into the existing `test:unit` scrip
 Verification: `pnpm test:unit` green, `pnpm build` green, quick manual smoke of buzz blocking + equity in the app.
 
 Commits:
+
 1. `refactor(game): extract pure gameplay rules into rules.ts`
 2. `test(game): unit-test buzz blocking, equity, skip threshold, scoring`

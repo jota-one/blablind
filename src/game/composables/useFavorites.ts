@@ -49,8 +49,7 @@ export default function useFavorites(
   // Un-starring must never destroy a tuned variant prepared in the member area:
   // it only removes the plain entry the star itself creates. If every entry for
   // this video carries custom timings, nothing is removed and the star stays on.
-  const isPlainEntry = (favorite: any) =>
-    !favorite.playback_duration && !favorite.reveal_seconds
+  const isPlainEntry = (favorite: any) => !favorite.playback_duration && !favorite.reveal_seconds
 
   // Tells the caller what actually happened, so the room can explain a star
   // that stays lit because tuned variants were deliberately spared.

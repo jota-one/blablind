@@ -38,13 +38,13 @@ const dialog = useTemplateRef<HTMLDialogElement>('dialog')
 
 watch(
   () => props.modelValue,
-  (newVal) => {
+  newVal => {
     if (newVal) {
       dialog.value?.showModal()
     } else {
       dialog.value?.close()
     }
-  }
+  },
 )
 
 const handleCancel = () => {

@@ -6,7 +6,7 @@ _Size: M. Risk: medium. Depends on plan 04 (uses the same secret identity for on
 
 Track titles/artists are readable through the public API before reveal, and in autonomous remote mode the typed answers transit in `buzzes.answer` before the reveal.
 
-**What cannot be fixed**: the currently *playing* track's `video_id` must reach every client (they each run the YouTube player), and a `video_id` resolves to a title via YouTube oEmbed. Full anti-cheat would require server-side audio, out of scope. The goal here is to close the *casual* channels:
+**What cannot be fixed**: the currently _playing_ track's `video_id` must reach every client (they each run the YouTube player), and a `video_id` resolves to a title via YouTube oEmbed. Full anti-cheat would require server-side audio, out of scope. The goal here is to close the _casual_ channels:
 
 1. The **queued** tracks of other players (full upcoming tracklist readable today).
 2. Typed **answers during the autonomous guessing window** (live copy-typing).
@@ -41,6 +41,7 @@ onRecordEnrich(e => {
 ```
 
 **Verified 2026-07-12 on the live dev PB (v0.39.4)**, using this exact hook:
+
 - `hide('video')` alone: field gone but `expand.video` still contains the full video record → leak. `setExpand({})` does NOT fix it either.
 - `hide('video')` + `set('video', '')`: field absent, `expand: {}` on both single-record GET and list — and the DB row keeps its relation (enrich works on a serialization copy).
 - Realtime: an SSE subscription `tracks/*?options={"expand":"video"}` receives update events for queued tracks with `expand:{}` and no `video` key — enrich applies to realtime payloads.
@@ -73,6 +74,7 @@ onRecordEnrich(e => {
 **Verified 2026-07-12 on the live dev PB**: with this exact hook, a buzz's `answer` key is absent while its track has `phase = 'guessing'` and present again once the phase moves to `voting`. The per-record `findRecordById` lookup inside enrich works and is fast enough at game scale.
 
 Client compatibility notes (all verified in code on 2026-07-12):
+
 - **Required client change**: `AutonomousPanel.vue` renders `myBuzz.answer` during guessing (the "answer saved: X" confirmation line, and its `v-else` hint). With `answer` hidden, `myBuzz.answer` is always empty — the confirmation would never show. Fix in `useAutonomous.ts`: add a local `lastSavedAnswer = ref('')`, set it in `saveMyAnswer()` after the update succeeds, reset it when the phase returns to `guessing` (same place `myAnswerDraft` is reset). Pass it to the panel and render the confirmation from it instead of `myBuzz.answer`. Same function: the `mine.answer === text` no-op guard compares against a now-hidden value — compare against `lastSavedAnswer.value` instead.
 - When the phase leaves `guessing`, `useAutonomous` already refetches buzzes (`reloadBuzzes()` on phase change — added for an SSE race). That refetch happens when `phase !== 'guessing'`, so the visible answers arrive naturally. Do not remove that reload.
 - Classic (non-autonomous) tracks have `phase = ''` → answers stay visible, as today (the validator must read them; identity over realtime is impossible).

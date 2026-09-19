@@ -14,8 +14,8 @@
       "@styles/*": ["./src/styles/*"],
       "@images/*": ["./src/assets/*"],
       "@config": ["./src/config/index.ts"],
-      "@types": ["./src/types/index.ts"],
+      "@types": ["./src/types/index.ts"]
     },
-    "jsx": "preserve",
-  },
+    "jsx": "preserve"
+  }
 }

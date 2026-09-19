@@ -5,12 +5,14 @@ _Size: M. Risk: medium (touches the autonomous phase machine). Independent of th
 ## Problem
 
 The autonomous buzz window is a local `setTimeout(seconds)` armed on each client when the track starts (`Room.vue`, watcher on `currentTrack.id` → `playbackDurationTimer`). Consequences:
+
 - A host pause during the excerpt does NOT extend the window (wall-clock keeps running) — known ROADMAP bug.
-- Each client counts down from when *it* saw the track start, so countdowns drift between clients.
+- Each client counts down from when _it_ saw the track start, so countdowns drift between clients.
 
 ## Design
 
 Single source of truth = server timestamps on the track record:
+
 - `started_at` (already exists — server timestamp of the `playing` transition, written in `useTracks.playTrack`).
 - New: `paused_ms` (number, accumulated pause duration) and `pause_started_at` (date, set while a pause is ongoing).
 
@@ -77,16 +79,18 @@ New `src/game/window.ts` (pure, unit-testable — same philosophy as `src/game/a
 
 ```ts
 export type WindowClock = {
-  startedAt: string      // tracks.started_at
-  pausedMs: number       // tracks.paused_ms
+  startedAt: string // tracks.started_at
+  pausedMs: number // tracks.paused_ms
   pauseStartedAt: string // tracks.pause_started_at, '' if not paused
-  windowSeconds: number  // playback_duration || session default
+  windowSeconds: number // playback_duration || session default
 }
 
 // serverNow: current time expressed in the server clock domain.
 export const windowDeadline = (c: WindowClock, serverNow: number): number => {
   const started = new Date(c.startedAt).getTime()
-  const livePause = c.pauseStartedAt ? Math.max(0, serverNow - new Date(c.pauseStartedAt).getTime()) : 0
+  const livePause = c.pauseStartedAt
+    ? Math.max(0, serverNow - new Date(c.pauseStartedAt).getTime())
+    : 0
   return started + c.windowSeconds * 1000 + c.pausedMs + livePause
 }
 ```
@@ -96,12 +100,14 @@ Clock offset: when a track becomes current, estimate `offsetMs = Date.now() - ne
 ### 4. Client: replace the wall-clock timer (autonomous path only)
 
 In `Room.vue` (or `useGameFlow` after plan 02):
+
 - Keep the existing `setTimeout` path for **classic** mode (`playback_duration` without autonomous semantics) — unchanged behavior.
 - For autonomous mode, derive `pausedByDuration` reactively: `computed(() => serverNow.value >= deadline.value)` driven by the existing 250 ms `windowClock` interval (already ticking during the guessing phase) instead of arming `playbackDurationTimer`. `windowRemainingSeconds` derives from the same deadline; while `session.paused` or `pause_started_at` is set, the countdown freezes naturally (deadline moves with `livePause`).
 - The reconciler input `windowElapsed` already reads `pausedByDuration` — no change needed there, but re-read `src/game/autonomous.ts` `computeNextAction` to confirm (`s.paused` already blocks transitions during a pause).
 
 Edge cases to test explicitly:
-- Pause exactly at window end (deadline already passed): reconciler must not reopen the window (paused_ms only grows the deadline for a pause that started *before* the deadline — think through and add a unit test; simplest correct behavior: once `open-answering`/`open-voting` fired, later deadline growth is irrelevant because phase ≠ guessing).
+
+- Pause exactly at window end (deadline already passed): reconciler must not reopen the window (paused_ms only grows the deadline for a pause that started _before_ the deadline — think through and add a unit test; simplest correct behavior: once `open-answering`/`open-voting` fired, later deadline growth is irrelevant because phase ≠ guessing).
 - Host handover mid-pause: new host's client computes the same deadline from record data — that is the point of the design; verify with two browsers.
 
 ### 5. Tests

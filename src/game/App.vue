@@ -23,7 +23,7 @@ import Room from '@game/views/Room.vue'
 
 // Register v-focus directive for the game SPA
 const app = getCurrentInstance()?.appContext.app
-app?.directive('focus', { mounted: (el) => el.focus() })
+app?.directive('focus', { mounted: el => el.focus() })
 
 const { t } = useI36n()
 
@@ -36,12 +36,17 @@ let stopHeartbeat: (() => void) | null = null
 const startHeartbeat = async (playerId: string) => {
   stopHeartbeat?.()
   const tick = () =>
-    pb.collection('players').update(playerId, { last_seen: new Date().toISOString() }).catch(() => {})
+    pb
+      .collection('players')
+      .update(playerId, { last_seen: new Date().toISOString() })
+      .catch(() => {})
   await tick()
   const id = setInterval(tick, 15_000)
   // Mobile browsers throttle/suspend timers for backgrounded tabs, so beat
   // immediately when the tab returns to the foreground to avoid a false offline.
-  const onVisible = () => { if (document.visibilityState === 'visible') tick() }
+  const onVisible = () => {
+    if (document.visibilityState === 'visible') tick()
+  }
   document.addEventListener('visibilitychange', onVisible)
   window.addEventListener('focus', onVisible)
   stopHeartbeat = () => {
@@ -55,11 +60,14 @@ onUnmounted(() => stopHeartbeat?.())
 
 const saveLastSession = () => {
   if (!session.value) return
-  localStorage.setItem('blablind_last_session', JSON.stringify({
-    slug,
-    name: session.value.name,
-    savedAt: Date.now(),
-  }))
+  localStorage.setItem(
+    'blablind_last_session',
+    JSON.stringify({
+      slug,
+      name: session.value.name,
+      savedAt: Date.now(),
+    }),
+  )
 }
 
 const restorePlayer = async (sessionId: string) => {
@@ -67,7 +75,7 @@ const restorePlayer = async (sessionId: string) => {
   if (savedId) {
     try {
       const secret = localStorage.getItem(`blablind_secret_${sessionId}`) ?? ''
-      player.value = { ...await pb.collection('players').getOne(savedId), secret }
+      player.value = { ...(await pb.collection('players').getOne(savedId)), secret }
       return true
     } catch {
       localStorage.removeItem(`blablind_player_${sessionId}`)
@@ -95,7 +103,7 @@ const restorePlayer = async (sessionId: string) => {
 
 watch(
   session,
-  async (s) => {
+  async s => {
     if (!s || player.value) return
     if (await restorePlayer(s.id)) {
       startHeartbeat(player.value.id)
@@ -107,11 +115,12 @@ watch(
 
 const onJoined = async (name: string) => {
   if (!session.value) return
-  const secret = typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c =>
-        (+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16)
-      )
+  const secret =
+    typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c =>
+          (+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16),
+        )
   const record = await pb.collection('players').create({
     session: session.value.id,
     name,

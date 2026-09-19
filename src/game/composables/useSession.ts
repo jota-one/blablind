@@ -11,7 +11,9 @@ export default function useSession(slug: string) {
 
   const load = async () => {
     try {
-      session.value = await pb.collection('sessions').getFirstListItem<SessionRecord>(pb.filter('slug = {:slug}', { slug }))
+      session.value = await pb
+        .collection('sessions')
+        .getFirstListItem<SessionRecord>(pb.filter('slug = {:slug}', { slug }))
     } catch {
       error.value = 'app.error_not_found'
     } finally {

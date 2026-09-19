@@ -9,7 +9,7 @@
 // This makes the server the single source of truth for the host, removing
 // the client-side election that could flip-flop when clients disagreed about
 // who was online.
-onRecordAfterUpdateSuccess((e) => {
+onRecordAfterUpdateSuccess(e => {
   e.next()
 
   const sessionId = e.record.get('session')
@@ -19,9 +19,7 @@ onRecordAfterUpdateSuccess((e) => {
 
   // Keep in sync with ONLINE_WINDOW_MS in src/game/utils.ts.
   const ONLINE_WINDOW_MS = 45 * 1000
-  const thresholdIso = new Date(Date.now() - ONLINE_WINDOW_MS)
-    .toISOString()
-    .replace('T', ' ')
+  const thresholdIso = new Date(Date.now() - ONLINE_WINDOW_MS).toISOString().replace('T', ' ')
 
   try {
     const session = e.app.findRecordById('sessions', sessionId)
@@ -46,7 +44,7 @@ onRecordAfterUpdateSuccess((e) => {
     }
 
     // Current host still online → nothing to do.
-    if (hostId && online.some((p) => p.id === hostId)) {
+    if (hostId && online.some(p => p.id === hostId)) {
       return
     }
 

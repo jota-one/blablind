@@ -118,7 +118,12 @@ const mweb = {
   },
 }
 check('innertube MWEB shape', parseInnerTubeSearch(mweb), [
-  { videoId: 'H0WyhJseftI', title: "GOJIRA - 'Flying whales'", artist: 'LISTENABLE RECORDS', duration: 465 },
+  {
+    videoId: 'H0WyhJseftI',
+    title: "GOJIRA - 'Flying whales'",
+    artist: 'LISTENABLE RECORDS',
+    duration: 465,
+  },
 ])
 
 // watchEndpoint nodes carry a videoId but no title/duration. Walking the whole

@@ -33,7 +33,9 @@
             :disabled="roleId === 'user'"
             required
           />
-          <p v-if="roleId === 'user'" class="text-xs text-gray-500 mt-1">Default role cannot be renamed</p>
+          <p v-if="roleId === 'user'" class="text-xs text-gray-500 mt-1">
+            Default role cannot be renamed
+          </p>
         </div>
 
         <div v-if="errorMessage" class="alert alert-error">

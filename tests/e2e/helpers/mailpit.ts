@@ -23,13 +23,13 @@ export async function waitForEmail(toAddress: string, timeoutMs = 10_000): Promi
     const res = await fetch(`${MAILPIT_URL}/api/v1/messages?limit=10`)
     const data = await res.json()
     const match = (data.messages ?? []).find((m: MailpitMessage) =>
-      m.To.some((t) => t.Address.toLowerCase() === toAddress.toLowerCase()),
+      m.To.some(t => t.Address.toLowerCase() === toAddress.toLowerCase()),
     )
     if (match) {
       const full = await fetch(`${MAILPIT_URL}/api/v1/message/${match.ID}`)
       return full.json()
     }
-    await new Promise((r) => setTimeout(r, 500))
+    await new Promise(r => setTimeout(r, 500))
   }
   throw new Error(`No email for ${toAddress} within ${timeoutMs}ms`)
 }
@@ -41,8 +41,9 @@ export async function waitForEmail(toAddress: string, timeoutMs = 10_000): Promi
 export function extractLinkFromEmail(message: MailpitMessage, contains?: string): string {
   const source = message.HTML || message.Text
   const urls = source.match(/https?:\/\/[^\s"<>]+/g) ?? []
-  const match = contains ? urls.find((u) => u.includes(contains)) : urls[0]
-  if (!match) throw new Error(`No link found in email body${contains ? ` containing "${contains}"` : ''}`)
+  const match = contains ? urls.find(u => u.includes(contains)) : urls[0]
+  if (!match)
+    throw new Error(`No link found in email body${contains ? ` containing "${contains}"` : ''}`)
   return match
 }
 

@@ -24,7 +24,9 @@ export default function useDashboard() {
   const loading = ref(false)
 
   const load = async () => {
-    if (!user.value?.id) { return }
+    if (!user.value?.id) {
+      return
+    }
     loading.value = true
     try {
       // getList returns both the newest entries and the total, so one request
@@ -74,7 +76,15 @@ export default function useDashboard() {
     }
   }
 
-  watch(() => user.value?.id, id => { if (id) { load() } }, { immediate: true })
+  watch(
+    () => user.value?.id,
+    id => {
+      if (id) {
+        load()
+      }
+    },
+    { immediate: true },
+  )
 
   return {
     lastSession,

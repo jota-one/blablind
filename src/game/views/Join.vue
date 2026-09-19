@@ -50,11 +50,15 @@ const name = ref('')
 const loading = ref(false)
 const error = ref('')
 
-watch(user, (u) => {
-  if (!name.value && u?.name) {
-    name.value = u.name
-  }
-}, { immediate: true })
+watch(
+  user,
+  u => {
+    if (!name.value && u?.name) {
+      name.value = u.name
+    }
+  },
+  { immediate: true },
+)
 
 if (isAuthenticated.value && !user.value?.id) {
   refreshAuth()

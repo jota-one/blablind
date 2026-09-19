@@ -74,7 +74,9 @@
           </span>
           <span class="flex items-center gap-1.5" :title="t('admin.sessions_tracks')">
             <span class="i-fa-solid-music text-xs opacity-50"></span>
-            <span class="font-mono opacity-70">{{ session.tracksDone }}/{{ session.tracksTotal }}</span>
+            <span class="font-mono opacity-70"
+              >{{ session.tracksDone }}/{{ session.tracksTotal }}</span
+            >
           </span>
           <span class="badge badge-sm badge-ghost">
             {{ t(`wizard.mode_${session.mode || 'classic'}`) }}
@@ -130,8 +132,12 @@ const selectFilter = (value: SessionStatus | '') => {
 }
 
 const statusBadge = (status: SessionStatus) => {
-  if (status === 'playing') { return 'badge-success' }
-  if (status === 'waiting') { return 'badge-warning' }
+  if (status === 'playing') {
+    return 'badge-success'
+  }
+  if (status === 'waiting') {
+    return 'badge-warning'
+  }
   return 'badge-ghost'
 }
 
@@ -145,7 +151,9 @@ const confirmDelete = (session: TSessionRow) => {
 }
 
 const deleteSessionConfirmed = async () => {
-  if (!sessionToDelete.value) { return }
+  if (!sessionToDelete.value) {
+    return
+  }
   try {
     await deleteSession(sessionToDelete.value.id)
   } catch (error) {

@@ -27,19 +27,37 @@ type UseAutonomousOptions = {
 
 export default function useAutonomous(options: UseAutonomousOptions) {
   const {
-    session, currentPlayerId, onlinePlayers, currentTrack, queuedTracks, doneTracks,
-    buzzes, votes, myVoteForBuzz, castAnswerVote, buzz, hasVotedToSkip, cancelSkipVote,
-    pausedByDuration, sessionSettings, endSession, reloadBuzzes, reloadVotes,
+    session,
+    currentPlayerId,
+    onlinePlayers,
+    currentTrack,
+    queuedTracks,
+    doneTracks,
+    buzzes,
+    votes,
+    myVoteForBuzz,
+    castAnswerVote,
+    buzz,
+    hasVotedToSkip,
+    cancelSkipVote,
+    pausedByDuration,
+    sessionSettings,
+    endSession,
+    reloadBuzzes,
+    reloadVotes,
   } = options
 
   const isAutonomous = computed(() => session.value?.mode === 'autonomous')
-  const phase = computed<'guessing' | 'answering' | 'voting' | null>(
-    () => (isAutonomous.value ? currentTrack.value?.phase || null : null),
+  const phase = computed<'guessing' | 'answering' | 'voting' | null>(() =>
+    isAutonomous.value ? currentTrack.value?.phase || null : null,
   )
   const isHost = computed(() => session.value?.host === currentPlayerId)
 
-  const effectiveWindowSeconds = computed(() =>
-    currentTrack.value?.playback_duration || sessionSettings.value.default_playback_duration || 30,
+  const effectiveWindowSeconds = computed(
+    () =>
+      currentTrack.value?.playback_duration ||
+      sessionSettings.value.default_playback_duration ||
+      30,
   )
 
   // Buzz order = creation order (server timestamps, id as tiebreaker)
@@ -48,20 +66,25 @@ export default function useAutonomous(options: UseAutonomousOptions) {
       a.created === b.created ? (a.id < b.id ? -1 : 1) : a.created < b.created ? -1 : 1,
     ),
   )
-  const myBuzz = computed(() => orderedCandidates.value.find(b => b.player === currentPlayerId) ?? null)
-  const currentCandidate = computed(() => orderedCandidates.value.find(b => b.status === 'pending') ?? null)
+  const myBuzz = computed(
+    () => orderedCandidates.value.find(b => b.player === currentPlayerId) ?? null,
+  )
+  const currentCandidate = computed(
+    () => orderedCandidates.value.find(b => b.status === 'pending') ?? null,
+  )
   const candidateIndex = computed(() =>
     currentCandidate.value
       ? orderedCandidates.value.findIndex(b => b.id === currentCandidate.value.id) + 1
       : 0,
   )
 
-  const canBuzzAutonomous = computed(() =>
-    isAutonomous.value &&
-    phase.value === 'guessing' &&
-    !myBuzz.value &&
-    !currentTrack.value?.solved_by &&
-    !currentTrack.value?.skip_revealed,
+  const canBuzzAutonomous = computed(
+    () =>
+      isAutonomous.value &&
+      phase.value === 'guessing' &&
+      !myBuzz.value &&
+      !currentTrack.value?.solved_by &&
+      !currentTrack.value?.skip_revealed,
   )
 
   // --- Voting ---
@@ -73,7 +96,9 @@ export default function useAutonomous(options: UseAutonomousOptions) {
   const yesNeeded = computed(() => voteThreshold(voterIds.value.length))
   const candidateVotes = computed(() => {
     if (!currentCandidate.value) return []
-    return votes.value.filter(v => v.buzz === currentCandidate.value.id && voterIds.value.includes(v.voter))
+    return votes.value.filter(
+      v => v.buzz === currentCandidate.value.id && voterIds.value.includes(v.voter),
+    )
   })
   const yesCount = computed(() => candidateVotes.value.filter(v => v.value).length)
   const noCount = computed(() => candidateVotes.value.length - yesCount.value)
@@ -81,8 +106,12 @@ export default function useAutonomous(options: UseAutonomousOptions) {
   const myVoteOnCandidate = computed(() =>
     currentCandidate.value ? myVoteForBuzz(currentCandidate.value.id, currentPlayerId) : null,
   )
-  const canVote = computed(() =>
-    phase.value === 'voting' && !!currentCandidate.value && !iAmCandidate.value && !myVoteOnCandidate.value,
+  const canVote = computed(
+    () =>
+      phase.value === 'voting' &&
+      !!currentCandidate.value &&
+      !iAmCandidate.value &&
+      !myVoteOnCandidate.value,
   )
 
   // --- Player actions ---
@@ -169,13 +198,17 @@ export default function useAutonomous(options: UseAutonomousOptions) {
         // local buzz cache may have missed create events (SSE registration race).
         await reloadBuzzes()
         if (buzzes.value.some(b => b.status === 'pending')) break
-        await pb.collection('tracks').update(trackId, { skip_revealed: true, phase: null, skip_votes: [] })
+        await pb
+          .collection('tracks')
+          .update(trackId, { skip_revealed: true, phase: null, skip_votes: [] })
         break
       }
       case 'resolve-correct':
         // Track first, buzz second: if the host dies in between, the repair
         // branch of computeNextAction completes the second write.
-        await pb.collection('tracks').update(trackId, { solved_by: action.playerId, phase: null, skip_votes: [] })
+        await pb
+          .collection('tracks')
+          .update(trackId, { solved_by: action.playerId, phase: null, skip_votes: [] })
         await pb.collection('buzzes').update(action.buzzId, { status: 'correct' })
         break
       case 'resolve-wrong':
@@ -211,12 +244,18 @@ export default function useAutonomous(options: UseAutonomousOptions) {
       // Realtime events landing while the lock was held were dropped by the
       // watcher; re-check once the local state has caught up. Idempotent
       // writes make a redundant re-execution harmless.
-      if (recheckTimer) { clearTimeout(recheckTimer) }
-      recheckTimer = setTimeout(() => { reconcile() }, 600)
+      if (recheckTimer) {
+        clearTimeout(recheckTimer)
+      }
+      recheckTimer = setTimeout(() => {
+        reconcile()
+      }, 600)
     }
   }
 
-  watch([snapshot, isHost], () => { reconcile() })
+  watch([snapshot, isHost], () => {
+    reconcile()
+  })
 
   return {
     isAutonomous,

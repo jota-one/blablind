@@ -33,7 +33,11 @@
           <span
             :class="[
               'badge badge-xs shrink-0',
-              session.status === 'playing' ? 'badge-success' : session.status === 'finished' ? 'badge-neutral' : 'badge-warning',
+              session.status === 'playing'
+                ? 'badge-success'
+                : session.status === 'finished'
+                  ? 'badge-neutral'
+                  : 'badge-warning',
             ]"
           >
             {{ t(`room.status_${session.status}`) }}
@@ -82,7 +86,11 @@
           <span
             :class="[
               'badge badge-xs shrink-0',
-              session.status === 'playing' ? 'badge-success' : session.status === 'finished' ? 'badge-neutral' : 'badge-warning',
+              session.status === 'playing'
+                ? 'badge-success'
+                : session.status === 'finished'
+                  ? 'badge-neutral'
+                  : 'badge-warning',
             ]"
           >
             {{ t(`room.status_${session.status}`) }}
@@ -115,7 +123,9 @@ const playerCounts = ref<Record<string, number>>({})
 const loading = ref(false)
 
 const loadSessions = async () => {
-  if (!user.value?.id) { return }
+  if (!user.value?.id) {
+    return
+  }
   loading.value = true
   try {
     const [owned, playerRecords] = await Promise.all([
@@ -139,21 +149,26 @@ const loadSessions = async () => {
       .sort((a: any, b: any) => b.created.localeCompare(a.created))
     participatedSessions.value = participated
 
-    const allSessionIds = [
-      ...owned.map((s: any) => s.id),
-      ...participated.map((s: any) => s.id),
-    ]
+    const allSessionIds = [...owned.map((s: any) => s.id), ...participated.map((s: any) => s.id)]
 
     if (allSessionIds.length > 0) {
       const sessionFilter = allSessionIds.map(id => `session = "${id}"`).join(' || ')
       const [tracksResult, playersResult] = await Promise.all([
-        pb.collection('tracks').getFullList({ filter: sessionFilter, fields: 'session', requestKey: null }),
-        pb.collection('players').getFullList({ filter: sessionFilter, fields: 'session', requestKey: null }),
+        pb
+          .collection('tracks')
+          .getFullList({ filter: sessionFilter, fields: 'session', requestKey: null }),
+        pb
+          .collection('players')
+          .getFullList({ filter: sessionFilter, fields: 'session', requestKey: null }),
       ])
       const tc: Record<string, number> = {}
       const pc: Record<string, number> = {}
-      for (const track of tracksResult) { tc[track.session] = (tc[track.session] || 0) + 1 }
-      for (const player of playersResult) { pc[player.session] = (pc[player.session] || 0) + 1 }
+      for (const track of tracksResult) {
+        tc[track.session] = (tc[track.session] || 0) + 1
+      }
+      for (const player of playersResult) {
+        pc[player.session] = (pc[player.session] || 0) + 1
+      }
       trackCounts.value = tc
       playerCounts.value = pc
     }
@@ -162,8 +177,20 @@ const loadSessions = async () => {
   }
 }
 
-watch(() => user.value?.id, (id) => { if (id) { loadSessions() } }, { immediate: true })
+watch(
+  () => user.value?.id,
+  id => {
+    if (id) {
+      loadSessions()
+    }
+  },
+  { immediate: true },
+)
 
 const formatDate = (dateStr: string) =>
-  new Date(dateStr).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+  new Date(dateStr).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
 </script>

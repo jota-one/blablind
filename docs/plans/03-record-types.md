@@ -41,46 +41,46 @@ export type SessionRecord = BaseRecord & {
   name: string
   slug: string
   status: SessionStatus
-  host: string            // relation → players
+  host: string // relation → players
   irl_mode: boolean
   dj_player: string
   dj_candidate: string
-  owner: string           // relation → users
+  owner: string // relation → users
   settings: SessionSettings
   host_candidate: string
   paused: boolean
   mode: SessionMode
-  playlist: string        // relation → playlists (autonomous only)
+  playlist: string // relation → playlists (autonomous only)
 }
 
 export type PlayerRecord = BaseRecord & {
   session: string
   name: string
-  secret: string          // hidden from API responses after plan 04
+  secret: string // hidden from API responses after plan 04
   ready: boolean
   last_seen: PBDate
-  auth_user: string       // relation → users, '' for guests
-  avatar: string          // denormalized from users by pb_hooks/player_avatar.pb.js
+  auth_user: string // relation → users, '' for guests
+  avatar: string // denormalized from users by pb_hooks/player_avatar.pb.js
 }
 
 export type TrackStatus = 'queued' | 'playing' | 'done'
 export type TrackPhase = 'guessing' | 'answering' | 'voting' | ''
 
 export type TrackRecord = BaseRecord & {
-  video: string           // relation → videos
+  video: string // relation → videos
   session: string
   start_seconds: number
-  added_by: string        // relation → players, '' in autonomous mode
+  added_by: string // relation → players, '' in autonomous mode
   status: TrackStatus
   order: number
-  skip_votes: string[]    // player ids; JSON field
-  solved_by: string       // relation → players
+  skip_votes: string[] // player ids; JSON field
+  solved_by: string // relation → players
   is_duplicate: boolean
   playback_duration: number
   reveal_seconds: number
   skip_revealed: boolean
-  phase: TrackPhase       // autonomous mode only
-  started_at: PBDate      // server timestamp of the playing transition
+  phase: TrackPhase // autonomous mode only
+  started_at: PBDate // server timestamp of the playing transition
   expand?: { video?: VideoRecord }
 }
 
@@ -94,7 +94,7 @@ export type BuzzRecord = BaseRecord & {
 }
 
 export type VideoRecord = BaseRecord & {
-  video_id: string        // YouTube id
+  video_id: string // YouTube id
   title: string
   artist: string
   duration: number
@@ -103,8 +103,8 @@ export type VideoRecord = BaseRecord & {
 
 export type AnswerVoteRecord = Omit<BaseRecord, 'updated'> & {
   buzz: string
-  voter: string           // relation → players
-  track: string           // denormalized for per-track subscription
+  voter: string // relation → players
+  track: string // denormalized for per-track subscription
   value: boolean
 }
 
@@ -112,7 +112,7 @@ export type PlaylistRecord = BaseRecord & {
   owner: string
   name: string
   description: string
-  tags: string[]          // JSON field
+  tags: string[] // JSON field
   public: boolean
 }
 
@@ -139,6 +139,7 @@ export type FavoriteRecord = BaseRecord & {
 ```
 
 Notes:
+
 - PB returns `''` (not `null`/`undefined`) for empty text/relation fields, `0` for empty numbers, `false` for empty bools. Type accordingly (no `| null`).
 - JSON fields (`skip_votes`, `settings`, `tags`) arrive parsed in the JS SDK. Server-side JSVM hooks are different (`getString` + `JSON.parse` — house rule).
 - If a field is missing at runtime, trust the DB over this file (house rule: query SQLite before speculating).

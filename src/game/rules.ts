@@ -55,7 +55,11 @@ export type EquitySettings = { force_equity: boolean; equity_margin: number }
 
 // Track equity: a player may queue a new track as long as they stay within
 // equity_margin of the least-stocked other online player.
-export const canAddTrack = (myCount: number, otherCounts: number[], settings: EquitySettings): boolean => {
+export const canAddTrack = (
+  myCount: number,
+  otherCounts: number[],
+  settings: EquitySettings,
+): boolean => {
   if (!settings.force_equity) {
     return true
   }
@@ -67,7 +71,11 @@ export const canAddTrack = (myCount: number, otherCounts: number[], settings: Eq
 
 // Deleting is the mirror: allowed as long as the player doesn't drop below the
 // least-stocked other online player.
-export const canDeleteTrack = (myCount: number, otherCounts: number[], settings: EquitySettings): boolean => {
+export const canDeleteTrack = (
+  myCount: number,
+  otherCounts: number[],
+  settings: EquitySettings,
+): boolean => {
   if (!settings.force_equity) {
     return true
   }
@@ -106,7 +114,10 @@ export const playerRatio = (doneTracks: DoneTrackLike[], playerId: string) => {
 }
 
 // Leaderboard order: ratio desc, ties broken by absolute guessed count desc.
-export const rankPlayers = <T extends { id: string }>(players: T[], doneTracks: DoneTrackLike[]): T[] =>
+export const rankPlayers = <T extends { id: string }>(
+  players: T[],
+  doneTracks: DoneTrackLike[],
+): T[] =>
   [...players].sort((a, b) => {
     const ra = playerRatio(doneTracks, a.id)
     const rb = playerRatio(doneTracks, b.id)
