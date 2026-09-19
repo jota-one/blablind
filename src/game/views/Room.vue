@@ -682,7 +682,7 @@
           <div v-if="isHost && hostCandidate" class="alert alert-info py-2 text-sm flex items-center justify-between gap-2">
             <span>{{ t('room.host_candidate_banner', { name: hostCandidate.name }) }}</span>
             <div class="flex gap-2 shrink-0">
-              <button class="btn btn-xs btn-success" @click="approveHost(); showRolesModal = false">{{ t('room.host_accept') }}</button>
+              <button class="btn btn-xs btn-success" @click="approveHostFromRoles">{{ t('room.host_accept') }}</button>
               <button class="btn btn-xs btn-ghost" @click="rejectHost">{{ t('room.host_reject') }}</button>
             </div>
           </div>
@@ -690,7 +690,7 @@
           <button
             v-if="!isHost && session.host_candidate !== currentPlayer.id"
             class="btn btn-primary btn-sm w-full"
-            @click="proposeHost(); showRolesModal = false"
+            @click="proposeHostFromRoles"
           >
             {{ isOwner ? t('room.reclaim_host') : t('room.become_host') }}
           </button>
@@ -717,14 +717,14 @@
             <div v-if="isDJ && djCandidate" class="alert alert-info py-2 text-sm flex items-center justify-between gap-2">
               <span>{{ t('room.dj_candidate_banner', { name: djCandidate.name }) }}</span>
               <div class="flex gap-2 shrink-0">
-                <button class="btn btn-xs btn-success" @click="approveDJ(); showRolesModal = false">{{ t('room.dj_accept') }}</button>
+                <button class="btn btn-xs btn-success" @click="approveDJFromRoles">{{ t('room.dj_accept') }}</button>
                 <button class="btn btn-xs btn-ghost" @click="rejectDJ">{{ t('room.dj_reject') }}</button>
               </div>
             </div>
             <button
               v-if="!isDJ && session.dj_candidate !== currentPlayer.id"
               class="btn btn-accent btn-sm w-full"
-              @click="proposeDJ(); showRolesModal = false"
+              @click="proposeDJFromRoles"
             >
               {{ t('room.become_dj') }}
             </button>
@@ -950,21 +950,21 @@
         </button>
       </div>
       <nav class="flex-1 overflow-y-auto p-2 flex flex-col gap-1">
-        <button class="btn btn-ghost justify-start gap-3" @click="showMenuDrawer = false; showRolesModal = true">
+        <button class="btn btn-ghost justify-start gap-3" @click="openRolesFromMenu">
           <span class="text-base">👑</span>
           <span class="flex-1 text-left">{{ rolesTitle }}</span>
           <span v-if="hasPendingRoleRequest" class="h-2 w-2 rounded-full bg-error"></span>
         </button>
-        <button class="btn btn-ghost justify-start gap-3" @click="showMenuDrawer = false; showParticipantsModal = true">
+        <button class="btn btn-ghost justify-start gap-3" @click="openParticipantsFromMenu">
           <span class="i-fa-solid-users text-base text-base-content/60"></span>
           <span class="flex-1 text-left">{{ t('room.participants') }}</span>
           <span class="badge badge-sm">{{ onlinePlayers.length }}</span>
         </button>
-        <button class="btn btn-ghost justify-start gap-3" @click="showMenuDrawer = false; shareQr?.open()">
+        <button class="btn btn-ghost justify-start gap-3" @click="openShareFromMenu">
           <span class="i-fa-solid-qrcode text-base text-base-content/60"></span>
           <span class="flex-1 text-left">{{ t('share.title') }}</span>
         </button>
-        <button class="btn btn-ghost justify-start gap-3" @click="showMenuDrawer = false; openSettingsModal()">
+        <button class="btn btn-ghost justify-start gap-3" @click="openSettingsFromMenu">
           <span class="i-fa6-solid-gear text-base text-base-content/60"></span>
           <span class="flex-1 text-left">{{ t('room.settings') }}</span>
         </button>
@@ -979,14 +979,14 @@
           <button
             v-if="canReset"
             class="btn btn-ghost justify-start gap-3 text-warning"
-            @click="showMenuDrawer = false; showResetModal = true"
+            @click="openResetFromMenu"
           >
             <span class="i-fa6-solid-rotate-left text-base"></span>
             <span class="flex-1 text-left">{{ t('room.reset') }}</span>
           </button>
         </template>
 
-        <button v-if="canClaim" class="btn btn-ghost justify-start gap-3 text-primary" @click="showMenuDrawer = false; claimSession()">
+        <button v-if="canClaim" class="btn btn-ghost justify-start gap-3 text-primary" @click="claimSessionFromMenu">
           <span class="i-fa-solid-link text-base"></span>
           <span class="flex-1 text-left">{{ t('room.claim_session') }}</span>
         </button>
@@ -1962,6 +1962,52 @@ const approveHost = () =>
   pb.collection('sessions').update(props.session.id, { host: props.session.host_candidate, host_candidate: null })
 const rejectHost = () =>
   pb.collection('sessions').update(props.session.id, { host_candidate: null })
+
+// Entry points for the roles modal and the menu drawer. They exist so the
+// template never needs two statements in one handler: the formatter rewrites
+// `@click="a(); b = false"` across lines and drops the semicolon, which the
+// Vue compiler then refuses to parse.
+const approveHostFromRoles = () => {
+  showRolesModal.value = false
+  return approveHost()
+}
+const proposeHostFromRoles = () => {
+  showRolesModal.value = false
+  return proposeHost()
+}
+const approveDJFromRoles = () => {
+  showRolesModal.value = false
+  return approveDJ()
+}
+const proposeDJFromRoles = () => {
+  showRolesModal.value = false
+  return proposeDJ()
+}
+
+const openRolesFromMenu = () => {
+  showMenuDrawer.value = false
+  showRolesModal.value = true
+}
+const openParticipantsFromMenu = () => {
+  showMenuDrawer.value = false
+  showParticipantsModal.value = true
+}
+const openShareFromMenu = () => {
+  showMenuDrawer.value = false
+  shareQr.value?.open()
+}
+const openSettingsFromMenu = () => {
+  showMenuDrawer.value = false
+  openSettingsModal()
+}
+const openResetFromMenu = () => {
+  showMenuDrawer.value = false
+  showResetModal.value = true
+}
+const claimSessionFromMenu = () => {
+  showMenuDrawer.value = false
+  return claimSession()
+}
 
 const resetSession = async () => {
   resetting.value = true
