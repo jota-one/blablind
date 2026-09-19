@@ -83,6 +83,7 @@ Priorité basse — indifférents au présentiel :
 
 ## History (done)
 
+- [2026-09-19] Adjust a track's timings from the game — a queued track you added now has an edit button that unfolds its start, excerpt length and reveal fields right in the list, without removing and re-adding it.
 - [2026-09-19] Search and favorites no longer overlap — switching to the Favorites tab while adding a track now hides the search results instead of stacking both lists in the same panel, in a game and in the playlist editor.
 - [2026-09-19] Tutorial page — a step-by-step guide at `/tutorial` that opens on creating an account, then covers building a blindtest, inviting players, playing a round and the member area, with FR/EN screenshots switchable between mobile and desktop. Linked from the nav, the footer and the home page.
 - [2026-09-18] Truer track previews in the member area — previewing a track from its start now plays only the excerpt and stops at the chosen length, the reveal position can be auditioned on its own, and only one track ever plays at a time across the list, the search and the favorites picker.

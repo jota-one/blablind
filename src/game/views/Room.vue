@@ -646,7 +646,7 @@
                       :key="track.id"
                       :data-id="track.id"
                       :class="[
-                        'flex items-center gap-3 rounded-lg px-3 py-2 transition-colors',
+                        'rounded-lg transition-colors',
                         track.status === 'playing'
                           ? 'bg-primary/10 border border-primary/30'
                           : 'bg-base-200',
@@ -654,71 +654,101 @@
                         isMyTrack(track) && track.status === 'queued' ? 'draggable-track' : '',
                       ]"
                     >
-                      <span
-                        v-if="isMyTrack(track) && track.status === 'queued'"
-                        class="drag-handle cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/50 w-6 text-center shrink-0 touch-none"
-                        ><span class="i-fa6-solid-grip-vertical"></span
-                      ></span>
-                      <span v-else class="text-base w-6 text-center shrink-0">{{
-                        trackStatusEmoji(track)
-                      }}</span>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium truncate">
-                          <template v-if="isMyTrack(track)">
-                            <span class="text-primary">{{
-                              track.expand?.video?.title || t('room.no_title')
-                            }}</span>
-                            <span class="badge badge-xs badge-primary ml-1">{{
-                              t('room.my_badge')
-                            }}</span>
-                          </template>
-                          <template v-else>???</template>
-                        </p>
-                        <p
-                          v-if="isMyTrack(track) && track.expand?.video?.artist"
-                          class="text-xs text-base-content/50"
-                        >
-                          {{ track.expand?.video?.artist }}
-                        </p>
-                        <p v-if="!isMyTrack(track)" class="text-xs text-base-content/40 mt-0.5">
-                          {{ t('room.added_by', { player: getPlayerName(track.added_by) }) }}
-                        </p>
+                      <div class="flex items-center gap-3 px-3 py-2">
+                        <span
+                          v-if="isMyTrack(track) && track.status === 'queued'"
+                          class="drag-handle cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/50 w-6 text-center shrink-0 touch-none"
+                          ><span class="i-fa6-solid-grip-vertical"></span
+                        ></span>
+                        <span v-else class="text-base w-6 text-center shrink-0">{{
+                          trackStatusEmoji(track)
+                        }}</span>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-sm font-medium truncate">
+                            <template v-if="isMyTrack(track)">
+                              <span class="text-primary">{{
+                                track.expand?.video?.title || t('room.no_title')
+                              }}</span>
+                              <span class="badge badge-xs badge-primary ml-1">{{
+                                t('room.my_badge')
+                              }}</span>
+                            </template>
+                            <template v-else>???</template>
+                          </p>
+                          <p
+                            v-if="isMyTrack(track) && track.expand?.video?.artist"
+                            class="text-xs text-base-content/50"
+                          >
+                            {{ track.expand?.video?.artist }}
+                          </p>
+                          <p v-if="!isMyTrack(track)" class="text-xs text-base-content/40 mt-0.5">
+                            {{ t('room.added_by', { player: getPlayerName(track.added_by) }) }}
+                          </p>
+                          <TrackTimingBadges
+                            v-if="isMyTrack(track)"
+                            :track="track"
+                            class="sm:hidden mt-0.5"
+                          />
+                        </div>
                         <TrackTimingBadges
                           v-if="isMyTrack(track)"
                           :track="track"
-                          class="sm:hidden mt-0.5"
+                          class="hidden sm:flex shrink-0"
+                        />
+                        <template v-if="isMyTrack(track) && track.status === 'queued'">
+                          <button
+                            v-if="confirmDeleteId !== track.id"
+                            :class="[
+                              'btn btn-ghost btn-xs shrink-0',
+                              editingTrackId === track.id
+                                ? 'text-primary'
+                                : 'text-base-content/30 hover:text-primary',
+                            ]"
+                            :title="t('room.edit_timings')"
+                            @click.stop="toggleTimingEditor(track)"
+                          >
+                            <span class="i-fa6-solid-sliders"></span>
+                          </button>
+                          <button
+                            v-if="confirmDeleteId !== track.id"
+                            class="btn btn-ghost btn-xs text-base-content/30 hover:text-error shrink-0"
+                            :disabled="!canDeleteTrack"
+                            :title="t('room.delete_track')"
+                            @click.stop="requestDeleteTrack(track.id)"
+                          >
+                            <span class="i-fa6-solid-trash"></span>
+                          </button>
+                          <template v-else>
+                            <button
+                              class="btn btn-ghost btn-xs text-error shrink-0"
+                              @click.stop="confirmDeleteTrack(track.id)"
+                            >
+                              <span class="i-fa6-solid-check"></span>
+                            </button>
+                            <button
+                              class="btn btn-ghost btn-xs text-base-content/30 shrink-0"
+                              @click.stop="confirmDeleteId = null"
+                            >
+                              <span class="i-fa6-solid-xmark"></span>
+                            </button>
+                          </template>
+                        </template>
+                      </div>
+
+                      <!-- Timing editor. No audition here: an excerpt would play
+                           over the track the others are currently guessing. -->
+                      <div
+                        v-if="editingTrackId === track.id && track.status === 'queued'"
+                        class="px-3 pb-2 pt-1 border-t border-base-300/60"
+                      >
+                        <TrackTimings
+                          v-if="timingDraft"
+                          :track="timingDraft"
+                          :allow-preview="false"
+                          wrap="flex flex-wrap items-center gap-x-4 gap-y-1"
+                          @save="saveTrackTiming"
                         />
                       </div>
-                      <TrackTimingBadges
-                        v-if="isMyTrack(track)"
-                        :track="track"
-                        class="hidden sm:flex shrink-0"
-                      />
-                      <template v-if="isMyTrack(track) && track.status === 'queued'">
-                        <button
-                          v-if="confirmDeleteId !== track.id"
-                          class="btn btn-ghost btn-xs text-base-content/30 hover:text-error shrink-0"
-                          :disabled="!canDeleteTrack"
-                          :title="t('room.delete_track')"
-                          @click.stop="requestDeleteTrack(track.id)"
-                        >
-                          <span class="i-fa6-solid-trash"></span>
-                        </button>
-                        <template v-else>
-                          <button
-                            class="btn btn-ghost btn-xs text-error shrink-0"
-                            @click.stop="confirmDeleteTrack(track.id)"
-                          >
-                            <span class="i-fa6-solid-check"></span>
-                          </button>
-                          <button
-                            class="btn btn-ghost btn-xs text-base-content/30 shrink-0"
-                            @click.stop="confirmDeleteId = null"
-                          >
-                            <span class="i-fa6-solid-xmark"></span>
-                          </button>
-                        </template>
-                      </template>
                     </li>
                   </ul>
                   <p v-else class="text-sm text-center text-base-content/40 py-4">
@@ -1596,6 +1626,7 @@ import FavoritesPicker from '@game/components/FavoritesPicker.vue'
 import YoutubePlayer from '@game/components/YoutubePlayer.vue'
 import TrackSearch from '@game/components/TrackSearch.vue'
 import TrackTimingBadges from '@game/components/TrackTimingBadges.vue'
+import TrackTimings from '@game/components/TrackTimings.vue'
 import ShareQR from '@game/components/ShareQR.vue'
 import GameOver from '@game/components/GameOver.vue'
 import SolvedOverlay from '@game/components/SolvedOverlay.vue'
@@ -1672,6 +1703,7 @@ const {
   voteToSkip,
   cancelSkipVote,
   deleteTrack,
+  updateTiming,
 } = useTracks(props.session.id)
 
 const myDuplicateTrack = computed(
@@ -2489,6 +2521,39 @@ const confirmDeleteTrack = async (trackId: string) => {
   await deleteTrack(trackId)
 }
 
+// Timing editor for a queued track you added. One row open at a time, so the
+// list stays readable on a phone.
+//
+// TrackTimings edits its `track` in place, but the record it would edit is
+// replaced wholesale by the realtime echo of the previous save — which lands
+// mid-typing and wipes the field being filled. So it edits a detached draft,
+// and only the draft is persisted.
+const editingTrackId = ref<string | null>(null)
+const timingDraft = ref<{
+  start_seconds: number | null
+  playback_duration: number | null
+  reveal_seconds: number | null
+} | null>(null)
+
+const toggleTimingEditor = (track: any) => {
+  if (editingTrackId.value === track.id) {
+    editingTrackId.value = null
+    timingDraft.value = null
+    return
+  }
+  editingTrackId.value = track.id
+  timingDraft.value = {
+    start_seconds: track.start_seconds ?? 0,
+    playback_duration: track.playback_duration ?? null,
+    reveal_seconds: track.reveal_seconds ?? null,
+  }
+}
+
+const saveTrackTiming = () => {
+  if (!editingTrackId.value || !timingDraft.value) return
+  return updateTiming(editingTrackId.value, timingDraft.value)
+}
+
 const trackStatusEmoji = (track: any) => {
   if (track.status === 'playing') return '🎵'
   if (track.status === 'queued') return '🎶'
@@ -2729,16 +2794,14 @@ const resetSession = async () => {
       // Scores are derived from tracks.solved_by, reset below — no player write needed.
       ...tracks.value.map(
         t => (b: ReturnType<typeof pb.createBatch>) =>
-          b
-            .collection('tracks')
-            .update(t.id, {
-              status: 'queued',
-              solved_by: null,
-              skip_votes: [],
-              is_duplicate: false,
-              skip_revealed: false,
-              phase: null,
-            }),
+          b.collection('tracks').update(t.id, {
+            status: 'queued',
+            solved_by: null,
+            skip_votes: [],
+            is_duplicate: false,
+            skip_revealed: false,
+            phase: null,
+          }),
       ),
       (b: ReturnType<typeof pb.createBatch>) =>
         b.collection('sessions').update(props.session.id, { status: 'waiting' }),

@@ -69,6 +69,32 @@ export default function useTracks(sessionId: string) {
 
   const deleteTrack = (trackId: string) => pb.collection('tracks').delete(trackId)
 
+  /**
+   * Persists the three timings of a queued track. `requestKey: null` because
+   * several fields can be saved in a row (one change event each) and the SDK
+   * would otherwise auto-cancel the earlier calls.
+   */
+  const updateTiming = (
+    trackId: string,
+    timings: {
+      start_seconds?: number | null
+      playback_duration?: number | null
+      reveal_seconds?: number | null
+    },
+  ) => {
+    const positive = (v: number | null | undefined) =>
+      typeof v === 'number' && v > 0 ? Math.floor(v) : null
+    return pb.collection('tracks').update(
+      trackId,
+      {
+        start_seconds: Math.max(0, Math.floor(timings.start_seconds || 0)),
+        playback_duration: positive(timings.playback_duration),
+        reveal_seconds: positive(timings.reveal_seconds),
+      },
+      { requestKey: null },
+    )
+  }
+
   let unsubscribe: (() => void) | undefined
   let unsubscribeReconnect: (() => void) | undefined
 
@@ -115,5 +141,6 @@ export default function useTracks(sessionId: string) {
     voteToSkip,
     cancelSkipVote,
     deleteTrack,
+    updateTiming,
   }
 }

@@ -125,6 +125,7 @@
   "room.dj_reject": "Refuser",
   "room.no_upcoming": "Aucun morceau à venir",
   "room.delete_track": "Supprimer ce morceau",
+  "room.edit_timings": "Ajuster les timings",
   "room.shuffle_my_tracks": "Mélanger mes morceaux",
   "room.shuffle_all_tracks": "Mélanger tous les morceaux",
   "room.buzz_won": "À toi de parler !",

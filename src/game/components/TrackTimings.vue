@@ -16,7 +16,7 @@
 
       <!-- Positions can be auditioned; a duration cannot. -->
       <button
-        v-if="field.position"
+        v-if="field.position && allowPreview"
         type="button"
         class="btn btn-xs btn-ghost shrink-0 px-1"
         :title="isPreviewingAt(field) ? t('track.stop_preview') : t('track.play_preview')"
@@ -65,11 +65,15 @@ type Props = {
   // Only provided while previewing, which is also what reveals the capture buttons.
   getPreviewTime?: () => number
   wrap?: string
+  // Off inside a running game: an excerpt would play over the track everyone is
+  // currently guessing.
+  allowPreview?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   previewingAt: null,
   wrap: 'flex flex-wrap gap-x-4 gap-y-1',
+  allowPreview: true,
 })
 
 const emit = defineEmits<{
