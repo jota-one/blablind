@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate GitHub App token
-        uses: actions/create-github-app-token@v1.11.6
+        uses: actions/create-github-app-token@v3
         id: app-token
         with:
-          app-id: ${{ secrets.JOTA_INFRA_APP_ID }}
+          client-id: ${{ secrets.JOTA_INFRA_APP_ID }}
           private-key: ${{ secrets.JOTA_INFRA_APP_PRIVATE_KEY }}
           owner: jota-one
 
@@ -49,16 +49,16 @@ jobs:
     needs: deploy-db
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         name: Install pnpm
         with:
           version: 10
           run_install: false
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -74,7 +74,7 @@ jobs:
           mkdir _artifact && cp -r ${{ env.PB_PATH }} _artifact
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: _artifact
@@ -86,10 +86,10 @@ jobs:
     needs: build
     steps:
       - name: Generate GitHub App token
-        uses: actions/create-github-app-token@v1.11.6
+        uses: actions/create-github-app-token@v3
         id: app-token
         with:
-          app-id: ${{ secrets.JOTA_INFRA_APP_ID }}
+          client-id: ${{ secrets.JOTA_INFRA_APP_ID }}
           private-key: ${{ secrets.JOTA_INFRA_APP_PRIVATE_KEY }}
           owner: jota-one
 
