@@ -158,18 +158,14 @@ const handleSignup = async () => {
   loading.value = true
 
   try {
-    // Get user role ID
-    const userRole = await pb.collection('roles').getFirstListItem('slug="user"')
-
-    // Create user with verified=false and user role
+    // The server assigns the user role and leaves the account unverified
+    // (pb_hooks/user_signup_role.pb.js): the API refuses either field here.
     const formData = new FormData()
     formData.append('email', form.value.email.trim())
     formData.append('name', form.value.name.trim())
     formData.append('password', form.value.password)
     formData.append('passwordConfirm', form.value.passwordConfirm)
     formData.append('emailVisibility', 'false')
-    formData.append('verified', 'false')
-    formData.append('roles', userRole.id)
 
     await pb.collection('users').create(formData)
     await pb.collection('users').requestVerification(form.value.email.trim())
