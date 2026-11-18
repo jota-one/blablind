@@ -13,19 +13,19 @@ importers:
     dependencies:
       '@astrojs/check':
         specifier: ^0.9.12
-        version: 0.9.12(prettier@3.10.1)(typescript@5.9.3)
+        version: 0.9.12(prettier@3.10.1)(typescript@6.0.3)
       '@astrojs/node':
         specifier: ^11.1.13
         version: 11.1.13(astro@7.4.12(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))
       '@astrojs/vue':
         specifier: ^7.1.6
-        version: 7.1.6(@types/node@25.9.9)(astro@7.4.12(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(esbuild@0.28.1)(jiti@2.7.0)(vue@3.5.45(typescript@5.9.3))(yaml@2.9.1)
+        version: 7.1.6(@types/node@25.9.9)(astro@7.4.12(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(esbuild@0.28.1)(jiti@2.7.0)(vue@3.5.45(typescript@6.0.3))(yaml@2.9.1)
       '@fontsource-variable/oswald':
         specifier: ^5.3.0
         version: 5.3.0
       '@jota-one/i36n':
         specifier: ^3.0.1
-        version: 3.0.1(vue@3.5.45(typescript@5.9.3))
+        version: 3.0.1(vue@3.5.45(typescript@6.0.3))
       '@primeuix/themes':
         specifier: ^2.0.3
         version: 2.0.3
@@ -34,7 +34,7 @@ importers:
         version: 4.3.5(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))
       '@vueuse/core':
         specifier: ^15.0.0
-        version: 15.0.0(vue@3.5.45(typescript@5.9.3))
+        version: 15.0.0(vue@3.5.45(typescript@6.0.3))
       astro:
         specifier: ^7.4.12
         version: 7.4.12(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1)
@@ -49,7 +49,7 @@ importers:
         version: 0.29.0
       primevue:
         specifier: ^4.5.5
-        version: 4.5.5(vue@3.5.45(typescript@5.9.3))
+        version: 4.5.5(vue@3.5.45(typescript@6.0.3))
       qr-code-styling:
         specifier: ^1.9.2
         version: 1.9.2
@@ -58,10 +58,10 @@ importers:
         version: 4.3.5
       vue:
         specifier: ^3.5.45
-        version: 3.5.45(typescript@5.9.3)
+        version: 3.5.45(typescript@6.0.3)
       vue-router:
         specifier: ^5.5.1
-        version: 5.5.1(@vue/compiler-sfc@3.5.45)(esbuild@0.28.1)(rolldown@1.2.19)(rollup@4.60.2)(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@5.9.3))
+        version: 5.5.1(@vue/compiler-sfc@3.5.45)(esbuild@0.28.1)(rolldown@1.2.19)(rollup@4.60.2)(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@6.0.3))
     devDependencies:
       '@egoist/tailwindcss-icons':
         specifier: ^1.9.2
@@ -103,8 +103,8 @@ importers:
         specifier: ^1.15.7
         version: 1.15.7
       typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
+        specifier: ^6.0.3
+        version: 6.0.3
 
 packages:
 
@@ -2807,8 +2807,8 @@ packages:
   typescript-auto-import-cache@0.3.6:
     resolution: {integrity: sha512-RpuHXrknHdVdK7wv/8ug3Fr0WNsNi5l5aB8MYYuXhq2UH5lnEB1htJ1smhtD5VeCsGr2p8mUDtd83LCQDFVgjQ==}
 
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -3246,12 +3246,12 @@ snapshots:
       '@emnapi/runtime': 1.11.3
       '@napi-rs/wasm-runtime': 1.2.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
 
-  '@astrojs/check@0.9.12(prettier@3.10.1)(typescript@5.9.3)':
+  '@astrojs/check@0.9.12(prettier@3.10.1)(typescript@6.0.3)':
     dependencies:
-      '@astrojs/language-server': 2.17.3(prettier@3.10.1)(typescript@5.9.3)
+      '@astrojs/language-server': 2.17.3(prettier@3.10.1)(typescript@6.0.3)
       chokidar: 5.0.0
       kleur: 4.1.5
-      typescript: 5.9.3
+      typescript: 6.0.3
       yargs: 18.2.0
     transitivePeerDependencies:
       - prettier
@@ -3319,23 +3319,23 @@ snapshots:
       unified: 11.0.5
       yaml: 2.9.1
 
-  '@astrojs/language-server@2.17.3(prettier@3.10.1)(typescript@5.9.3)':
+  '@astrojs/language-server@2.17.3(prettier@3.10.1)(typescript@6.0.3)':
     dependencies:
       '@astrojs/astro2tsx': 0.1.4
       '@astrojs/yaml2ts': 0.2.4
-      '@volar/kit': 2.4.31(typescript@5.9.3)
+      '@volar/kit': 2.4.31(typescript@6.0.3)
       '@volar/language-core': 2.4.31
-      '@volar/language-server': 2.4.31(typescript@5.9.3)
-      '@volar/language-service': 2.4.31(typescript@5.9.3)
+      '@volar/language-server': 2.4.31(typescript@6.0.3)
+      '@volar/language-service': 2.4.31(typescript@6.0.3)
       muggle-string: 0.4.1
       tinyglobby: 0.2.17
-      volar-service-css: 0.0.71(@volar/language-service@2.4.31(typescript@5.9.3))
-      volar-service-emmet: 0.0.71(@volar/language-service@2.4.31(typescript@5.9.3))
-      volar-service-html: 0.0.71(@volar/language-service@2.4.31(typescript@5.9.3))
-      volar-service-prettier: 0.0.71(@volar/language-service@2.4.31(typescript@5.9.3))(prettier@3.10.1)
-      volar-service-typescript: 0.0.71(@volar/language-service@2.4.31(typescript@5.9.3))
-      volar-service-typescript-twoslash-queries: 0.0.71(@volar/language-service@2.4.31(typescript@5.9.3))
-      volar-service-yaml: 0.0.71(@volar/language-service@2.4.31(typescript@5.9.3))
+      volar-service-css: 0.0.71(@volar/language-service@2.4.31(typescript@6.0.3))
+      volar-service-emmet: 0.0.71(@volar/language-service@2.4.31(typescript@6.0.3))
+      volar-service-html: 0.0.71(@volar/language-service@2.4.31(typescript@6.0.3))
+      volar-service-prettier: 0.0.71(@volar/language-service@2.4.31(typescript@6.0.3))(prettier@3.10.1)
+      volar-service-typescript: 0.0.71(@volar/language-service@2.4.31(typescript@6.0.3))
+      volar-service-typescript-twoslash-queries: 0.0.71(@volar/language-service@2.4.31(typescript@6.0.3))
+      volar-service-yaml: 0.0.71(@volar/language-service@2.4.31(typescript@6.0.3))
       vscode-html-languageservice: 5.6.2
       vscode-uri: 3.2.0
     optionalDependencies:
@@ -3388,22 +3388,22 @@ snapshots:
       vite: 8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1)
       zod: 4.6.7
 
-  '@astrojs/vue-renderer@0.1.2(vue@3.5.45(typescript@5.9.3))':
+  '@astrojs/vue-renderer@0.1.2(vue@3.5.45(typescript@6.0.3))':
     dependencies:
       '@astrojs/runtime': 0.1.1
-      vue: 3.5.45(typescript@5.9.3)
+      vue: 3.5.45(typescript@6.0.3)
 
-  '@astrojs/vue@7.1.6(@types/node@25.9.9)(astro@7.4.12(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(esbuild@0.28.1)(jiti@2.7.0)(vue@3.5.45(typescript@5.9.3))(yaml@2.9.1)':
+  '@astrojs/vue@7.1.6(@types/node@25.9.9)(astro@7.4.12(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(esbuild@0.28.1)(jiti@2.7.0)(vue@3.5.45(typescript@6.0.3))(yaml@2.9.1)':
     dependencies:
       '@astrojs/internal-helpers': 0.13.2
-      '@astrojs/vue-renderer': 0.1.2(vue@3.5.45(typescript@5.9.3))
-      '@vitejs/plugin-vue': 6.0.11(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@5.9.3))
-      '@vitejs/plugin-vue-jsx': 5.1.6(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@5.9.3))
+      '@astrojs/vue-renderer': 0.1.2(vue@3.5.45(typescript@6.0.3))
+      '@vitejs/plugin-vue': 6.0.11(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@6.0.3))
+      '@vitejs/plugin-vue-jsx': 5.1.6(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@6.0.3))
       '@vue/compiler-sfc': 3.5.45
       astro: 7.4.12(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1)
       vite: 8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1)
-      vite-plugin-vue-devtools: 8.2.1(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@5.9.3))
-      vue: 3.5.45(typescript@5.9.3)
+      vite-plugin-vue-devtools: 8.2.1(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@6.0.3))
+      vue: 3.5.45(typescript@6.0.3)
     transitivePeerDependencies:
       - '@nuxt/kit'
       - '@types/node'
@@ -3967,11 +3967,11 @@ snapshots:
   '@img/sharp-win32-x64@0.35.5':
     optional: true
 
-  '@jota-one/i36n@3.0.1(vue@3.5.45(typescript@5.9.3))':
+  '@jota-one/i36n@3.0.1(vue@3.5.45(typescript@6.0.3))':
     dependencies:
       '@jota-one/replacer': 0.4.0
       snarkdown: 2.0.0
-      vue: 3.5.45(typescript@5.9.3)
+      vue: 3.5.45(typescript@6.0.3)
 
   '@jota-one/replacer@0.4.0': {}
 
@@ -4177,16 +4177,16 @@ snapshots:
 
   '@primeuix/utils@0.6.4': {}
 
-  '@primevue/core@4.5.5(vue@3.5.45(typescript@5.9.3))':
+  '@primevue/core@4.5.5(vue@3.5.45(typescript@6.0.3))':
     dependencies:
       '@primeuix/styled': 0.7.4
       '@primeuix/utils': 0.6.4
-      vue: 3.5.45(typescript@5.9.3)
+      vue: 3.5.45(typescript@6.0.3)
 
-  '@primevue/icons@4.5.5(vue@3.5.45(typescript@5.9.3))':
+  '@primevue/icons@4.5.5(vue@3.5.45(typescript@6.0.3))':
     dependencies:
       '@primeuix/utils': 0.6.4
-      '@primevue/core': 4.5.5(vue@3.5.45(typescript@5.9.3))
+      '@primevue/core': 4.5.5(vue@3.5.45(typescript@6.0.3))
     transitivePeerDependencies:
       - vue
 
@@ -4467,7 +4467,7 @@ snapshots:
 
   '@ungap/structured-clone@1.4.0': {}
 
-  '@vitejs/plugin-vue-jsx@5.1.6(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@5.9.3))':
+  '@vitejs/plugin-vue-jsx@5.1.6(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@6.0.3))':
     dependencies:
       '@babel/core': 7.29.13
       '@babel/plugin-syntax-typescript': 7.29.7(@babel/core@7.29.13)
@@ -4475,22 +4475,22 @@ snapshots:
       '@rolldown/pluginutils': 1.1.1
       '@vue/babel-plugin-jsx': 2.0.1(@babel/core@7.29.13)
       vite: 8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1)
-      vue: 3.5.45(typescript@5.9.3)
+      vue: 3.5.45(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
 
-  '@vitejs/plugin-vue@6.0.11(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@5.9.3))':
+  '@vitejs/plugin-vue@6.0.11(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@6.0.3))':
     dependencies:
       '@rolldown/pluginutils': 1.1.1
       vite: 8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1)
-      vue: 3.5.45(typescript@5.9.3)
+      vue: 3.5.45(typescript@6.0.3)
 
-  '@volar/kit@2.4.31(typescript@5.9.3)':
+  '@volar/kit@2.4.31(typescript@6.0.3)':
     dependencies:
-      '@volar/language-service': 2.4.31(typescript@5.9.3)
-      '@volar/typescript': 2.4.31(typescript@5.9.3)
+      '@volar/language-service': 2.4.31(typescript@6.0.3)
+      '@volar/typescript': 2.4.31(typescript@6.0.3)
       typesafe-path: 0.2.2
-      typescript: 5.9.3
+      typescript: 6.0.3
       vscode-languageserver-textdocument: 1.0.16
       vscode-uri: 3.2.0
 
@@ -4498,11 +4498,11 @@ snapshots:
     dependencies:
       '@volar/source-map': 2.4.31
 
-  '@volar/language-server@2.4.31(typescript@5.9.3)':
+  '@volar/language-server@2.4.31(typescript@6.0.3)':
     dependencies:
       '@volar/language-core': 2.4.31
-      '@volar/language-service': 2.4.31(typescript@5.9.3)
-      '@volar/typescript': 2.4.31(typescript@5.9.3)
+      '@volar/language-service': 2.4.31(typescript@6.0.3)
+      '@volar/typescript': 2.4.31(typescript@6.0.3)
       path-browserify: 1.0.1
       request-light: 0.7.0
       vscode-languageserver: 9.0.1
@@ -4510,27 +4510,27 @@ snapshots:
       vscode-languageserver-textdocument: 1.0.16
       vscode-uri: 3.2.0
     optionalDependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
 
-  '@volar/language-service@2.4.31(typescript@5.9.3)':
+  '@volar/language-service@2.4.31(typescript@6.0.3)':
     dependencies:
       '@volar/language-core': 2.4.31
       vscode-languageserver-protocol: 3.18.5
       vscode-languageserver-textdocument: 1.0.16
       vscode-uri: 3.2.0
     optionalDependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
 
   '@volar/source-map@2.4.31': {}
 
-  '@volar/typescript@2.4.31(typescript@5.9.3)':
+  '@volar/typescript@2.4.31(typescript@6.0.3)':
     dependencies:
       '@volar/language-core': 2.4.31
-      '@volar/language-service': 2.4.31(typescript@5.9.3)
+      '@volar/language-service': 2.4.31(typescript@6.0.3)
       path-browserify: 1.0.1
       vscode-uri: 3.2.0
     optionalDependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
 
   '@vscode/emmet-helper@2.11.0':
     dependencies:
@@ -4542,7 +4542,7 @@ snapshots:
 
   '@vscode/l10n@0.0.18': {}
 
-  '@vue-macros/common@3.1.4(vue@3.5.45(typescript@5.9.3))':
+  '@vue-macros/common@3.1.4(vue@3.5.45(typescript@6.0.3))':
     dependencies:
       '@vue/compiler-sfc': 3.5.45
       ast-kit: 2.2.0
@@ -4550,7 +4550,7 @@ snapshots:
       magic-string-ast: 1.0.3
       unplugin-utils: 0.3.2
     optionalDependencies:
-      vue: 3.5.45(typescript@5.9.3)
+      vue: 3.5.45(typescript@6.0.3)
 
   '@vue/babel-helper-vue-transform-on@1.5.0': {}
 
@@ -4644,11 +4644,11 @@ snapshots:
     dependencies:
       '@vue/devtools-kit': 8.2.1
 
-  '@vue/devtools-core@8.2.1(vue@3.5.45(typescript@5.9.3))':
+  '@vue/devtools-core@8.2.1(vue@3.5.45(typescript@6.0.3))':
     dependencies:
       '@vue/devtools-kit': 8.2.1
       '@vue/devtools-shared': 8.2.1
-      vue: 3.5.45(typescript@5.9.3)
+      vue: 3.5.45(typescript@6.0.3)
 
   '@vue/devtools-kit@8.2.1':
     dependencies:
@@ -4683,18 +4683,18 @@ snapshots:
 
   '@vue/shared@3.5.45': {}
 
-  '@vueuse/core@15.0.0(vue@3.5.45(typescript@5.9.3))':
+  '@vueuse/core@15.0.0(vue@3.5.45(typescript@6.0.3))':
     dependencies:
       '@types/web-bluetooth': 0.0.21
       '@vueuse/metadata': 15.0.0
-      '@vueuse/shared': 15.0.0(vue@3.5.45(typescript@5.9.3))
-      vue: 3.5.45(typescript@5.9.3)
+      '@vueuse/shared': 15.0.0(vue@3.5.45(typescript@6.0.3))
+      vue: 3.5.45(typescript@6.0.3)
 
   '@vueuse/metadata@15.0.0': {}
 
-  '@vueuse/shared@15.0.0(vue@3.5.45(typescript@5.9.3))':
+  '@vueuse/shared@15.0.0(vue@3.5.45(typescript@6.0.3))':
     dependencies:
-      vue: 3.5.45(typescript@5.9.3)
+      vue: 3.5.45(typescript@6.0.3)
 
   acorn@8.19.0: {}
 
@@ -5506,13 +5506,13 @@ snapshots:
 
   prettier@3.10.1: {}
 
-  primevue@4.5.5(vue@3.5.45(typescript@5.9.3)):
+  primevue@4.5.5(vue@3.5.45(typescript@6.0.3)):
     dependencies:
       '@primeuix/styled': 0.7.4
       '@primeuix/styles': 2.0.3
       '@primeuix/utils': 0.6.4
-      '@primevue/core': 4.5.5(vue@3.5.45(typescript@5.9.3))
-      '@primevue/icons': 4.5.5(vue@3.5.45(typescript@5.9.3))
+      '@primevue/core': 4.5.5(vue@3.5.45(typescript@6.0.3))
+      '@primevue/icons': 4.5.5(vue@3.5.45(typescript@6.0.3))
     transitivePeerDependencies:
       - vue
 
@@ -5797,7 +5797,7 @@ snapshots:
     dependencies:
       semver: 7.8.6
 
-  typescript@5.9.3: {}
+  typescript@6.0.3: {}
 
   ufo@1.6.4: {}
 
@@ -5920,9 +5920,9 @@ snapshots:
       vite: 8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1)
       vite-dev-rpc: 2.0.0(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))
 
-  vite-plugin-vue-devtools@8.2.1(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@5.9.3)):
+  vite-plugin-vue-devtools@8.2.1(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@6.0.3)):
     dependencies:
-      '@vue/devtools-core': 8.2.1(vue@3.5.45(typescript@5.9.3))
+      '@vue/devtools-core': 8.2.1(vue@3.5.45(typescript@6.0.3))
       '@vue/devtools-kit': 8.2.1
       '@vue/devtools-shared': 8.2.1
       sirv: 3.0.2
@@ -5967,45 +5967,45 @@ snapshots:
     optionalDependencies:
       vite: 8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1)
 
-  volar-service-css@0.0.71(@volar/language-service@2.4.31(typescript@5.9.3)):
+  volar-service-css@0.0.71(@volar/language-service@2.4.31(typescript@6.0.3)):
     dependencies:
       vscode-css-languageservice: 6.3.10
       vscode-languageserver-textdocument: 1.0.16
       vscode-uri: 3.2.0
     optionalDependencies:
-      '@volar/language-service': 2.4.31(typescript@5.9.3)
+      '@volar/language-service': 2.4.31(typescript@6.0.3)
 
-  volar-service-emmet@0.0.71(@volar/language-service@2.4.31(typescript@5.9.3)):
+  volar-service-emmet@0.0.71(@volar/language-service@2.4.31(typescript@6.0.3)):
     dependencies:
       '@emmetio/css-parser': 0.4.1
       '@emmetio/html-matcher': 1.3.0
       '@vscode/emmet-helper': 2.11.0
       vscode-uri: 3.2.0
     optionalDependencies:
-      '@volar/language-service': 2.4.31(typescript@5.9.3)
+      '@volar/language-service': 2.4.31(typescript@6.0.3)
 
-  volar-service-html@0.0.71(@volar/language-service@2.4.31(typescript@5.9.3)):
+  volar-service-html@0.0.71(@volar/language-service@2.4.31(typescript@6.0.3)):
     dependencies:
       vscode-html-languageservice: 5.6.2
       vscode-languageserver-textdocument: 1.0.16
       vscode-uri: 3.2.0
     optionalDependencies:
-      '@volar/language-service': 2.4.31(typescript@5.9.3)
+      '@volar/language-service': 2.4.31(typescript@6.0.3)
 
-  volar-service-prettier@0.0.71(@volar/language-service@2.4.31(typescript@5.9.3))(prettier@3.10.1):
+  volar-service-prettier@0.0.71(@volar/language-service@2.4.31(typescript@6.0.3))(prettier@3.10.1):
     dependencies:
       vscode-uri: 3.2.0
     optionalDependencies:
-      '@volar/language-service': 2.4.31(typescript@5.9.3)
+      '@volar/language-service': 2.4.31(typescript@6.0.3)
       prettier: 3.10.1
 
-  volar-service-typescript-twoslash-queries@0.0.71(@volar/language-service@2.4.31(typescript@5.9.3)):
+  volar-service-typescript-twoslash-queries@0.0.71(@volar/language-service@2.4.31(typescript@6.0.3)):
     dependencies:
       vscode-uri: 3.2.0
     optionalDependencies:
-      '@volar/language-service': 2.4.31(typescript@5.9.3)
+      '@volar/language-service': 2.4.31(typescript@6.0.3)
 
-  volar-service-typescript@0.0.71(@volar/language-service@2.4.31(typescript@5.9.3)):
+  volar-service-typescript@0.0.71(@volar/language-service@2.4.31(typescript@6.0.3)):
     dependencies:
       path-browserify: 1.0.1
       semver: 7.8.6
@@ -6014,14 +6014,14 @@ snapshots:
       vscode-nls: 5.2.0
       vscode-uri: 3.2.0
     optionalDependencies:
-      '@volar/language-service': 2.4.31(typescript@5.9.3)
+      '@volar/language-service': 2.4.31(typescript@6.0.3)
 
-  volar-service-yaml@0.0.71(@volar/language-service@2.4.31(typescript@5.9.3)):
+  volar-service-yaml@0.0.71(@volar/language-service@2.4.31(typescript@6.0.3)):
     dependencies:
       vscode-uri: 3.2.0
       yaml-language-server: 1.23.0
     optionalDependencies:
-      '@volar/language-service': 2.4.31(typescript@5.9.3)
+      '@volar/language-service': 2.4.31(typescript@6.0.3)
 
   vscode-css-languageservice@6.3.10:
     dependencies:
@@ -6073,9 +6073,9 @@ snapshots:
 
   vscode-uri@3.2.0: {}
 
-  vue-router@5.5.1(@vue/compiler-sfc@3.5.45)(esbuild@0.28.1)(rolldown@1.2.19)(rollup@4.60.2)(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@5.9.3)):
+  vue-router@5.5.1(@vue/compiler-sfc@3.5.45)(esbuild@0.28.1)(rolldown@1.2.19)(rollup@4.60.2)(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.45(typescript@6.0.3)):
     dependencies:
-      '@vue-macros/common': 3.1.4(vue@3.5.45(typescript@5.9.3))
+      '@vue-macros/common': 3.1.4(vue@3.5.45(typescript@6.0.3))
       '@vue/devtools-api': 8.2.1
       ast-walker-scope: 0.10.0
       chokidar: 6.0.0
@@ -6091,7 +6091,7 @@ snapshots:
       tinyglobby: 0.2.17
       unplugin: 3.7.0(esbuild@0.28.1)(rolldown@1.2.19)(rollup@4.60.2)(vite@8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))
       unplugin-utils: 0.3.2
-      vue: 3.5.45(typescript@5.9.3)
+      vue: 3.5.45(typescript@6.0.3)
     optionalDependencies:
       '@vue/compiler-sfc': 3.5.45
       vite: 8.3.8(@types/node@25.9.9)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1)
@@ -6106,7 +6106,7 @@ snapshots:
       - unloader
       - webpack
 
-  vue@3.5.45(typescript@5.9.3):
+  vue@3.5.45(typescript@6.0.3):
     dependencies:
       '@vue/compiler-dom': 3.5.45
       '@vue/compiler-sfc': 3.5.45
@@ -6114,7 +6114,7 @@ snapshots:
       '@vue/server-renderer': 3.5.45
       '@vue/shared': 3.5.45
     optionalDependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
 
   webpack-virtual-modules@0.6.2: {}
 
