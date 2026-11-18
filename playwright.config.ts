@@ -23,7 +23,9 @@ export default defineConfig({
   use: {
     baseURL: BASE_URL,
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    // No video: it needs Playwright's own ffmpeg, versioned and garbage-collected
+    // like its Chromium. The trace kept on failure already holds a screencast.
+    video: 'off',
     trace: 'retain-on-failure',
     // SLOWMO=500 pnpm test:e2e --headed → slow enough to watch live.
     launchOptions: process.env.SLOWMO ? { slowMo: Number(process.env.SLOWMO) } : {},
