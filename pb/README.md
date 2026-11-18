@@ -16,7 +16,7 @@ server-side autonomous reconciler). See `docs/plans/09-webpush-go.md`.
 | jsvm (`pb_hooks`, `pb_migrations`)                          | yes       | yes                                                    |
 | CLI flags (`--hooksDir`, `--publicDir`, `--automigrate`, …) | yes       | yes, same defaults                                     |
 | `pocketbase update` (ghupdate plugin)                       | yes       | **removed** — self-updating would overwrite our binary |
-| reported version                                            | `v0.39.4` | `(untracked)`                                          |
+| reported version                                            | `v0.40.6` | `(untracked)`                                          |
 
 `(untracked)` is meaningful: infra's `bin/pb_install` skips any binary reporting
 that version, so a deploy never replaces a source-built one.

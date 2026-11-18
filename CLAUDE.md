@@ -1,6 +1,6 @@
 # BlaBlind — project instructions
 
-Real-time multiplayer music blindtest (buzzer game) on YouTube. Astro 7 shell + three Vue 3 SPAs + PocketBase 0.39 backend. Shared house rules in `~/Sites/CLAUDE.md` apply (commits, code style, PB migrations/hooks conventions).
+Real-time multiplayer music blindtest (buzzer game) on YouTube. Astro 7 shell + three Vue 3 SPAs + PocketBase 0.40 backend. Shared house rules in `~/Sites/CLAUDE.md` apply (commits, code style, PB migrations/hooks conventions).
 
 ## Commands
 
