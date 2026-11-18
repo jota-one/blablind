@@ -33,7 +33,7 @@
     "astro": "^7.4.12",
     "dayjs": "^1.11.23",
     "marked": "^17.0.6",
-    "pocketbase": "^0.26.9",
+    "pocketbase": "^0.29.0",
     "primevue": "^4.5.5",
     "qr-code-styling": "^1.9.2",
     "tailwindcss": "^4.3.5",
