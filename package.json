@@ -50,7 +50,7 @@
     "@tailwindcss/typography": "^0.5.20",
     "@types/node": "^25.9.9",
     "daisyui": "^5.8.1",
-    "oxfmt": "^0.43.0",
+    "oxfmt": "^0.79.0",
     "oxlint": "^1.94.0",
     "oxlint-tsgolint": "^7.0.2007",
     "sortablejs": "^1.15.7",
