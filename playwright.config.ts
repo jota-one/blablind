@@ -28,7 +28,10 @@ export default defineConfig({
     // SLOWMO=500 pnpm test:e2e --headed → slow enough to watch live.
     launchOptions: process.env.SLOWMO ? { slowMo: Number(process.env.SLOWMO) } : {},
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  // The installed Google Chrome, not Playwright's own Chromium: each Playwright
+  // version pins its own build, and installing one in another project
+  // garbage-collects the others — the suite then dies on a missing executable.
+  projects: [{ name: 'chrome', use: { ...devices['Desktop Chrome'], channel: 'chrome' } }],
   // Auto-start the stack; reuse it if you already have `pnpm db` / `pnpm dev`
   // running. PocketBase binds 0.0.0.0 so the browser app reaches the same DB the
   // seed client writes to, regardless of PUBLIC_PB_BASE_URI.
