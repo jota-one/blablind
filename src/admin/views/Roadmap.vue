@@ -56,7 +56,8 @@
           class="flex items-start gap-3 px-4 py-3 rounded-lg bg-base-100 border border-base-200"
         >
           <span class="i-fa6-solid-circle-dot text-primary/40 mt-1 shrink-0"></span>
-          <span class="text-sm text-base-content/80">{{ imp }}</span>
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <span class="text-sm text-base-content/80 roadmap-inline" v-html="renderInline(imp)" />
         </div>
       </div>
     </section>
@@ -78,9 +79,12 @@
               formatDate(entry.date)
             }}</time>
             <p class="font-semibold text-sm mt-0.5">{{ entry.title }}</p>
-            <p v-if="entry.detail" class="text-xs text-base-content/50 mt-0.5 line-clamp-2">
-              {{ entry.detail }}
-            </p>
+            <!-- eslint-disable-next-line vue/no-v-html -->
+            <p
+              v-if="entry.detail"
+              class="text-xs text-base-content/50 mt-0.5 line-clamp-2 roadmap-inline"
+              v-html="renderInline(entry.detail)"
+            />
           </div>
           <hr class="bg-success/30" />
         </li>
@@ -142,6 +146,7 @@ function parseRoadmap(raw: string) {
         const subContent = lines.join('\n').trim()
         const excerpt = subContent
           .replace(/`[^`]+`/g, '')
+          .replace(/\*\*/g, '')
           .split(/[.\n]/)[0]
           .trim()
         features.push({ title: title.trim(), excerpt, content: subContent })
@@ -181,6 +186,9 @@ const selectedFeatureHtml = computed(() =>
   selectedFeature.value ? String(marked.parse(selectedFeature.value.content)) : '',
 )
 
+// ROADMAP.md items are one-line markdown (bold, inline code): render them inline.
+const renderInline = (md: string) => String(marked.parseInline(md))
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const MONTHS_EN = [
@@ -217,3 +225,18 @@ const featureIcon = (title: string) => {
   return ICONS.find(([k]) => lower.includes(k))?.[1] ?? 'i-fa6-solid-star'
 }
 </script>
+
+<style scoped>
+.roadmap-inline :deep(strong) {
+  font-weight: 600;
+  color: var(--color-base-content);
+}
+
+.roadmap-inline :deep(code) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  padding: 0.05em 0.3em;
+  border-radius: 0.25rem;
+  background-color: var(--color-base-200);
+}
+</style>
