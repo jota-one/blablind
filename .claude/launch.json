@@ -6,6 +6,25 @@
       "runtimeExecutable": "backlog",
       "runtimeArgs": ["browser", "--port", "6423", "--no-open"],
       "port": 6423
+    },
+    {
+      "name": "pocketbase",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["db:custom"],
+      "port": 8093
+    },
+    {
+      "name": "astro",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PUBLIC_PB_BASE_URI=http://127.0.0.1:8093",
+        "pnpm",
+        "dev",
+        "--port",
+        "4331",
+        "--ignore-lock"
+      ],
+      "port": 4331
     }
   ]
 }
